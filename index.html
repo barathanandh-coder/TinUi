@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TinUI Engine Test</title>
+    <style>
+        /* A little baseline CSS so our test looks nice */
+        body { font-family: system-ui, sans-serif; background: #f4f4f5; padding: 2rem; }
+        .app-wrapper { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .flex-center { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+        .title { font-size: 1.5rem; font-weight: bold; color: #18181b; }
+        button { background: #3b82f6; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+    </style>
+    
+    <!-- 1. Load the TinyGo JS Bridge -->
+    <script src="wasm_exec.js"></script>
+</head>
+<body>
+    
+    <!-- 2. The DOM Mount Point -->
+    <div id="tinui-root"></div>
+
+    <!-- 3. The Minimal TinUI Bootloader -->
+    <script>
+        const go = new Go(); // Initialize the TinyGo environment
+        
+        async function bootTinUI() {
+            try {
+                // Step A: Stream and instantiate the WebAssembly binary
+                console.log("Downloading Wasm Engine...");
+                const wasm = await WebAssembly.instantiateStreaming(
+                    fetch("tinui_engine.wasm"), 
+                    go.importObject
+                );
+                
+                // Step B: Boot the Go Runtime (This keeps the Go memory alive)
+                go.run(wasm.instance);
+                
+                // Step C: Fetch the compiled Intermediate Representation (IR) from Phase 1
+                console.log("Fetching IR Instructions...");
+                const irResponse = await fetch("app.ir.json");
+                const irString = await irResponse.text();
+
+                // Step D: Pass the IR to the global function we exposed in Go
+                console.log("Executing IR...");
+                const status = window.BootTinUI(irString);
+                
+                console.log(status); // Should print "TinUI Engine Booted Successfully"
+                
+            } catch (err) {
+                console.error("TinUI Boot Error:", err);
+            }
+        }
+
+        // 1. Listen for standard clicks (from Phase 3)
+        document.getElementById("tinui-root").addEventListener("click", (e) => {
+            const action = e.target.getAttribute("data-action");
+            if (action) {
+                window.TinUIDispatch(action);
+            }
+        });
+
+        // 2. PHASE 4: Listen for keystrokes on bound inputs
+        document.getElementById("tinui-root").addEventListener("input", (e) => {
+            // Check if this input is bound to a Wasm state variable
+            const stateKey = e.target.getAttribute("data-bind");
+            if (stateKey) {
+                // Send the state key and the new text value directly into Wasm memory
+                window.TinUIMutateState(stateKey, e.target.value);
+            }
+        });
+
+        bootTinUI();
+    </script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+component TaskManager():
+    # 1. State Declarations (Milestone 1 & 2)
+    state current_task = ""
+    state active_count = 0
+    state has_task = "false"
+
+    # 2. Wasm Mutations
+    def add_task():
+        has_task = "true"
+        active_count += 1
+
+    def clear_task():
+        current_task = ""
+        has_task = "false"
+        active_count = 0
+
+    # 3. UI Tree with Tailwind CSS classes
+    container(class_="max-w-md mx-auto p-6 bg-white shadow-lg rounded-xl"):
+        text("Barathanandh's Task Manager", class_="text-2xl font-bold mb-4")
+        
+        # Two-Way Data Binding (Milestone 4)
+        input(bind=current_task, placeholder="What needs to be done?", class_="border p-2 w-full rounded")
+        
+        button("Add Task", on_click=add_task, class_="bg-blue-600 text-white px-4 py-2 mt-2 rounded")
+
+        # Deterministic Control Flow (Milestone 3)
+        if has_task == "true":
+            column(class_="mt-6 p-4 border rounded bg-gray-50"):
+                # Dynamic F-String Binding
+                text(f"Current Focus: {current_task}", class_="text-lg font-semibold text-gray-800")
+                text(f"Active Session Tasks: {active_count}", class_="text-sm text-gray-500 mt-1")
+                
+                button("Mark Complete", on_click=clear_task, class_="bg-green-500 text-white px-4 py-2 mt-4 rounded")
+        else:
+            text("No active tasks. You're all caught up!", class_="mt-6 text-gray-400 italic block")

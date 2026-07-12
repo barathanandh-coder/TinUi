@@ -1,0 +1,11 @@
+component Counter(start_val=0):
+    state count = start_val
+    state user = "Barath"
+
+    def increment():
+        count += 1
+
+    column(class_="p-4"):
+        text(f"User: {user}")
+        text(f"Current count is {count}", id="counter-text")
+        button("Add 1", on_click=increment)

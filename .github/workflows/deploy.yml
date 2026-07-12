@@ -1,0 +1,61 @@
+name: Deploy TinUI to GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Build TinUI CLI
+        run: go build -o tinui main.go
+
+      - name: Compile Task Manager
+        run: |
+          ./tinui compile task_manager.tin
+          cp task_manager.ir.json app.ir.json
+
+      - name: Compile WebAssembly Engine
+        run: GOOS=js GOARCH=wasm go build -o tinui_engine.wasm ./wasm_engine
+
+      - name: Prepare deployment folder
+        run: |
+          mkdir public
+          cp index.html public/
+          cp wasm_exec.js public/ || cp $(go env GOROOT)/misc/wasm/wasm_exec.js public/
+          cp app.ir.json public/
+          cp tinui_engine.wasm public/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './public'
+          
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

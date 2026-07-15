@@ -7,9 +7,10 @@ import (
 
 // StateEntry holds the actual value in Wasm memory
 type StateEntry struct {
-	Type   string
-	IntVal int
-	StrVal string
+	Type     string
+	IntVal   int
+	StrVal   string
+	ArrayVal []string
 }
 
 var (
@@ -31,6 +32,7 @@ var (
 type TextBinding struct {
 	Template  string
 	StateKeys []string
+	Scope     map[string]interface{}
 }
 
 // RegisterState is called when Wasm hits DECLARE_STATE
@@ -46,6 +48,10 @@ func RegisterState(key, typeHint, initial string) {
 			entry.Type = "string"
 			entry.StrVal = initial
 		}
+	}
+
+	if key == "tasks" {
+		entry.ArrayVal = []string{"Buy milk", "Walk dog", "Compile Wasm"}
 	}
 
 	StateRegistry[key] = entry
@@ -72,15 +78,24 @@ func clearAllDirtyBits() {
 }
 
 // FormatTemplate replaces "{}" in strings with live memory values
-func FormatTemplate(template string, keys []string) string {
+func FormatTemplate(template string, keys []string, scope map[string]interface{}) string {
 	result := template
 	for _, key := range keys {
-		entry := StateRegistry[key]
 		var valStr string
-		if entry.Type == "int" {
-			valStr = strconv.Itoa(entry.IntVal)
-		} else {
-			valStr = entry.StrVal
+		
+		if scope != nil {
+			if val, exists := scope[key]; exists {
+				valStr = val.(string)
+			}
+		}
+		
+		if valStr == "" {
+			entry := StateRegistry[key]
+			if entry.Type == "int" {
+				valStr = strconv.Itoa(entry.IntVal)
+			} else {
+				valStr = entry.StrVal
+			}
 		}
 		// Replace the first occurrence of "{}" with the state value
 		result = strings.Replace(result, "{}", valStr, 1)
@@ -119,4 +134,13 @@ type ConditionalBinding struct {
 }
 
 var ConditionalBindings = make(map[int]*ConditionalBinding)
+
+// Track list logic in the registry
+type ListBinding struct {
+	IterableKey  string
+	IteratorName string
+	LoopTemplate []Instruction
+}
+
+var ListBindings = make(map[int]*ListBinding)
 

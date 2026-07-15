@@ -1,0 +1,39 @@
+{
+  "name": "tinui-syntax",
+  "displayName": "TinUI Syntax",
+  "description": "Syntax highlighting for the TinUI framework (.tin files)",
+  "version": "0.0.1",
+  "publisher": "barathanandh",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/barathanandh-coder/tinui"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "tinui",
+        "aliases": [
+          "TinUI",
+          "tinui"
+        ],
+        "extensions": [
+          ".tin"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "tinui",
+        "scopeName": "source.tin",
+        "path": "./syntaxes/tinui.tmLanguage.json"
+      }
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "tinpyui",
+  "version": "1.2.0",
+  "description": "The official compiler and CLI for the TinUI framework.",
+  "main": "index.js",
+  "bin": {
+    "tinpyui": "./index.js"
+  },
+  "keywords": [
+    "tinui",
+    "wasm",
+    "framework",
+    "compiler",
+    "ui"
+  ],
+  "author": "Barathanandh",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/barathanandh-coder/tinui.git"
+  },
+  "bugs": {
+    "url": "https://github.com/barathanandh-coder/tinui/issues"
+  },
+  "homepage": "https://github.com/barathanandh-coder/tinui#readme"
+}

@@ -19,9 +19,10 @@ const (
 	NUMBER    TokenType = "NUMBER"
 
 	// Operators and Punctuation
-	ASSIGN      TokenType = "="
-	PLUS_ASSIGN TokenType = "+="
-	COLON       TokenType = ":"
+	ASSIGN       TokenType = "="
+	PLUS_ASSIGN  TokenType = "+="
+	MINUS_ASSIGN TokenType = "-="
+	COLON        TokenType = ":"
 	COMMA       TokenType = ","
 	LPAREN      TokenType = "("
 	RPAREN      TokenType = ")"
@@ -30,6 +31,13 @@ const (
 	COMPONENT TokenType = "COMPONENT"
 	STATE     TokenType = "STATE"
 	DEF       TokenType = "DEF"
+	IF        TokenType = "IF"
+	ELSE      TokenType = "ELSE"
+	FOR       TokenType = "FOR"
+	IN        TokenType = "IN"
+
+	// Operators
+	OPERATOR  TokenType = "OPERATOR"
 
 	// Block Formatting
 	INDENT TokenType = "INDENT"
@@ -40,6 +48,10 @@ var keywords = map[string]TokenType{
 	"component": COMPONENT,
 	"state":     STATE,
 	"def":       DEF,
+	"if":        IF,
+	"else":      ELSE,
+	"for":       FOR,
+	"in":        IN,
 }
 
 func LookupIdent(ident string) TokenType {

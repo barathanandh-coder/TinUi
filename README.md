@@ -4,7 +4,25 @@ TinUI is a memory-safe, blazing-fast, and entirely custom UI framework. It compl
 
 This is not a React clone. This is a ground-up systems engineering project featuring its own Lexer, Parser, Intermediate Representation (IR) Compiler, and Wasm runtime.
 
- Architecture Overview
+## Installation
+
+### 1. The TinUI Compiler (CLI)
+The core TinUI compiler is distributed as a universal WebAssembly binary via NPM. To install it globally, run:
+
+```bash
+npm install -g tinpyui
+```
+*Note: Requires Node.js installed on your machine.*
+
+### 2. VS Code Syntax Highlighting
+To enable official syntax highlighting for `.tin` files in your editor:
+
+1. Download the latest `.vsix` file from the Releases page.
+2. Open VS Code and navigate to the Extensions panel (`Ctrl+Shift+X`).
+3. Click the `...` menu in the top right corner of the panel.
+4. Select **Install from VSIX...** and choose the downloaded file.
+
+## 🧠 Architecture Overview
 
 1. The Pythonic Grammar
 TinUI uses strict indentation logic (similar to Python). It removes the clutter of JSX and `useState` hooks. 

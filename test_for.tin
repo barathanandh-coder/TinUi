@@ -1,0 +1,6 @@
+component App():
+    state tasks = ""
+    
+    container(class_="main"):
+        for task in tasks:
+            text(f"Task: {task}")

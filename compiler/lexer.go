@@ -62,18 +62,20 @@ func (l *Lexer) NextToken() Token {
 					l.readChar()
 				}
 			}
-			l.isLineStart = true
+			
 			if l.ch == 0 {
-			    return l.NextToken()
+			    l.isLineStart = false
+			} else {
+				l.isLineStart = true
+				// Skip the newline since we are already on an empty line
+				if l.ch == '\r' {
+					l.readChar()
+				}
+				if l.ch == '\n' {
+					l.readChar()
+				}
+				return l.NextToken()
 			}
-			// Skip the newline since we are already on an empty line
-			if l.ch == '\r' {
-			    l.readChar()
-			}
-			if l.ch == '\n' {
-			    l.readChar()
-			}
-			return l.NextToken()
 		}
 
 		currentIndent := l.indentStack[len(l.indentStack)-1]
@@ -106,12 +108,34 @@ func (l *Lexer) NextToken() Token {
 
 	switch l.ch {
 	case '=':
-		tok = Token{Type: ASSIGN, Literal: string(l.ch)}
+		if l.peekChar() == '=' {
+			ch := l.ch
+			l.readChar()
+			tok = Token{Type: OPERATOR, Literal: string(ch) + string(l.ch)}
+		} else {
+			tok = Token{Type: ASSIGN, Literal: string(l.ch)}
+		}
+	case '!':
+		if l.peekChar() == '=' {
+			ch := l.ch
+			l.readChar()
+			tok = Token{Type: OPERATOR, Literal: string(ch) + string(l.ch)}
+		} else {
+			tok = Token{Type: ILLEGAL, Literal: string(l.ch)}
+		}
 	case '+':
 		if l.peekChar() == '=' {
 			ch := l.ch
 			l.readChar()
 			tok = Token{Type: PLUS_ASSIGN, Literal: string(ch) + string(l.ch)}
+		} else {
+			tok = Token{Type: ILLEGAL, Literal: string(l.ch)}
+		}
+	case '-':
+		if l.peekChar() == '=' {
+			ch := l.ch
+			l.readChar()
+			tok = Token{Type: MINUS_ASSIGN, Literal: string(ch) + string(l.ch)}
 		} else {
 			tok = Token{Type: ILLEGAL, Literal: string(l.ch)}
 		}

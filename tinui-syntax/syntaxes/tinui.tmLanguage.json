@@ -1,0 +1,41 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "TinUI",
+  "patterns": [
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#operators"
+    }
+  ],
+  "repository": {
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.tinui",
+          "match": "\\b(if|else|def|component|state)\\b"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.double.tinui",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.tinui",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "operators": {
+      "name": "keyword.operator.tinui",
+      "match": "(==|!=|\\+=|-=|\\+|-|\\*|/|=)"
+    }
+  },
+  "scopeName": "source.tin"
+}

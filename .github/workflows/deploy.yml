@@ -34,8 +34,8 @@ jobs:
 
       - name: Compile Task Manager
         run: |
-          ./tinui compile task_manager.tin
-          cp task_manager.ir.json app.ir.json
+          ./tinui compile app.tin
+          cp app.ir.json public/app.ir.json || cp app.ir.json app.ir.json
 
       - name: Compile WebAssembly Engine
         run: GOOS=js GOARCH=wasm go build -o tinui_engine.wasm ./wasm_engine

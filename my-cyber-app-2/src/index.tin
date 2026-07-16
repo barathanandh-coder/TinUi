@@ -1,0 +1,15 @@
+component Main():
+    AnimatedBackground(effect="cyber-wave", primaryColor="neon-purple", secondaryColor="neon-cyan"):
+        
+        Navbar(padding=20, blur=true):
+            Row(align="center", justify="space-between", width="full"):
+                Row(align="center", gap=10):
+                    Text(text="TinPyUI NextGen", color="neon-cyan", weight="bold")
+                
+                Row(gap=30, color="white"):
+                    NavLink(text="Learn")
+                    NavLink(text="Reference")
+
+        Section(align="center", paddingY=120, maxWidth=800, justify="center"):
+            GradientText(text="TinPyUI", size="hero")
+            Text(text="The framework for native WebAssembly user interfaces", size="large", color="white", weight="bold", marginTop=20)

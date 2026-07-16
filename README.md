@@ -24,15 +24,41 @@ To enable official syntax highlighting for `.tin` files in your editor:
 
 ## 🧠 Architecture Overview
 
-1. The Pythonic Grammar
-TinUI uses strict indentation logic (similar to Python). It removes the clutter of JSX and `useState` hooks. 
-- You declare `state` natively.
-- UI elements nest organically via indentation.
-- Two-way binding is natively understood via the `bind` keyword.
+# TinPyUI Framework
 
-2. AST & IR Generation
-The Go compiler parses your `.tin` file and generates a flat JSON array of OpCodes (Intermediate Representation). 
-Instead of sending a heavy AST to the browser, the IR strips away logic and emits simple machine-like instructions (`DECLARE_STATE`, `CREATE_CONDITIONAL`, `BIND_INPUT`).
+TinPyUI is a modern, Pythonically structured layout framework that compiles directly into native WebAssembly UI nodes. In v1.3, TinPyUI eliminates all external CSS and HTML dependencies, letting developers write elegant interface code that maps dynamically to hardcoded browser primitives with rich design features out of the box.
+
+## 🚀 The v1.3 Developer Workflow
+
+### Step 1: Install Globally
+Install the unified CLI:
+```bash
+npm install -g tinpyui
+```
+
+### Step 2: Initialize a New Workspace
+```bash
+tinpyui init my-cyber-app
+cd my-cyber-app
+```
+This scaffolds your `src/index.tin` configuration layout, `tinpyui.config.json`, and the essential `public/` web assembly bootloader files automatically.
+
+### Step 3: Write Your UI
+Edit `src/index.tin` using strict Pythonic indentation rules, invoking rich components like `AnimatedBackground`, `Marquee`, or `GradientText`. Zero CSS overhead.
+
+### Step 4: Compile the Layout
+```bash
+tinpyui compile src/index.tin
+```
+The internal style compiler traverses your configuration, executes dynamic translation, maps explicit color palettes, validates indentation precisely, and outputs a native `public/app.ir.json` payload.
+
+### Step 5: Launch the Dev Server
+```bash
+tinpyui serve
+```
+Spin up the local node driver hosting your fully formed WebAssembly target instantly on port 3000.
+
+## 🧠 Architecture Overview
 
 3. The Zero-Cost Wasm Runtime
 When the Go WebAssembly runtime boots in the browser:

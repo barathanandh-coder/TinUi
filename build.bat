@@ -26,6 +26,10 @@ copy "%GOROOT%\misc\wasm\wasm_exec.js" . >nul
 if not exist static mkdir static
 copy "%GOROOT%\misc\wasm\wasm_exec.js" static\ >nul
 copy tinui_engine.wasm static\ >nul
+if not exist tinui-npm\bin mkdir tinui-npm\bin
+copy "%GOROOT%\misc\wasm\wasm_exec.js" tinui-npm\bin\ >nul
+copy tinui_engine.wasm tinui-npm\bin\ >nul
+
 
 echo [TinUI] Build Complete! You can now run:
 echo .\tinui.exe compile task_manager.tin

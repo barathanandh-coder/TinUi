@@ -251,14 +251,18 @@ func (p *Parser) parseArguments(node *Node) {
 
 			if p.curToken.Type == ASSIGN {
 				p.nextToken()
-				if p.curToken.Type == STRING || p.curToken.Type == IDENT {
+				if p.curToken.Type == STRING || p.curToken.Type == IDENT || p.curToken.Type == NUMBER {
 					node.Attributes[key] = p.curToken.Literal
 					p.nextToken() 
+				} else {
+					p.Errors = append(p.Errors, fmt.Sprintf("Expected value for attribute %s, got %s", key, p.curToken.Type))
+					p.nextToken()
 				}
 			}
-		}
-
-		if p.curToken.Type == COMMA {
+		} else if p.curToken.Type == COMMA {
+			p.nextToken()
+		} else {
+			p.Errors = append(p.Errors, fmt.Sprintf("Unexpected token in arguments: %s (%s)", p.curToken.Type, p.curToken.Literal))
 			p.nextToken()
 		}
 	}

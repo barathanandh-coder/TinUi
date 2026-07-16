@@ -64,6 +64,25 @@ func main() {
 	base := strings.TrimSuffix(inputFile, ext)
 	outputFile := base + ".ir.json"
 
+	// Check for config
+	configBytes, configErr := os.ReadFile("tinpyui.config.json")
+	if configErr == nil {
+		var config struct {
+			CompilerSettings struct {
+				Output string `json:"output"`
+			} `json:"compilerSettings"`
+		}
+		if err := json.Unmarshal(configBytes, &config); err == nil && config.CompilerSettings.Output != "" {
+			outputFile = config.CompilerSettings.Output
+		}
+	}
+
+	// Ensure output directory exists
+	outDir := filepath.Dir(outputFile)
+	if outDir != "" && outDir != "." {
+		os.MkdirAll(outDir, 0755)
+	}
+
 	err = os.WriteFile(outputFile, irJSON, 0644)
 	if err != nil {
 		fmt.Printf("❌ Error writing output file: %v\n", err)

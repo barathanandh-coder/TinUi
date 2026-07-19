@@ -22,12 +22,25 @@ go build -o tinui_engine.wasm ./wasm_engine
 
 echo [TinUI] Copying WebAssembly assets...
 for /f "delims=" %%i in ('go env GOROOT') do set "GOROOT=%%i"
-copy "%GOROOT%\misc\wasm\wasm_exec.js" . >nul
-if not exist static mkdir static
-copy "%GOROOT%\misc\wasm\wasm_exec.js" static\ >nul
+
+set "WASM_EXEC_PATH="
+if exist "%GOROOT%\lib\wasm\wasm_exec.js" (
+    set "WASM_EXEC_PATH=%GOROOT%\lib\wasm\wasm_exec.js"
+) else if exist "%GOROOT%\misc\wasm\wasm_exec.js" (
+    set "WASM_EXEC_PATH=%GOROOT%\misc\wasm\wasm_exec.js"
+)
+
+if not "%WASM_EXEC_PATH%"=="" (
+    copy "%WASM_EXEC_PATH%" . >nul
+    if not exist static mkdir static
+    copy "%WASM_EXEC_PATH%" static\ >nul
+    if not exist tinui-npm\bin mkdir tinui-npm\bin
+    copy "%WASM_EXEC_PATH%" tinui-npm\bin\ >nul
+) else (
+    echo [ERROR] Could not find wasm_exec.js in GOROOT
+)
+
 copy tinui_engine.wasm static\ >nul
-if not exist tinui-npm\bin mkdir tinui-npm\bin
-copy "%GOROOT%\misc\wasm\wasm_exec.js" tinui-npm\bin\ >nul
 copy tinui_engine.wasm tinui-npm\bin\ >nul
 
 

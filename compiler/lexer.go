@@ -147,6 +147,10 @@ func (l *Lexer) NextToken() Token {
 		tok = Token{Type: LPAREN, Literal: string(l.ch)}
 	case ')':
 		tok = Token{Type: RPAREN, Literal: string(l.ch)}
+	case '[':
+		tok = Token{Type: LBRACKET, Literal: string(l.ch)}
+	case ']':
+		tok = Token{Type: RBRACKET, Literal: string(l.ch)}
 	case '\n', '\r':
 		if l.ch == '\r' {
 			l.readChar()

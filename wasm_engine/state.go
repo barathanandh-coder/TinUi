@@ -3,6 +3,7 @@ package main
 import (
 	"strconv"
 	"strings"
+	"sync"
 )
 
 // StateEntry holds the actual value in Wasm memory
@@ -16,6 +17,7 @@ type StateEntry struct {
 var (
 	// The core memory storage: maps "count" -> StateEntry
 	StateRegistry = make(map[string]*StateEntry)
+	StateMutex    sync.RWMutex
 
 	// Maps the variable name to its bit index (e.g., "count" -> 0, "user" -> 1)
 	StateIndexMap = make(map[string]int)

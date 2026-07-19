@@ -1,0 +1,22 @@
+component App():
+    Preload():
+        Font(url="/fonts/Cyber.ttf")
+        Image(url="heavy-background.png", assetPriority="background")
+
+    Router(transitionIn="slide-from-right", transitionOut="slide-to-left", transitionDuration="smooth"):
+        Route(path="/", component="HeroLanding")
+        Route(path="/settings", component="SettingsView")
+
+component HeroLanding():
+    Section(padding="40"):
+        HeroContainer(heroBackground="particle-net", entranceChoreography="cascade-down"):
+            GradientText(text="Welcome to TinUI", size="hero")
+            Button(text="Open Settings", on_click="GoSettings", hoverEffect="glow", clickEffect="ripple")
+            Image(src="heavy-background.png", assetPriority="lazy")
+
+component SettingsView():
+    Section(padding="40", destroyStrategy="immediate"):
+        Text(text="Settings Page")
+        Button(text="Back", on_click="GoHome")
+        Card(display="hidden"):
+            Text(text="Hidden Card")

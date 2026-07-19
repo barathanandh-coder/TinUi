@@ -23,17 +23,31 @@ func main() {
 		os.Exit(1)
 	}
 
-	inputFile := os.Args[2]
+	var hydrate bool
+	var inputFile string
+	for _, arg := range os.Args[2:] {
+		if arg == "--hydrate" {
+			hydrate = true
+		} else if !strings.HasPrefix(arg, "--") {
+			inputFile = arg
+		}
+	}
+	
+	if inputFile == "" {
+		fmt.Println("[Error] No input file specified.")
+		printUsage()
+		os.Exit(1)
+	}
 
 	// 2. Read the .tin Source File
 	sourceBytes, err := os.ReadFile(inputFile)
 	if err != nil {
-		fmt.Printf("❌ Error reading file %s: %v\n", inputFile, err)
+		fmt.Printf("[Error] Error reading file %s: %v\n", inputFile, err)
 		os.Exit(1)
 	}
 	sourceCode := string(sourceBytes)
 
-	fmt.Printf("⏳ Compiling %s...\n", inputFile)
+	fmt.Printf("Compiling %s...\n", inputFile)
 
 	// 3. The Compilation Pipeline
 	lexer := compiler.NewLexer(sourceCode)
@@ -42,7 +56,7 @@ func main() {
 	astRoots := parser.Parse()
 
 	if len(parser.Errors) > 0 {
-		fmt.Println("❌ Syntax Errors found:")
+		fmt.Println("[Error] Syntax Errors found:")
 		for _, msg := range parser.Errors {
 			fmt.Printf("  - %s\n", msg)
 		}
@@ -55,7 +69,7 @@ func main() {
 	// 4. Serialize to JSON
 	irJSON, err := json.MarshalIndent(instructions, "", "  ")
 	if err != nil {
-		fmt.Printf("❌ Error generating IR JSON: %v\n", err)
+		fmt.Printf("[Error] Error generating IR JSON: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -85,11 +99,22 @@ func main() {
 
 	err = os.WriteFile(outputFile, irJSON, 0644)
 	if err != nil {
-		fmt.Printf("❌ Error writing output file: %v\n", err)
+		fmt.Printf("[Error] Error writing output file: %v\n", err)
 		os.Exit(1)
 	}
+	
+	if hydrate {
+		htmlShell := compiler.GenerateHydrationShell(instructions)
+		htmlOutputFile := filepath.Join(outDir, "index.html")
+		err = os.WriteFile(htmlOutputFile, []byte(htmlShell), 0644)
+		if err != nil {
+			fmt.Printf("[Error] Error writing hydration HTML: %v\n", err)
+		} else {
+			fmt.Printf("Success! Generated Static SEO Hydration Shell at: %s\n", htmlOutputFile)
+		}
+	}
 
-	fmt.Printf("✅ Success! Generated Intermediate Representation at: %s\n", outputFile)
+	fmt.Printf("Success! Generated Intermediate Representation at: %s\n", outputFile)
 }
 
 func printUsage() {

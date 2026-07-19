@@ -11,7 +11,7 @@ if (command === 'init') {
     const targetDir = process.argv[3] || '.';
     const srcPath = path.join(targetDir, 'src');
     
-    console.log(`🚀 Initializing fresh TinPyUI v1.3 project architecture...`);
+    console.log(`[Info] Initializing fresh TinPyUI v1.3 project architecture...`);
 
     if (!fs.existsSync(srcPath)){
         fs.mkdirSync(srcPath, { recursive: true });
@@ -33,11 +33,63 @@ if (command === 'init') {
         const go = new Go();
         WebAssembly.instantiateStreaming(fetch("tinui_engine.wasm"), go.importObject).then((result) => {
             go.run(result.instance);
+            
+            // Start the TinUI engine with the generated Intermediate Representation
+            const bootApp = () => {
+                fetch("app.ir.json").then(res => res.text()).then(irString => {
+                    try {
+                        let ret = BootTinUI(irString);
+                        if (ret) {
+                            console.log(ret);
+                        }
+
+                        // Wire up global event listeners for TinUI interactivity
+                        document.addEventListener('click', (e) => {
+                            let actionElement = e.target.closest ? e.target.closest('[data-action]') : e.target;
+                            if (actionElement) {
+                                let action = actionElement.getAttribute('data-action');
+                                if (action && typeof TinUIDispatch === 'function') {
+                                    TinUIDispatch(action);
+                                }
+                            }
+                        });
+
+                        document.addEventListener('input', (e) => {
+                            let stateKey = e.target.getAttribute('data-bind');
+                            if (stateKey && typeof TinUIMutateState === 'function') {
+                                TinUIMutateState(stateKey, e.target.value);
+                            }
+                        });
+                    } catch(e) {
+                        console.error("TinUI Boot Error:", e);
+                        document.getElementById('tinui-root').innerHTML = "JS Error: " + e.message;
+                    }
+                }).catch(e => {
+                    console.error("Failed to fetch app.ir.json:", e);
+                    document.getElementById('tinui-root').innerHTML = "Failed to load app.ir.json";
+                });
+            };
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', bootApp);
+            } else {
+                bootApp();
+            }
+        }).catch((err) => {
+            console.error("WASM Boot Error:", err);
+            const displayErr = () => {
+                document.getElementById('tinui-root').innerHTML = "<div style='padding: 20px; color: #ff5555;'>Failed to start WebAssembly engine: " + err.message + "<br><br><b>Note:</b> You cannot open this file directly in the browser. You MUST use a local web server (e.g. run <code>tinpyui serve</code> or start your Flask app).</div>";
+            };
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', displayErr);
+            } else {
+                displayErr();
+            }
         });
     </script>
 </head>
 <body style="margin: 0; padding: 0; background-color: #0a0b10; color: #ffffff; font-family: 'Inter', sans-serif;">
-    <div id="app"></div>
+    <div id="tinui-root"></div>
 </body>
 </html>`;
     fs.writeFileSync(path.join(publicPath, 'index.html'), indexHtml);
@@ -79,7 +131,27 @@ if (command === 'init') {
     };
     fs.writeFileSync(path.join(targetDir, 'tinpyui.config.json'), JSON.stringify(configData, null, 2));
 
-    console.log(`✅ Project scaffold complete! Run "tinpyui compile src/index.tin" to build.`);
+    const appPyContent = `from flask import Flask, send_from_directory
+import os
+
+app = Flask(__name__, static_folder='public')
+
+@app.route('/')
+def index():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/<path:path>')
+def static_files(path):
+    return send_from_directory(app.static_folder, path)
+
+if __name__ == '__main__':
+    print("[Info] Starting TinPyUI Flask Server on http://localhost:5000")
+    app.run(debug=True, port=5000)
+`;
+    fs.writeFileSync(path.join(targetDir, 'app.py'), appPyContent);
+
+
+    console.log(`[Success] Project scaffold complete! Run "tinpyui compile src/index.tin" to build.`);
     process.exit(0);
 }
 
@@ -91,7 +163,7 @@ if (command === 'serve') {
     const publicDir = path.join(targetDir, 'public');
 
     if (!fs.existsSync(publicDir)) {
-        console.error('❌ Could not find "public" directory. Have you run "tinpyui init"?');
+        console.error('[Error] Could not find "public" directory. Have you run "tinpyui init"?');
         process.exit(1);
     }
 
@@ -120,7 +192,7 @@ if (command === 'serve') {
             }
         });
     }).listen(3000, () => {
-        console.log('🚀 TinPyUI Dev Server running at http://localhost:3000/');
+        console.log('[Info] TinPyUI Dev Server running at http://localhost:3000/');
     });
     return;
 }

@@ -16,6 +16,7 @@ const (
 	OpIncrement         OpCode = "INCREMENT"
 	OpDecrement         OpCode = "DECREMENT"
 	OpRenderList        OpCode = "RENDER_LIST"
+	OpBindLoading       OpCode = "BIND_LOADING"
 )
 
 type Instruction struct {
@@ -25,13 +26,14 @@ type Instruction struct {
 	Parent    int      `json:"parent,omitempty"`
 	Child     int      `json:"child,omitempty"`
 	Key       string   `json:"key,omitempty"`
-	Value     string   `json:"value,omitempty"`
-	Type      string   `json:"type,omitempty"`
-	Initial   any      `json:"initial,omitempty"`
-	Template  string   `json:"template,omitempty"`
-	StateKeys []string `json:"state_keys,omitempty"`
-	Event       string        `json:"event,omitempty"`
-	Mutation    string        `json:"mutation,omitempty"`
+	Value        string   `json:"value,omitempty"`
+	Type         string   `json:"type,omitempty"`
+	Initial      any      `json:"initial,omitempty"`
+	Template     string   `json:"template,omitempty"`
+	StateKeys    []string `json:"state_keys,omitempty"`
+	Event        string   `json:"event,omitempty"`
+	Mutation     string   `json:"mutation,omitempty"`
+	IsHidden     bool     `json:"is_hidden,omitempty"`
 	StateKey    string        `json:"state_key,omitempty"`
 	Operator    string        `json:"operator,omitempty"`
 	CompareVal  string        `json:"compare_val,omitempty"`
@@ -101,6 +103,16 @@ func RenderList(id int, parent int, iterableKey string, iteratorName string, loo
 		IterableKey:  iterableKey,
 		IteratorName: iteratorName,
 		LoopTemplate: loopTemplate,
+	}
+}
+
+func BindLoading(id int, stateKey string, loaderType string, loaderSpeed string) Instruction {
+	return Instruction{
+		Op:       OpBindLoading,
+		ID:       id,
+		StateKey: stateKey,
+		Tag:      loaderType,
+		Value:    loaderSpeed,
 	}
 }
 

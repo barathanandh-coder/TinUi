@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"fmt"
+	"strings"
 )
 
 type Parser struct {
@@ -190,7 +191,7 @@ func (p *Parser) parseDefStatement() *DefNode {
 	return &DefNode{FuncName: funcName, Mutations: []MutationNode{}}
 }
 
-func (p *Parser) parseNode() *Node {
+func (p *Parser) parseNode() ASTNode {
 	node := &Node{
 		Name:       p.curToken.Literal,
 		Attributes: make(map[string]string),
@@ -232,6 +233,11 @@ func (p *Parser) parseNode() *Node {
 		}
 	}
 
+	if val, ok := node.Attributes["display"]; ok && val == "hidden" {
+		delete(node.Attributes, "display")
+		return &HiddenWrapperNode{Child: node}
+	}
+
 	return node
 }
 
@@ -245,13 +251,26 @@ func (p *Parser) parseArguments(node *Node) {
 		    }
 			node.Args = append(node.Args, p.curToken.Literal)
 			p.nextToken()
-		} else if p.curToken.Type == IDENT {
+		} else if p.curToken.Type == IDENT || p.curToken.Type == COMPONENT {
 			key := p.curToken.Literal
 			p.nextToken()
 
 			if p.curToken.Type == ASSIGN {
 				p.nextToken()
-				if p.curToken.Type == STRING || p.curToken.Type == IDENT || p.curToken.Type == NUMBER {
+				if p.curToken.Type == LBRACKET {
+					var arr []string
+					p.nextToken()
+					for p.curToken.Type != RBRACKET && p.curToken.Type != EOF {
+						if p.curToken.Type == STRING || p.curToken.Type == IDENT || p.curToken.Type == NUMBER {
+							arr = append(arr, "\""+p.curToken.Literal+"\"")
+						} else if p.curToken.Type != COMMA {
+							p.Errors = append(p.Errors, fmt.Sprintf("Unexpected token in array: %s", p.curToken.Type))
+						}
+						p.nextToken()
+					}
+					node.Attributes[key] = "[" + strings.Join(arr, ",") + "]"
+					p.nextToken()
+				} else if p.curToken.Type == STRING || p.curToken.Type == IDENT || p.curToken.Type == NUMBER {
 					node.Attributes[key] = p.curToken.Literal
 					p.nextToken() 
 				} else {

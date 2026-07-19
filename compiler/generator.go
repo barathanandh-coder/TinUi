@@ -3,6 +3,7 @@ package compiler
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -58,8 +59,15 @@ func (g *IRGenerator) Generate(components []*Component) IRBlueprint {
 		g.nextID++
 		g.instructions = append(g.instructions, CreateNode(styleNodeID, "style"))
 		var allFrames []string
-		for _, v := range GlobalKeyframes {
-			allFrames = append(allFrames, v)
+		
+		// Sort keyframes for determinism too!
+		var frameKeys []string
+		for k := range GlobalKeyframes {
+		    frameKeys = append(frameKeys, k)
+		}
+		sort.Strings(frameKeys)
+		for _, k := range frameKeys {
+			allFrames = append(allFrames, GlobalKeyframes[k])
 		}
 		g.instructions = append(g.instructions, SetText(styleNodeID, strings.Join(allFrames, " ")))
 		g.instructions = append(g.instructions, AppendChild(0, styleNodeID))
@@ -126,7 +134,15 @@ func (g *IRGenerator) traverse(astNode ASTNode, parentID int) {
 
 		compiledAttrs := CompileAttributes(n.Name, n.Attributes)
 
-		for key, value := range compiledAttrs {
+		// Sort attributes for deterministic output
+		var attrKeys []string
+		for k := range compiledAttrs {
+		    attrKeys = append(attrKeys, k)
+		}
+		sort.Strings(attrKeys)
+
+		for _, key := range attrKeys {
+		    value := compiledAttrs[key]
 			if key == "class_" {
 				key = "class"
 			}
@@ -142,6 +158,16 @@ func (g *IRGenerator) traverse(astNode ASTNode, parentID int) {
 			} else if key == "innerText" {
 				// handled differently if needed, but innerText can just be an attribute or text node
 				g.instructions = append(g.instructions, SetText(currentID, value))
+			} else if key == "data-bind-loading" {
+				// We don't have loaderType easily here unless we pass it from attrs, so we just add the attribute and let Wasm handle it, OR we emit OpBindLoading.
+				// Since we add data-loader-type via attributes too, we can emit OpBindLoading with it.
+				// For simplicity, we just emit SetAttribute, and we also emit OpBindLoading by extracting types from attrs map.
+				loaderType, hasType := compiledAttrs["data-loader-type"]
+				if !hasType { loaderType = "skeleton" }
+				loaderSpeed, hasSpeed := compiledAttrs["data-loader-speed"]
+				if !hasSpeed { loaderSpeed = "steady" }
+				g.instructions = append(g.instructions, BindLoading(currentID, value, loaderType, loaderSpeed))
+				g.instructions = append(g.instructions, SetAttribute(currentID, key, value))
 			} else {
 				g.instructions = append(g.instructions, SetAttribute(currentID, key, value))
 			}
@@ -183,6 +209,17 @@ func (g *IRGenerator) traverse(astNode ASTNode, parentID int) {
 			n.IteratorName,
 			loopTemplate,
 		))
+		
+	case *HiddenWrapperNode:
+		startIdx := len(g.instructions)
+		g.traverse(n.Child, parentID)
+		
+		for i := startIdx; i < len(g.instructions); i++ {
+			if g.instructions[i].Op == OpCreateNode {
+				g.instructions[i].IsHidden = true
+				break
+			}
+		}
 	}
 }
 
@@ -221,6 +258,13 @@ var TagMap = map[string]string{
 	"Navbar":             "nav",
 	"NavLink":            "a",
 	"Marquee":            "marquee",
+	"HeroContainer":      "div",
+	"Span":               "span",
+	"Router":             "div",
+	"Route":              "div",
+	"Preload":            "div",
+	"Font":               "link",
+	"Image":              "img",
 }
 
 // ColorPalette defines the framework's internal global design variables
@@ -274,16 +318,47 @@ func CompileAttributes(componentName string, props map[string]string) map[string
 		styles = append(styles, "display: flex; flex-direction: row; box-sizing: border-box;")
 	case "Form", "Section", "Card":
 		styles = append(styles, "display: flex; flex-direction: column; box-sizing: border-box;")
+	case "HeroContainer":
+		styles = append(styles, "display: flex; flex-direction: column; box-sizing: border-box; position: relative; overflow: hidden; min-height: 400px;")
+	case "Router":
+		styles = append(styles, "display: block; position: relative; width: 100%; height: 100%; overflow: hidden;")
+	case "Route":
+		styles = append(styles, "display: block; position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh;")
 	case "Navbar":
 		styles = append(styles, "display: flex; position: sticky; top: 0; width: 100%; z-index: 100; box-sizing: border-box;")
 	case "Button":
 		styles = append(styles, "cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; border: none; transition: all 0.2s ease;")
 	case "Input":
 		styles = append(styles, "outline: none; box-sizing: border-box; background: rgba(0,0,0,0.2); color: #ffffff;")
+	case "Preload":
+		styles = append(styles, "display: none;")
+	case "Font":
+		if url, ok := props["url"]; ok {
+			attributes["href"] = url
+			attributes["rel"] = "preload"
+			attributes["as"] = "font"
+			attributes["crossorigin"] = "anonymous"
+		}
+	case "Image":
+		if src, ok := props["src"]; ok {
+			attributes["src"] = src
+		}
+		if url, ok := props["url"]; ok {
+			attributes["href"] = url
+			attributes["rel"] = "preload"
+			attributes["as"] = "image"
+		}
 	}
 
 	// Dynamic property conversion
-	for key, val := range props {
+	var propKeys []string
+	for key := range props {
+	    propKeys = append(propKeys, key)
+	}
+	sort.Strings(propKeys)
+	
+	for _, key := range propKeys {
+	    val := props[key]
 		switch key {
 		case "align":
 			if val == "center" {
@@ -390,6 +465,60 @@ func CompileAttributes(componentName string, props map[string]string) map[string
 			attributes["value"] = val
 		case "text":
 			attributes["innerText"] = val
+		case "hoverEffect":
+			attributes["data-hover-effect"] = val
+		case "clickEffect":
+			attributes["data-click-effect"] = val
+		case "interactionSpeed":
+			speed := "0.3s"
+			if val == "fast" {
+				speed = "0.15s"
+			} else if val == "slow" {
+				speed = "0.5s"
+			}
+			styles = append(styles, fmt.Sprintf("transition: all %s cubic-bezier(0.4, 0, 0.2, 1);", speed))
+			attributes["data-speed"] = val
+		case "bindLoading":
+			attributes["data-bind-loading"] = val
+		case "loaderType":
+			attributes["data-loader-type"] = val
+		case "loaderSpeed":
+			attributes["data-loader-speed"] = val
+		case "scrollReveal":
+			attributes["data-scroll-reveal"] = val
+		case "revealOffset":
+			attributes["data-reveal-offset"] = val
+		case "parallaxSpeed":
+			attributes["data-parallax-speed"] = val
+		case "heroBackground":
+			attributes["data-hero-background"] = val
+		case "entranceChoreography":
+			attributes["data-entrance-choreography"] = val
+		case "textCycle":
+			attributes["data-text-cycle"] = val
+		case "cycleEffect":
+			attributes["data-cycle-effect"] = val
+		case "attentionEffect":
+			attributes["data-attention-effect"] = val
+		case "attentionInterval":
+			attributes["data-attention-interval"] = val
+		case "attentionTrigger":
+			attributes["data-attention-trigger"] = val
+		case "transitionIn":
+			attributes["data-transition-in"] = val
+		case "transitionOut":
+			attributes["data-transition-out"] = val
+		case "transitionDuration":
+			attributes["data-transition-duration"] = val
+		case "path":
+			attributes["data-route-path"] = val
+		case "assetPriority":
+			if val == "lazy" {
+				attributes["loading"] = "lazy"
+			}
+			attributes["data-asset-priority"] = val
+		case "destroyStrategy":
+			attributes["data-destroy-strategy"] = val
 		case "class_", "bind", "on_click":
 			attributes[key] = val
 		}

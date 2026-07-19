@@ -26,6 +26,8 @@ const (
 	COMMA       TokenType = ","
 	LPAREN      TokenType = "("
 	RPAREN      TokenType = ")"
+	LBRACKET    TokenType = "["
+	RBRACKET    TokenType = "]"
 
 	// Keywords
 	COMPONENT TokenType = "COMPONENT"

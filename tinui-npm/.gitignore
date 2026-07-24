@@ -1,0 +1,32 @@
+# Generated files
+public/*
+!public/.gitkeep
+dist/
+build/
+
+# Dependencies
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Old tarballs (NEVER commit these)
+*.tgz
+*.tar.gz
+
+# Logs
+*.log
+npm-debug.log*

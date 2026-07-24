@@ -1,19 +1,19 @@
 @echo off
 echo [TinUI] Building CLI Compiler for local testing...
-go build -o tinui.exe main.go
+go build -o tinui.exe .
 
 echo [TinUI] Building NPM CLI Binaries...
 set GOOS=linux
 set GOARCH=amd64
-go build -o tinui-npm/bin/tinui-linux main.go
+go build -o tinui-npm/bin/tinui-linux .
 
 set GOOS=darwin
 set GOARCH=amd64
-go build -o tinui-npm/bin/tinui-macos main.go
+go build -o tinui-npm/bin/tinui-macos .
 
 set GOOS=windows
 set GOARCH=amd64
-go build -o tinui-npm/bin/tinui-win.exe main.go
+go build -o tinui-npm/bin/tinui-win.exe .
 
 echo [TinUI] Compiling WebAssembly Engine...
 set GOOS=js
@@ -45,4 +45,4 @@ copy tinui_engine.wasm tinui-npm\bin\ >nul
 
 
 echo [TinUI] Build Complete! You can now run:
-echo .\tinui.exe compile task_manager.tin
+echo .\tinui.exe compile app.tin

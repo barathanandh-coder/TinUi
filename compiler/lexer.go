@@ -7,6 +7,7 @@ type Lexer struct {
 	ch           byte
 	isLineStart  bool
 	indentStack  []int
+	parenLevel   int
 	pending      []Token
 }
 
@@ -62,9 +63,9 @@ func (l *Lexer) NextToken() Token {
 					l.readChar()
 				}
 			}
-			
+
 			if l.ch == 0 {
-			    l.isLineStart = false
+				l.isLineStart = false
 			} else {
 				l.isLineStart = true
 				// Skip the newline since we are already on an empty line
@@ -144,12 +145,20 @@ func (l *Lexer) NextToken() Token {
 	case ',':
 		tok = Token{Type: COMMA, Literal: string(l.ch)}
 	case '(':
+		l.parenLevel++
 		tok = Token{Type: LPAREN, Literal: string(l.ch)}
 	case ')':
+		if l.parenLevel > 0 {
+			l.parenLevel--
+		}
 		tok = Token{Type: RPAREN, Literal: string(l.ch)}
 	case '[':
+		l.parenLevel++
 		tok = Token{Type: LBRACKET, Literal: string(l.ch)}
 	case ']':
+		if l.parenLevel > 0 {
+			l.parenLevel--
+		}
 		tok = Token{Type: RBRACKET, Literal: string(l.ch)}
 	case '\n', '\r':
 		if l.ch == '\r' {
@@ -158,6 +167,11 @@ func (l *Lexer) NextToken() Token {
 				tok = Token{Type: ILLEGAL, Literal: "\r"}
 				return tok
 			}
+		}
+		if l.parenLevel > 0 {
+			// Inside parens, treat newline as whitespace (skip)
+			l.readChar()
+			return l.NextToken()
 		}
 		tok = Token{Type: NEWLINE, Literal: "\n"}
 		l.isLineStart = true
@@ -212,7 +226,7 @@ func (l *Lexer) readIdentifier() string {
 
 func (l *Lexer) readNumber() string {
 	position := l.position
-	for isDigit(l.ch) {
+	for isDigit(l.ch) || l.ch == '.' {
 		l.readChar()
 	}
 	return l.input[position:l.position]

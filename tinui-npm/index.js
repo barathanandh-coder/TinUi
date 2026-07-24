@@ -11,7 +11,7 @@ if (command === 'init') {
     const targetDir = process.argv[3] || '.';
     const srcPath = path.join(targetDir, 'src');
     
-    console.log(`[Info] Initializing fresh TinPyUI v1.3 project architecture...`);
+    console.log(`[Info] Initializing fresh TinPyUI v1.4.2 project architecture...`);
 
     if (!fs.existsSync(srcPath)){
         fs.mkdirSync(srcPath, { recursive: true });

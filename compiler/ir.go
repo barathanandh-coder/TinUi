@@ -3,12 +3,12 @@ package compiler
 type OpCode string
 
 const (
-	OpCreateNode   OpCode = "CREATE_NODE"
-	OpAppendChild  OpCode = "APPEND_CHILD"
-	OpSetText      OpCode = "SET_TEXT"
-	OpSetAttribute OpCode = "SET_ATTRIBUTE"
-	OpAddEvent     OpCode = "ADD_EVENT"
-	OpDeclareState OpCode = "DECLARE_STATE"
+	OpCreateNode        OpCode = "CREATE_NODE"
+	OpAppendChild       OpCode = "APPEND_CHILD"
+	OpSetText           OpCode = "SET_TEXT"
+	OpSetAttribute      OpCode = "SET_ATTRIBUTE"
+	OpAddEvent          OpCode = "ADD_EVENT"
+	OpDeclareState      OpCode = "DECLARE_STATE"
 	OpBindText          OpCode = "BIND_TEXT"
 	OpCreateConditional OpCode = "CREATE_CONDITIONAL"
 	OpBindInput         OpCode = "BIND_INPUT"
@@ -20,26 +20,26 @@ const (
 )
 
 type Instruction struct {
-	Op        OpCode   `json:"op"`
-	ID        int      `json:"id,omitempty"`
-	Tag       string   `json:"tag,omitempty"`
-	Parent    int      `json:"parent,omitempty"`
-	Child     int      `json:"child,omitempty"`
-	Key       string   `json:"key,omitempty"`
-	Value        string   `json:"value,omitempty"`
-	Type         string   `json:"type,omitempty"`
-	Initial      any      `json:"initial,omitempty"`
-	Template     string   `json:"template,omitempty"`
-	StateKeys    []string `json:"state_keys,omitempty"`
-	Event        string   `json:"event,omitempty"`
-	Mutation     string   `json:"mutation,omitempty"`
-	IsHidden     bool     `json:"is_hidden,omitempty"`
+	Op          OpCode        `json:"op"`
+	ID          int           `json:"id,omitempty"`
+	Tag         string        `json:"tag,omitempty"`
+	Parent      int           `json:"parent,omitempty"`
+	Child       int           `json:"child,omitempty"`
+	Key         string        `json:"key,omitempty"`
+	Value       string        `json:"value,omitempty"`
+	Type        string        `json:"type,omitempty"`
+	Initial     any           `json:"initial,omitempty"`
+	Template    string        `json:"template,omitempty"`
+	StateKeys   []string      `json:"state_keys,omitempty"`
+	Event       string        `json:"event,omitempty"`
+	Mutation    string        `json:"mutation,omitempty"`
+	IsHidden    bool          `json:"is_hidden,omitempty"`
 	StateKey    string        `json:"state_key,omitempty"`
 	Operator    string        `json:"operator,omitempty"`
 	CompareVal  string        `json:"compare_val,omitempty"`
 	TrueBranch  []Instruction `json:"true_branch,omitempty"`
 	FalseBranch []Instruction `json:"false_branch,omitempty"`
-	
+
 	IterableKey  string        `json:"iterable_key,omitempty"`
 	IteratorName string        `json:"iterator_name,omitempty"`
 	LoopTemplate []Instruction `json:"loop_template,omitempty"`
@@ -115,4 +115,3 @@ func BindLoading(id int, stateKey string, loaderType string, loaderSpeed string)
 		Value:    loaderSpeed,
 	}
 }
-

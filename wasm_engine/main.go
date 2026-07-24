@@ -13,17 +13,17 @@ import (
 )
 
 type Instruction struct {
-	Op        string   `json:"op"`
-	ID        int      `json:"id,omitempty"`
-	Tag       string   `json:"tag,omitempty"`
-	Parent    int      `json:"parent,omitempty"`
-	Child     int      `json:"child,omitempty"`
-	Key       string   `json:"key,omitempty"`
-	Value     string   `json:"value,omitempty"`
-	Type      string   `json:"type,omitempty"`
-	Initial   string   `json:"initial,omitempty"`
-	Template  string   `json:"template,omitempty"`
-	StateKeys []string `json:"state_keys,omitempty"`
+	Op          string        `json:"op"`
+	ID          int           `json:"id,omitempty"`
+	Tag         string        `json:"tag,omitempty"`
+	Parent      int           `json:"parent,omitempty"`
+	Child       int           `json:"child,omitempty"`
+	Key         string        `json:"key,omitempty"`
+	Value       string        `json:"value,omitempty"`
+	Type        string        `json:"type,omitempty"`
+	Initial     string        `json:"initial,omitempty"`
+	Template    string        `json:"template,omitempty"`
+	StateKeys   []string      `json:"state_keys,omitempty"`
 	Event       string        `json:"event,omitempty"`
 	Mutation    string        `json:"mutation,omitempty"`
 	IsHidden    bool          `json:"is_hidden,omitempty"`
@@ -32,7 +32,7 @@ type Instruction struct {
 	CompareVal  string        `json:"compare_val,omitempty"`
 	TrueBranch  []Instruction `json:"true_branch,omitempty"`
 	FalseBranch []Instruction `json:"false_branch,omitempty"`
-	
+
 	IterableKey  string        `json:"iterable_key,omitempty"`
 	IteratorName string        `json:"iterator_name,omitempty"`
 	LoopTemplate []Instruction `json:"loop_template,omitempty"`
@@ -234,17 +234,46 @@ const engineCSS = `
 
 func main() {
 	js.Global().Set("BootTinUI", js.FuncOf(bootEngine))
-	// TinUIDispatch explicitly NOT exposed to window for security
-	
+
+	// Error Boundary
+	js.Global().Set("onerror", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		document := js.Global().Get("document")
+		errorDiv := document.Call("createElement", "div")
+		errorDiv.Set("id", "tinui-error-boundary")
+		errorDiv.Call("setAttribute", "style", "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 0, 0, 0.9); color: white; z-index: 999999; padding: 40px; font-family: monospace; overflow-y: auto; box-sizing: border-box;")
+
+		msg := ""
+		if len(args) > 0 {
+			msg += args[0].String() + "\n"
+		}
+		if len(args) > 1 {
+			msg += "Source: " + args[1].String() + "\n"
+		}
+		if len(args) > 2 {
+			msg += "Line: " + args[2].String() + "\n"
+		}
+		if len(args) > 4 && !args[4].IsUndefined() && !args[4].IsNull() {
+			if stack := args[4].Get("stack"); !stack.IsUndefined() {
+				msg += "\n" + stack.String()
+			}
+		}
+
+		errorHTML := "<h1>Runtime Error</h1><pre style='white-space: pre-wrap; font-size: 14px;'>" + msg + "</pre>"
+		errorDiv.Set("innerHTML", errorHTML)
+
+		document.Get("body").Call("appendChild", errorDiv)
+		return nil
+	}))
+
 	// Phase 4: Expose the direct state mutator for text inputs
-	js.Global().Set("TinUIMutateState", js.FuncOf(mutateState)) 
-	
+	js.Global().Set("TinUIMutateState", js.FuncOf(mutateState))
+
 	// Expose the network dispatcher hook
 	js.Global().Set("TinUIDispatchApi", js.FuncOf(dispatchApi))
-	
+
 	js.Global().Set("TinUISnapshot", js.FuncOf(takeSnapshot))
 	js.Global().Set("TinUIRestore", js.FuncOf(restoreSnapshot))
-	
+
 	<-make(chan struct{})
 }
 
@@ -252,7 +281,7 @@ var stateHistory []map[string]*StateEntry
 
 func takeSnapshot(this js.Value, args []js.Value) interface{} {
 	snapshot := make(map[string]*StateEntry)
-	
+
 	for key, value := range StateRegistry {
 		// Deep copy the StateEntry
 		newEntry := &StateEntry{
@@ -260,20 +289,20 @@ func takeSnapshot(this js.Value, args []js.Value) interface{} {
 			IntVal: value.IntVal,
 			StrVal: value.StrVal,
 		}
-		
+
 		if value.ArrayVal != nil {
 			newArray := make([]string, len(value.ArrayVal))
 			copy(newArray, value.ArrayVal)
 			newEntry.ArrayVal = newArray
 		}
-		
+
 		snapshot[key] = newEntry
 	}
-	
+
 	stateHistory = append(stateHistory, snapshot)
-	
+
 	js.Global().Get("console").Call("log", "[TinUI] Snapshot saved. Total in memory:", len(stateHistory))
-	
+
 	return nil
 }
 
@@ -293,18 +322,18 @@ func restoreSnapshot(this js.Value, args []js.Value) interface{} {
 
 	// Force a complete re-render by marking all keys dirty
 	for key := range StateRegistry {
-		markDirty(key) 
+		markDirty(key)
 	}
 	flushPatches()
 
 	js.Global().Get("console").Call("log", "[TinUI] State restored. Remaining snapshots:", len(stateHistory))
-	
+
 	return nil
 }
 
 func bootEngine(this js.Value, args []js.Value) interface{} {
 	irJSON := args[0].String()
-	
+
 	type IRBlueprint struct {
 		Mutations map[string][]Instruction `json:"mutations"`
 		Nodes     []Instruction            `json:"nodes"`
@@ -315,7 +344,7 @@ func bootEngine(this js.Value, args []js.Value) interface{} {
 	DynamicMutations = blueprint.Mutations
 
 	document := js.Global().Get("document")
-	
+
 	// Inject Engine CSS
 	styleEl := document.Call("createElement", "style")
 	styleEl.Set("innerHTML", engineCSS)
@@ -346,7 +375,7 @@ func bootEngine(this js.Value, args []js.Value) interface{} {
 
 	// Setup Parallax Scroll Loop
 	window := js.Global().Get("window")
-	
+
 	lastActivityTime = time.Now()
 	activityCb := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		updateActivity()
@@ -355,7 +384,7 @@ func bootEngine(this js.Value, args []js.Value) interface{} {
 	window.Call("addEventListener", "mousemove", activityCb)
 	window.Call("addEventListener", "scroll", activityCb)
 	window.Call("addEventListener", "keydown", activityCb)
-	
+
 	window.Call("addEventListener", "scroll", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		scrollY := window.Get("scrollY").Float()
 		for _, pNode := range ParallaxNodes {
@@ -384,7 +413,7 @@ func bootEngine(this js.Value, args []js.Value) interface{} {
 		var words []string
 		if err := json.Unmarshal([]byte(cycleData), &words); err == nil && len(words) > 0 {
 			effect := el.Call("getAttribute", "data-cycle-effect").String()
-			
+
 			go func() {
 				idx := 0
 				ticker := time.NewTicker(2 * time.Second)
@@ -427,25 +456,29 @@ func bootEngine(this js.Value, args []js.Value) interface{} {
 	document.Call("querySelectorAll", "[data-attention-effect]").Call("forEach", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		el := args[0]
 		effect := el.Call("getAttribute", "data-attention-effect").String()
-		
+
 		intervalStr := "frequent"
 		if val := el.Call("getAttribute", "data-attention-interval"); !val.IsNull() && !val.IsUndefined() {
 			intervalStr = val.String()
 		}
-		
+
 		triggerStr := "on-load"
 		if val := el.Call("getAttribute", "data-attention-trigger"); !val.IsNull() && !val.IsUndefined() {
 			triggerStr = val.String()
 		}
-		
+
 		var duration time.Duration
 		switch intervalStr {
-		case "frequent": duration = 3 * time.Second
-		case "moderate": duration = 7 * time.Second
-		case "rare": duration = 15 * time.Second
-		default: duration = 3 * time.Second
+		case "frequent":
+			duration = 3 * time.Second
+		case "moderate":
+			duration = 7 * time.Second
+		case "rare":
+			duration = 15 * time.Second
+		default:
+			duration = 3 * time.Second
 		}
-		
+
 		go func() {
 			ticker := time.NewTicker(duration)
 			for range ticker.C {
@@ -458,12 +491,12 @@ func bootEngine(this js.Value, args []js.Value) interface{} {
 						fire = false
 					}
 				}
-				
+
 				if fire {
 					el.Get("classList").Call("remove", "tin-attention-"+effect)
 					el.Get("offsetHeight") // trigger reflow
 					el.Get("classList").Call("add", "tin-attention-"+effect)
-					
+
 					// Auto remove after animation completes
 					go func() {
 						time.Sleep(1200 * time.Millisecond)
@@ -478,7 +511,7 @@ func bootEngine(this js.Value, args []js.Value) interface{} {
 	// Setup Routing
 	var activeRoutePath string
 	activeRoutePath = window.Get("location").Get("pathname").String()
-	
+
 	document.Call("querySelectorAll", "[data-route-path]").Call("forEach", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		route := args[0]
 		path := route.Call("getAttribute", "data-route-path").String()
@@ -489,27 +522,33 @@ func bootEngine(this js.Value, args []js.Value) interface{} {
 		}
 		return nil
 	}))
-	
+
 	navigate := func(newPath string) {
-		if newPath == activeRoutePath { return }
-		
+		if newPath == activeRoutePath {
+			return
+		}
+
 		router := document.Call("querySelector", "[data-transition-duration]")
 		if router.IsNull() {
 			activeRoutePath = newPath
 			return
 		}
-		
+
 		durStr := router.Call("getAttribute", "data-transition-duration").String()
 		var durMs time.Duration
 		switch durStr {
-		case "snappy": durMs = 200 * time.Millisecond
-		case "smooth": durMs = 400 * time.Millisecond
-		case "cinematic": durMs = 800 * time.Millisecond
-		default: durMs = 400 * time.Millisecond
+		case "snappy":
+			durMs = 200 * time.Millisecond
+		case "smooth":
+			durMs = 400 * time.Millisecond
+		case "cinematic":
+			durMs = 800 * time.Millisecond
+		default:
+			durMs = 400 * time.Millisecond
 		}
-		
+
 		durCss := fmt.Sprintf("%dms", durMs.Milliseconds())
-		
+
 		var outRoute, inRoute js.Value
 		document.Call("querySelectorAll", "[data-route-path]").Call("forEach", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 			r := args[0]
@@ -521,19 +560,19 @@ func bootEngine(this js.Value, args []js.Value) interface{} {
 			}
 			return nil
 		}))
-		
+
 		tOut := router.Call("getAttribute", "data-transition-out").String()
 		tIn := router.Call("getAttribute", "data-transition-in").String()
-		
+
 		activeRoutePath = newPath
-		
+
 		if !outRoute.IsUndefined() && !outRoute.IsNull() {
 			destroyStrat := outRoute.Call("getAttribute", "data-destroy-strategy")
 			strat := ""
 			if !destroyStrat.IsNull() {
 				strat = destroyStrat.String()
 			}
-			
+
 			if strat == "immediate" {
 				cleanupDOMNode(outRoute)
 				outRoute.Call("remove")
@@ -541,7 +580,7 @@ func bootEngine(this js.Value, args []js.Value) interface{} {
 				outRoute.Get("style").Set("animationDuration", durCss)
 				outRoute.Get("classList").Call("add", "tin-transition-out")
 				outRoute.Get("classList").Call("add", "tin-anim-"+tOut)
-				
+
 				go func(route js.Value, classOut string, st string) {
 					time.Sleep(durMs)
 					if st == "after-animation" {
@@ -555,13 +594,13 @@ func bootEngine(this js.Value, args []js.Value) interface{} {
 				}(outRoute, tOut, strat)
 			}
 		}
-		
+
 		if !inRoute.IsUndefined() && !inRoute.IsNull() {
 			inRoute.Get("style").Set("display", "block")
 			inRoute.Get("style").Set("animationDuration", durCss)
 			inRoute.Get("classList").Call("add", "tin-transition-in")
 			inRoute.Get("classList").Call("add", "tin-anim-"+tIn)
-			
+
 			go func(route js.Value, classIn string) {
 				time.Sleep(durMs)
 				route.Get("classList").Call("remove", "tin-transition-in")
@@ -569,10 +608,10 @@ func bootEngine(this js.Value, args []js.Value) interface{} {
 			}(inRoute, tIn)
 		}
 	}
-	
+
 	document.Call("addEventListener", "click", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		e := args[0]
-		
+
 		// 1. Check for data-action (Internal Event Dispatcher)
 		actionTarget := e.Get("target")
 		for !actionTarget.IsNull() && !actionTarget.IsUndefined() {
@@ -585,13 +624,13 @@ func bootEngine(this js.Value, args []js.Value) interface{} {
 			}
 			actionTarget = actionTarget.Get("parentElement")
 		}
-		
+
 		// 2. Check for Navigation (Router)
 		navTarget := e.Get("target")
 		for !navTarget.IsNull() && !navTarget.IsUndefined() && navTarget.Get("tagName").String() != "A" {
 			navTarget = navTarget.Get("parentElement")
 		}
-		
+
 		if !navTarget.IsNull() && !navTarget.IsUndefined() {
 			href := navTarget.Call("getAttribute", "href")
 			if !href.IsNull() && !href.IsUndefined() {
@@ -605,7 +644,7 @@ func bootEngine(this js.Value, args []js.Value) interface{} {
 		}
 		return nil
 	}))
-	
+
 	window.Call("addEventListener", "popstate", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		navigate(window.Get("location").Get("pathname").String())
 		return nil
@@ -679,14 +718,20 @@ func executeInstruction(inst Instruction, document js.Value, scope map[string]in
 
 	case "BIND_INPUT":
 		el := domRefs[inst.ID]
-		
+
 		// 1. Tag the element so the JS Bridge knows which variable this modifies
 		el.Call("setAttribute", "data-bind", inst.StateKey)
-		
+
 		// 2. Hydrate the input with the current memory state on boot
-		entry := StateRegistry[inst.StateKey]
-		el.Set("value", entry.StrVal)
-		
+		entry, exists := StateRegistry[inst.StateKey]
+		if exists && entry != nil {
+			el.Set("value", entry.StrVal)
+		} else {
+			// Auto-register it so we don't panic on nil dereference later
+			StateRegistry[inst.StateKey] = &StateEntry{Type: "string", StrVal: ""}
+			el.Set("value", "")
+		}
+
 	case "BIND_LOADING":
 		LoadingBindings[inst.ID] = &LoadingBinding{
 			StateKey:    inst.StateKey,
@@ -700,7 +745,7 @@ func executeInstruction(inst Instruction, document js.Value, scope map[string]in
 		// Using display: contents ensures this anchor doesn't ruin CSS flex/grid layouts
 		anchor.Call("setAttribute", "style", "display: contents;")
 		domRefs[inst.ID] = anchor
-		
+
 		// Attach anchor to parent
 		domRefs[inst.Parent].Call("appendChild", anchor)
 
@@ -722,19 +767,19 @@ func executeInstruction(inst Instruction, document js.Value, scope map[string]in
 		if initialBool {
 			branchToRender = inst.TrueBranch
 		}
-		
+
 		for _, branchInst := range branchToRender {
 			// Override parent to mount inside the Anchor Node
-			branchInst.Parent = inst.ID 
+			branchInst.Parent = inst.ID
 			executeInstruction(branchInst, document, scope)
 		}
-		
+
 	case "RENDER_LIST":
 		// 1. Create a stable Anchor Node in the DOM
 		anchor := document.Call("createElement", "div")
 		anchor.Call("setAttribute", "style", "display: contents;")
 		domRefs[inst.ID] = anchor
-		
+
 		// Attach anchor to parent
 		domRefs[inst.Parent].Call("appendChild", anchor)
 
@@ -753,17 +798,17 @@ func executeInstruction(inst Instruction, document js.Value, scope map[string]in
 func renderListDOM(anchorID int, document js.Value) {
 	binding := ListBindings[anchorID]
 	anchor := domRefs[anchorID]
-	
+
 	// Clear anchor
 	anchor.Set("innerHTML", "")
-	
-	listState := StateRegistry[binding.IterableKey].ArrayVal 
-	
+
+	listState := StateRegistry[binding.IterableKey].ArrayVal
+
 	for _, item := range listState {
 		localScope := map[string]interface{}{
 			binding.IteratorName: item,
 		}
-		
+
 		for _, childInst := range binding.LoopTemplate {
 			childInst.Parent = anchorID
 			executeInstruction(childInst, document, localScope)
@@ -776,7 +821,7 @@ func mutateState(this js.Value, args []js.Value) interface{} {
 	if len(args) < 2 {
 		return nil
 	}
-	
+
 	key := args[0].String()
 	newValue := args[1].String()
 
@@ -784,6 +829,11 @@ func mutateState(this js.Value, args []js.Value) interface{} {
 	StateMutex.Lock()
 	if entry, exists := StateRegistry[key]; exists {
 		entry.StrVal = newValue
+		if entry.Type == "int" {
+			if v, err := strconv.Atoi(newValue); err == nil {
+				entry.IntVal = v
+			}
+		}
 		// 2. Flag the Dirty Bitmap
 		markDirty(key)
 	} else {
@@ -796,26 +846,42 @@ func mutateState(this js.Value, args []js.Value) interface{} {
 
 	// 3. Recalculate the UI
 	flushPatches()
-	
+
 	return nil
 }
 
 // 1. The Network Dispatcher Hook
 func dispatchApi(this js.Value, args []js.Value) interface{} {
-	// In a full implementation, these would be dynamically parsed from the IR AST
-	endpoint := "http://localhost:5001/api/login"
-	
-	// 2. Securely extract data from the State Tree
-	StateMutex.RLock()
-	requestData := map[string]string{}
-	
-	if emailEntry, ok := StateRegistry["user_email"]; ok {
-		requestData["email"] = emailEntry.StrVal
+	action := ""
+	if len(args) > 0 {
+		action = args[0].String()
 	}
-	if passEntry, ok := StateRegistry["user_password"]; ok {
-		requestData["password"] = passEntry.StrVal
+
+	endpoint := ""
+	requestData := map[string]string{}
+
+	// 2. Securely extract data from the State Tree based on action
+	StateMutex.RLock()
+	if action == "subscribeBeta" {
+		endpoint = "http://localhost:5000/api/subscribe"
+		if emailEntry, ok := StateRegistry["email"]; ok {
+			requestData["email"] = emailEntry.StrVal
+		}
+	} else if action == "reportBug" {
+		endpoint = "http://localhost:5000/api/report"
+		if typeEntry, ok := StateRegistry["report_type"]; ok {
+			requestData["type"] = typeEntry.StrVal
+		}
+		if descEntry, ok := StateRegistry["report_desc"]; ok {
+			requestData["desc"] = descEntry.StrVal
+		}
 	}
 	StateMutex.RUnlock()
+
+	if endpoint == "" {
+		fmt.Println("[TinPyUI] Unknown dispatch action:", action)
+		return nil
+	}
 
 	// 3. Marshal the payload into JSON bytes
 	jsonPayload, err := json.Marshal(requestData)
@@ -846,7 +912,30 @@ func dispatchApi(this js.Value, args []js.Value) interface{} {
 		body, _ := ioutil.ReadAll(resp.Body)
 		if resp.StatusCode == 200 {
 			fmt.Printf("[TinPyUI] Success! Server responded: %s\n", string(body))
-			// Here, the internal event bus would trigger the Modal to close
+
+			// Natively show the Toast
+			StateMutex.Lock()
+			if entry, exists := StateRegistry["show_toast"]; exists {
+				entry.StrVal = "1"
+				entry.IntVal = 1
+				markDirty("show_toast")
+			}
+			StateMutex.Unlock()
+			flushPatches()
+
+			// Automatically hide the Toast after 3 seconds
+			go func() {
+				time.Sleep(3 * time.Second)
+				StateMutex.Lock()
+				if entry, exists := StateRegistry["show_toast"]; exists {
+					entry.StrVal = "0"
+					entry.IntVal = 0
+					markDirty("show_toast")
+				}
+				StateMutex.Unlock()
+				flushPatches()
+			}()
+
 		} else {
 			fmt.Printf("[TinPyUI] API Error: %d - %s\n", resp.StatusCode, string(body))
 		}
@@ -918,12 +1007,12 @@ func flushPatches() {
 	for anchorID, binding := range ConditionalBindings {
 		if isDirty(binding.StateKey) {
 			newBool := evalCondition(binding.StateKey, binding.Operator, binding.CompareVal)
-			
+
 			// Only update the DOM if the branch actually flipped
 			if newBool != binding.CurrentBool {
 				binding.CurrentBool = newBool
 				anchor := domRefs[anchorID]
-				
+
 				// 1. Surgical Unmount: Wipe the
 				// Destroy old children
 				children := anchor.Get("children")
@@ -937,7 +1026,7 @@ func flushPatches() {
 				if newBool {
 					branchToRender = binding.TrueBranch
 				}
-				
+
 				document := js.Global().Get("document")
 				for _, branchInst := range branchToRender {
 					branchInst.Parent = anchorID
@@ -977,7 +1066,7 @@ func applyLoadingState(nodeID int, binding *LoadingBinding) {
 	el := domRefs[nodeID]
 	classList := el.Get("classList")
 	className := "tin-loading-" + binding.LoaderType
-	
+
 	if isLoading {
 		classList.Call("add", className)
 	} else {

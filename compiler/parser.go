@@ -50,7 +50,7 @@ func (p *Parser) Parse() []*Component {
 
 func (p *Parser) parseComponent() *Component {
 	comp := &Component{}
-	p.nextToken() 
+	p.nextToken()
 
 	if p.curToken.Type != IDENT {
 		p.Errors = append(p.Errors, fmt.Sprintf("Expected component name, got %s", p.curToken.Type))
@@ -67,7 +67,7 @@ func (p *Parser) parseComponent() *Component {
 			}
 			p.nextToken()
 		}
-		p.nextToken() 
+		p.nextToken()
 	}
 
 	if p.curToken.Type == COLON {
@@ -105,16 +105,16 @@ func (p *Parser) parseComponent() *Component {
 					p.nextToken()
 				}
 			}
-			p.nextToken() 
+			p.nextToken()
 		}
 	}
 	return comp
 }
 
 func (p *Parser) parseState() *StateDecl {
-	p.nextToken() 
+	p.nextToken()
 	state := &StateDecl{}
-	
+
 	if p.curToken.Type == IDENT {
 		state.Name = p.curToken.Literal
 		p.nextToken()
@@ -130,7 +130,7 @@ func (p *Parser) parseState() *StateDecl {
 }
 
 func (p *Parser) parseDefStatement() *DefNode {
-	p.nextToken() 
+	p.nextToken()
 	funcName := ""
 	if p.curToken.Type == IDENT {
 		funcName = p.curToken.Literal
@@ -147,41 +147,41 @@ func (p *Parser) parseDefStatement() *DefNode {
 		if p.curToken.Type == NEWLINE {
 			p.nextToken()
 		}
-		
+
 		var mutations []MutationNode
 		if p.curToken.Type == INDENT {
 			p.nextToken()
-			
+
 			for p.curToken.Type != DEDENT && p.curToken.Type != EOF {
 				if p.curToken.Type == NEWLINE {
 					p.nextToken()
 					continue
 				}
-				
+
 				if p.curToken.Type == IDENT {
 					targetVar := p.curToken.Literal
 					p.nextToken()
-					
+
 					var operator string
 					if p.curToken.Type == ASSIGN || p.curToken.Type == PLUS_ASSIGN || p.curToken.Type == MINUS_ASSIGN || p.curToken.Type == OPERATOR {
 						operator = p.curToken.Literal
 						p.nextToken()
 					}
-					
+
 					valToken := p.curToken
 					p.nextToken()
-					
+
 					mutations = append(mutations, MutationNode{
 						StateKey: targetVar,
 						Operator: operator,
 						Value:    valToken.Literal,
 					})
 				} else {
-					p.nextToken() 
+					p.nextToken()
 				}
 			}
-			p.nextToken() 
-			
+			p.nextToken()
+
 			return &DefNode{
 				FuncName:  funcName,
 				Mutations: mutations,
@@ -203,15 +203,15 @@ func (p *Parser) parseNode() ASTNode {
 	}
 
 	if p.curToken.Type == COLON {
-		p.nextToken() 
-		
+		p.nextToken()
+
 		if p.curToken.Type == NEWLINE {
-			p.nextToken() 
+			p.nextToken()
 		}
 
 		if p.curToken.Type == INDENT {
-			p.nextToken() 
-			
+			p.nextToken()
+
 			for p.curToken.Type != DEDENT && p.curToken.Type != EOF {
 				if p.curToken.Type == NEWLINE {
 					p.nextToken()
@@ -229,7 +229,7 @@ func (p *Parser) parseNode() ASTNode {
 					node.Children = append(node.Children, child)
 				}
 			}
-			p.nextToken() 
+			p.nextToken()
 		}
 	}
 
@@ -242,13 +242,13 @@ func (p *Parser) parseNode() ASTNode {
 }
 
 func (p *Parser) parseArguments(node *Node) {
-	p.nextToken() 
+	p.nextToken()
 
 	for p.curToken.Type != RPAREN && p.curToken.Type != EOF {
 		if p.curToken.Type == STRING || p.curToken.Type == FSTRING {
-		    if p.curToken.Type == FSTRING {
-		        node.IsFString = true
-		    }
+			if p.curToken.Type == FSTRING {
+				node.IsFString = true
+			}
 			node.Args = append(node.Args, p.curToken.Literal)
 			p.nextToken()
 		} else if p.curToken.Type == IDENT || p.curToken.Type == COMPONENT {
@@ -272,7 +272,7 @@ func (p *Parser) parseArguments(node *Node) {
 					p.nextToken()
 				} else if p.curToken.Type == STRING || p.curToken.Type == IDENT || p.curToken.Type == NUMBER {
 					node.Attributes[key] = p.curToken.Literal
-					p.nextToken() 
+					p.nextToken()
 				} else {
 					p.Errors = append(p.Errors, fmt.Sprintf("Expected value for attribute %s, got %s", key, p.curToken.Type))
 					p.nextToken()
@@ -285,7 +285,7 @@ func (p *Parser) parseArguments(node *Node) {
 			p.nextToken()
 		}
 	}
-	p.nextToken() 
+	p.nextToken()
 }
 
 func (p *Parser) parseIfStatement() *ConditionalNode {
@@ -466,4 +466,3 @@ func (p *Parser) parseForStatement() *ForNode {
 		Body:         bodyNodes,
 	}
 }
-

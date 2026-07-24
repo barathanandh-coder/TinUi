@@ -18,7 +18,7 @@ func main() {
 	}
 
 	command := os.Args[1]
-	if command != "compile" && command != "build" {
+	if command != "compile" && command != "build" && command != "dev" {
 		printUsage()
 		os.Exit(1)
 	}
@@ -32,53 +32,17 @@ func main() {
 			inputFile = arg
 		}
 	}
-	
+
 	if inputFile == "" {
 		fmt.Println("[Error] No input file specified.")
 		printUsage()
 		os.Exit(1)
 	}
 
-	// 2. Read the .tin Source File
-	sourceBytes, err := os.ReadFile(inputFile)
-	if err != nil {
-		fmt.Printf("[Error] Error reading file %s: %v\n", inputFile, err)
-		os.Exit(1)
-	}
-	sourceCode := string(sourceBytes)
-
-	fmt.Printf("Compiling %s...\n", inputFile)
-
-	// 3. The Compilation Pipeline
-	lexer := compiler.NewLexer(sourceCode)
-	parser := compiler.NewParser(lexer)
-	
-	astRoots := parser.Parse()
-
-	if len(parser.Errors) > 0 {
-		fmt.Println("[Error] Syntax Errors found:")
-		for _, msg := range parser.Errors {
-			fmt.Printf("  - %s\n", msg)
-		}
-		os.Exit(1)
-	}
-
-	generator := compiler.NewIRGenerator()
-	instructions := generator.Generate(astRoots)
-
-	// 4. Serialize to JSON
-	irJSON, err := json.MarshalIndent(instructions, "", "  ")
-	if err != nil {
-		fmt.Printf("[Error] Error generating IR JSON: %v\n", err)
-		os.Exit(1)
-	}
-
-	// 5. Write the Output File
 	ext := filepath.Ext(inputFile)
 	base := strings.TrimSuffix(inputFile, ext)
 	outputFile := base + ".ir.json"
 
-	// Check for config
 	configBytes, configErr := os.ReadFile("tinpyui.config.json")
 	if configErr == nil {
 		var config struct {
@@ -91,18 +55,60 @@ func main() {
 		}
 	}
 
-	// Ensure output directory exists
 	outDir := filepath.Dir(outputFile)
 	if outDir != "" && outDir != "." {
 		os.MkdirAll(outDir, 0755)
 	}
 
+	if command == "dev" {
+		startDevServer(inputFile, outDir, outputFile, hydrate)
+		return
+	}
+
+	success := compileFile(inputFile, outDir, outputFile, hydrate)
+	if !success {
+		os.Exit(1)
+	}
+}
+
+func compileFile(inputFile, outDir, outputFile string, hydrate bool) bool {
+	sourceBytes, err := os.ReadFile(inputFile)
+	if err != nil {
+		fmt.Printf("[Error] Error reading file %s: %v\n", inputFile, err)
+		return false
+	}
+	sourceCode := string(sourceBytes)
+
+	fmt.Printf("Compiling %s...\n", inputFile)
+
+	lexer := compiler.NewLexer(sourceCode)
+	parser := compiler.NewParser(lexer)
+
+	astRoots := parser.Parse()
+
+	if len(parser.Errors) > 0 {
+		fmt.Println("[Error] Syntax Errors found:")
+		for _, msg := range parser.Errors {
+			fmt.Printf("  - %s\n", msg)
+		}
+		return false
+	}
+
+	generator := compiler.NewIRGenerator()
+	instructions := generator.Generate(astRoots)
+
+	irJSON, err := json.MarshalIndent(instructions, "", "  ")
+	if err != nil {
+		fmt.Printf("[Error] Error generating IR JSON: %v\n", err)
+		return false
+	}
+
 	err = os.WriteFile(outputFile, irJSON, 0644)
 	if err != nil {
 		fmt.Printf("[Error] Error writing output file: %v\n", err)
-		os.Exit(1)
+		return false
 	}
-	
+
 	if hydrate {
 		htmlShell := compiler.GenerateHydrationShell(instructions)
 		htmlOutputFile := filepath.Join(outDir, "index.html")
@@ -115,9 +121,10 @@ func main() {
 	}
 
 	fmt.Printf("Success! Generated Intermediate Representation at: %s\n", outputFile)
+	return true
 }
 
 func printUsage() {
 	fmt.Println("TinUI Compiler CLI")
-	fmt.Println("Usage: tinui compile <filename>.tin")
+	fmt.Println("Usage: tinui [compile|dev] <filename>.tin")
 }

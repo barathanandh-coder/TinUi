@@ -26,9 +26,9 @@ To enable official syntax highlighting for `.tin` files in your editor:
 
 # TinPyUI Framework
 
-TinPyUI is a modern, Pythonically structured layout framework that compiles directly into native WebAssembly UI nodes. In v1.3, TinPyUI eliminates all external CSS and HTML dependencies, letting developers write elegant interface code that maps dynamically to hardcoded browser primitives with rich design features out of the box.
+TinPyUI is a modern, Pythonically structured layout framework that compiles directly into native WebAssembly UI nodes. In v1.4.2, TinPyUI eliminates all external CSS and HTML dependencies, letting developers write elegant interface code that maps dynamically to hardcoded browser primitives with rich design features out of the box.
 
-## 🚀 The v1.3 Developer Workflow
+## 🚀 The v1.4.2 Developer Workflow
 
 ### Step 1: Install Globally
 Install the unified CLI:
@@ -84,11 +84,11 @@ bat
 Running an Application
 1. Compile your `.tin` file:
    bash
-   .\tinui.exe compile task_manager.tin
+   .\tinui.exe compile app.tin
    
-   This generates `task_manager.ir.json`.
+   This generates `app.ir.json`.
 
-2. To view the app, ensure `app.ir.json` in your server directory is symbolically linked to (or copied from) `task_manager.ir.json`. (Update `index.html`'s fetch target if needed).
+2. To view the app, ensure `app.ir.json` is in your server directory. (Update `index.html`'s fetch target if needed).
 
 3. Serve the directory to bypass CORS:
    bash
@@ -96,8 +96,8 @@ Running an Application
    
 4. Open `http://localhost:8080` in your browser.
 
-Example: Task Manager
-See `task_manager.tin` for an example of:
+Example: App
+See `app.tin` for an example of:
 - Complex Deterministic Control Flow (Conditionals)
 - Two-Way Data Binding
 - Tailwind CSS Integration

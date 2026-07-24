@@ -12,9 +12,9 @@ type ASTNode interface {
 	isASTNode()
 }
 
-func (n *Node) isASTNode() {}
-func (c *ConditionalNode) isASTNode() {}
-func (f *ForNode) isASTNode() {}
+func (n *Node) isASTNode()              {}
+func (c *ConditionalNode) isASTNode()   {}
+func (f *ForNode) isASTNode()           {}
 func (h *HiddenWrapperNode) isASTNode() {}
 
 type HiddenWrapperNode struct {

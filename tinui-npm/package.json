@@ -1,17 +1,58 @@
 {
   "name": "tinpyui",
-  "version": "1.4.0",
-  "description": "The official compiler and CLI for the TinUI framework.",
+  "version": "1.4.2",
+  "description": "The official compiler and CLI for the TinUI framework. A WebAssembly-powered UI framework with Pythonic, indentation-based syntax.",
   "main": "index.js",
   "bin": {
     "tinpyui": "index.js"
   },
+  "files": [
+    "index.js",
+    "bin/",
+    "tinpyui.pyi"
+  ],
   "keywords": [
     "tinui",
+    "tinpyui",
     "wasm",
+    "webassembly",
     "framework",
     "compiler",
-    "ui"
+    "ui",
+    "frontend",
+    "3d",
+    "threejs",
+    "webgl",
+    "animation",
+    "gsap",
+    "pythonic",
+    "indentation",
+    "dsl",
+    "dom",
+    "virtual-dom",
+    "reactive",
+    "components",
+    "cli",
+    "cross-platform",
+    "go",
+    "golang",
+    "neon",
+    "cyberpunk",
+    "dark-mode",
+    "glassmorphism",
+    "parallax",
+    "scroll-trigger",
+    "particle-system",
+    "lottie",
+    "svg",
+    "canvas",
+    "webgpu",
+    "shader",
+    "glsl",
+    "pwa",
+    "spa",
+    "ssg",
+    "jamstack"
   ],
   "author": "Barathanandh",
   "license": "MIT",
@@ -22,5 +63,8 @@
   "bugs": {
     "url": "https://github.com/barathanandh-coder/tinui/issues"
   },
-  "homepage": "https://github.com/barathanandh-coder/tinui#readme"
+  "homepage": "https://github.com/barathanandh-coder/tinui#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }

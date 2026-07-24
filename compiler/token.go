@@ -8,26 +8,26 @@ type Token struct {
 }
 
 const (
-	ILLEGAL   TokenType = "ILLEGAL"
-	EOF       TokenType = "EOF"
-	NEWLINE   TokenType = "NEWLINE"
+	ILLEGAL TokenType = "ILLEGAL"
+	EOF     TokenType = "EOF"
+	NEWLINE TokenType = "NEWLINE"
 
 	// Identifiers and Literals
-	IDENT     TokenType = "IDENT"
-	STRING    TokenType = "STRING"
-	FSTRING   TokenType = "FSTRING"
-	NUMBER    TokenType = "NUMBER"
+	IDENT   TokenType = "IDENT"
+	STRING  TokenType = "STRING"
+	FSTRING TokenType = "FSTRING"
+	NUMBER  TokenType = "NUMBER"
 
 	// Operators and Punctuation
 	ASSIGN       TokenType = "="
 	PLUS_ASSIGN  TokenType = "+="
 	MINUS_ASSIGN TokenType = "-="
 	COLON        TokenType = ":"
-	COMMA       TokenType = ","
-	LPAREN      TokenType = "("
-	RPAREN      TokenType = ")"
-	LBRACKET    TokenType = "["
-	RBRACKET    TokenType = "]"
+	COMMA        TokenType = ","
+	LPAREN       TokenType = "("
+	RPAREN       TokenType = ")"
+	LBRACKET     TokenType = "["
+	RBRACKET     TokenType = "]"
 
 	// Keywords
 	COMPONENT TokenType = "COMPONENT"
@@ -39,7 +39,7 @@ const (
 	IN        TokenType = "IN"
 
 	// Operators
-	OPERATOR  TokenType = "OPERATOR"
+	OPERATOR TokenType = "OPERATOR"
 
 	// Block Formatting
 	INDENT TokenType = "INDENT"

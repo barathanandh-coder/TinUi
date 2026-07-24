@@ -11,12 +11,14 @@ import (
 type IRGenerator struct {
 	instructions []Instruction
 	nextID       int
+	components   map[string]*Component
 }
 
 func NewIRGenerator() *IRGenerator {
 	return &IRGenerator{
 		instructions: []Instruction{},
 		nextID:       1,
+		components:   make(map[string]*Component),
 	}
 }
 
@@ -26,7 +28,17 @@ func (g *IRGenerator) Generate(components []*Component) IRBlueprint {
 		Nodes:     []Instruction{},
 	}
 
+	// Build component lookup map
 	for _, comp := range components {
+		g.components[comp.Name] = comp
+	}
+
+	for _, comp := range components {
+		// Only traverse the main component as root
+		if comp.Name != "Main" && comp.Name != "App" {
+			continue
+		}
+
 		for _, state := range comp.States {
 			var val any
 			var typ string
@@ -50,7 +62,7 @@ func (g *IRGenerator) Generate(components []*Component) IRBlueprint {
 		}
 
 		for _, root := range comp.RootNodes {
-			g.traverse(root, 0)
+			g.traverse(root, 0, nil)
 		}
 	}
 
@@ -59,11 +71,11 @@ func (g *IRGenerator) Generate(components []*Component) IRBlueprint {
 		g.nextID++
 		g.instructions = append(g.instructions, CreateNode(styleNodeID, "style"))
 		var allFrames []string
-		
+
 		// Sort keyframes for determinism too!
 		var frameKeys []string
 		for k := range GlobalKeyframes {
-		    frameKeys = append(frameKeys, k)
+			frameKeys = append(frameKeys, k)
 		}
 		sort.Strings(frameKeys)
 		for _, k := range frameKeys {
@@ -79,10 +91,10 @@ func (g *IRGenerator) Generate(components []*Component) IRBlueprint {
 
 func (g *IRGenerator) generateMutations(defs []*DefNode) map[string][]Instruction {
 	mutationsMap := make(map[string][]Instruction)
-	
+
 	for _, def := range defs {
 		var instructions []Instruction
-		
+
 		for _, mut := range def.Mutations {
 			opCode := OpAssign
 			if mut.Operator == "+=" {
@@ -90,7 +102,7 @@ func (g *IRGenerator) generateMutations(defs []*DefNode) map[string][]Instructio
 			} else if mut.Operator == "-=" {
 				opCode = OpDecrement
 			}
-			
+
 			instructions = append(instructions, Instruction{
 				Op:       opCode,
 				StateKey: mut.StateKey,
@@ -99,15 +111,52 @@ func (g *IRGenerator) generateMutations(defs []*DefNode) map[string][]Instructio
 		}
 		mutationsMap[def.FuncName] = instructions
 	}
-	
+
 	return mutationsMap
 }
 
 var fStringRegex = regexp.MustCompile(`\{([a-zA-Z_][a-zA-Z0-9_]*)\}`)
 
-func (g *IRGenerator) traverse(astNode ASTNode, parentID int) {
+func (g *IRGenerator) traverse(astNode ASTNode, parentID int, props map[string]string) {
 	switch n := astNode.(type) {
 	case *Node:
+		// Substitute props in attributes
+		if props != nil {
+			for k, v := range n.Attributes {
+				if propVal, exists := props[v]; exists {
+					n.Attributes[k] = propVal
+				}
+			}
+			for i, arg := range n.Args {
+				if propVal, exists := props[arg]; exists {
+					n.Args[i] = propVal
+				}
+			}
+		}
+
+		if compDef, exists := g.components[n.Name]; exists {
+			// Inline custom component
+			childProps := make(map[string]string)
+			for i, argName := range compDef.Args {
+				if i < len(n.Args) {
+					childProps[argName] = n.Args[i]
+				} else if val, ok := n.Attributes[argName]; ok {
+					childProps[argName] = val
+				}
+			}
+			// Map any other attributes passed
+			for k, v := range n.Attributes {
+				if _, exists := childProps[k]; !exists {
+					childProps[k] = v
+				}
+			}
+
+			for _, child := range compDef.RootNodes {
+				g.traverse(child, parentID, childProps)
+			}
+			return
+		}
+
 		currentID := g.nextID
 		g.nextID++
 
@@ -137,12 +186,12 @@ func (g *IRGenerator) traverse(astNode ASTNode, parentID int) {
 		// Sort attributes for deterministic output
 		var attrKeys []string
 		for k := range compiledAttrs {
-		    attrKeys = append(attrKeys, k)
+			attrKeys = append(attrKeys, k)
 		}
 		sort.Strings(attrKeys)
 
 		for _, key := range attrKeys {
-		    value := compiledAttrs[key]
+			value := compiledAttrs[key]
 			if key == "class_" {
 				key = "class"
 			}
@@ -163,9 +212,13 @@ func (g *IRGenerator) traverse(astNode ASTNode, parentID int) {
 				// Since we add data-loader-type via attributes too, we can emit OpBindLoading with it.
 				// For simplicity, we just emit SetAttribute, and we also emit OpBindLoading by extracting types from attrs map.
 				loaderType, hasType := compiledAttrs["data-loader-type"]
-				if !hasType { loaderType = "skeleton" }
+				if !hasType {
+					loaderType = "skeleton"
+				}
 				loaderSpeed, hasSpeed := compiledAttrs["data-loader-speed"]
-				if !hasSpeed { loaderSpeed = "steady" }
+				if !hasSpeed {
+					loaderSpeed = "steady"
+				}
 				g.instructions = append(g.instructions, BindLoading(currentID, value, loaderType, loaderSpeed))
 				g.instructions = append(g.instructions, SetAttribute(currentID, key, value))
 			} else {
@@ -176,15 +229,15 @@ func (g *IRGenerator) traverse(astNode ASTNode, parentID int) {
 		g.instructions = append(g.instructions, AppendChild(parentID, currentID))
 
 		for _, child := range n.Children {
-			g.traverse(child, currentID)
+			g.traverse(child, currentID, props)
 		}
 
 	case *ConditionalNode:
 		currentID := g.nextID
 		g.nextID++
-		
-		trueInsts := g.generateInstructions(n.TrueBranch, currentID)
-		falseInsts := g.generateInstructions(n.FalseBranch, currentID)
+
+		trueInsts := g.generateInstructions(n.TrueBranch, currentID, props)
+		falseInsts := g.generateInstructions(n.FalseBranch, currentID, props)
 
 		g.instructions = append(g.instructions, CreateConditional(
 			currentID,
@@ -199,9 +252,9 @@ func (g *IRGenerator) traverse(astNode ASTNode, parentID int) {
 	case *ForNode:
 		currentID := g.nextID
 		g.nextID++
-		
-		loopTemplate := g.generateInstructions(n.Body, currentID)
-		
+
+		loopTemplate := g.generateInstructions(n.Body, currentID, props)
+
 		g.instructions = append(g.instructions, RenderList(
 			currentID,
 			parentID,
@@ -209,11 +262,11 @@ func (g *IRGenerator) traverse(astNode ASTNode, parentID int) {
 			n.IteratorName,
 			loopTemplate,
 		))
-		
+
 	case *HiddenWrapperNode:
 		startIdx := len(g.instructions)
-		g.traverse(n.Child, parentID)
-		
+		g.traverse(n.Child, parentID, props)
+
 		for i := startIdx; i < len(g.instructions); i++ {
 			if g.instructions[i].Op == OpCreateNode {
 				g.instructions[i].IsHidden = true
@@ -223,11 +276,11 @@ func (g *IRGenerator) traverse(astNode ASTNode, parentID int) {
 	}
 }
 
-func (g *IRGenerator) generateInstructions(nodes []ASTNode, parentID int) []Instruction {
+func (g *IRGenerator) generateInstructions(nodes []ASTNode, parentID int, props map[string]string) []Instruction {
 	oldInstructions := g.instructions
 	g.instructions = []Instruction{}
 	for _, n := range nodes {
-		g.traverse(n, parentID)
+		g.traverse(n, parentID, props)
 	}
 	res := g.instructions
 	g.instructions = oldInstructions
@@ -353,12 +406,12 @@ func CompileAttributes(componentName string, props map[string]string) map[string
 	// Dynamic property conversion
 	var propKeys []string
 	for key := range props {
-	    propKeys = append(propKeys, key)
+		propKeys = append(propKeys, key)
 	}
 	sort.Strings(propKeys)
-	
+
 	for _, key := range propKeys {
-	    val := props[key]
+		val := props[key]
 		switch key {
 		case "align":
 			if val == "center" {
@@ -393,9 +446,21 @@ func CompileAttributes(componentName string, props map[string]string) map[string
 			}
 		case "gap":
 			styles = append(styles, fmt.Sprintf("gap: %spx;", val))
+		case "position":
+			styles = append(styles, fmt.Sprintf("position: %s;", val))
+		case "top":
+			styles = append(styles, fmt.Sprintf("top: %spx;", val))
+		case "right":
+			styles = append(styles, fmt.Sprintf("right: %spx;", val))
+		case "zIndex":
+			styles = append(styles, fmt.Sprintf("z-index: %s;", val))
 		case "hoverGlow":
 			if hex, exists := ColorPalette[val]; exists {
+				// Inject the global hover rule if not already present
+				RegisterGlobalKeyframes("hoverGlowRule", "[data-hover-glow] { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; cursor: pointer; } [data-hover-glow]:hover { box-shadow: 0 0 25px var(--hover-color, currentColor) !important; transform: translateY(-2px) scale(1.02) !important; }")
+
 				attributes["data-hover-glow"] = hex
+				styles = append(styles, fmt.Sprintf("--hover-color: %s;", hex))
 				hasTransition := false
 				for _, s := range styles {
 					if strings.Contains(s, "transition:") {
@@ -412,7 +477,7 @@ func CompileAttributes(componentName string, props map[string]string) map[string
 			if d, customDuration := props["duration"]; customDuration {
 				duration = d + "s"
 			}
-			
+
 			switch val {
 			case "fade-in-up":
 				styles = append(styles, fmt.Sprintf("animation: fadeInUp %s cubic-bezier(0.16, 1, 0.3, 1) forwards;", duration))
@@ -420,7 +485,11 @@ func CompileAttributes(componentName string, props map[string]string) map[string
 			case "pulse":
 				speed := "2s"
 				if s, customSpeed := props["speed"]; customSpeed {
-					if s == "slow" { speed = "3.5s" } else if s == "fast" { speed = "1s" }
+					if s == "slow" {
+						speed = "3.5s"
+					} else if s == "fast" {
+						speed = "1s"
+					}
 				}
 				styles = append(styles, fmt.Sprintf("animation: pulse %s infinite ease-in-out;", speed))
 				RegisterGlobalKeyframes("pulse", "@keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.03); opacity: 0.8; } }")
@@ -490,7 +559,7 @@ func CompileAttributes(componentName string, props map[string]string) map[string
 			attributes["data-reveal-offset"] = val
 		case "parallaxSpeed":
 			attributes["data-parallax-speed"] = val
-		case "heroBackground":
+		case "heroBackground", "effect":
 			attributes["data-hero-background"] = val
 		case "entranceChoreography":
 			attributes["data-entrance-choreography"] = val
@@ -519,7 +588,15 @@ func CompileAttributes(componentName string, props map[string]string) map[string
 			attributes["data-asset-priority"] = val
 		case "destroyStrategy":
 			attributes["data-destroy-strategy"] = val
-		case "class_", "bind", "on_click":
+		case "route":
+			attributes["href"] = val
+		case "action":
+			attributes["data-action"] = val
+		case "dataBind":
+			attributes["data-bind"] = val
+		case "class_", "bind", "on_click", "id":
+			attributes[key] = val
+		default:
 			attributes[key] = val
 		}
 	}

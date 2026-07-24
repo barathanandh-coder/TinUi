@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"strconv"
 	"strings"
 	"sync"
@@ -37,12 +38,10 @@ type TextBinding struct {
 	Scope     map[string]interface{}
 }
 
-// RegisterState is called when Wasm hits DECLARE_STATE
 func RegisterState(key, typeHint, initial string) {
 	entry := &StateEntry{Type: typeHint}
 
 	if typeHint == "infer" {
-		// Simple inference for the PoC
 		if val, err := strconv.Atoi(initial); err == nil {
 			entry.Type = "int"
 			entry.IntVal = val
@@ -52,8 +51,12 @@ func RegisterState(key, typeHint, initial string) {
 		}
 	}
 
-	if key == "tasks" {
-		entry.ArrayVal = []string{"Buy milk", "Walk dog", "Compile Wasm"}
+	if strings.HasPrefix(initial, "[") && strings.HasSuffix(initial, "]") {
+		var arr []string
+		if err := json.Unmarshal([]byte(initial), &arr); err == nil {
+			entry.Type = "array"
+			entry.ArrayVal = arr
+		}
 	}
 
 	StateRegistry[key] = entry
@@ -84,13 +87,13 @@ func FormatTemplate(template string, keys []string, scope map[string]interface{}
 	result := template
 	for _, key := range keys {
 		var valStr string
-		
+
 		if scope != nil {
 			if val, exists := scope[key]; exists {
 				valStr = val.(string)
 			}
 		}
-		
+
 		if valStr == "" {
 			entry := StateRegistry[key]
 			if entry.Type == "int" {
@@ -108,18 +111,23 @@ func FormatTemplate(template string, keys []string, scope map[string]interface{}
 // Evaluates a simple logical expression: e.g., (score > 5)
 func evalCondition(stateKey, operator, compareValStr string) bool {
 	entry := StateRegistry[stateKey]
-	
+
 	if entry.Type == "int" {
 		compareVal, _ := strconv.Atoi(compareValStr)
 		switch operator {
-		case ">": return entry.IntVal > compareVal
-		case "<": return entry.IntVal < compareVal
-		case "==": return entry.IntVal == compareVal
+		case ">":
+			return entry.IntVal > compareVal
+		case "<":
+			return entry.IntVal < compareVal
+		case "==":
+			return entry.IntVal == compareVal
 		}
 	} else if entry.Type == "string" {
 		switch operator {
-		case "==": return entry.StrVal == compareValStr
-		case "!=": return entry.StrVal != compareValStr
+		case "==":
+			return entry.StrVal == compareValStr
+		case "!=":
+			return entry.StrVal != compareValStr
 		}
 	}
 	return false
@@ -145,4 +153,3 @@ type ListBinding struct {
 }
 
 var ListBindings = make(map[int]*ListBinding)
-

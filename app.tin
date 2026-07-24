@@ -1,23 +1,16 @@
-main {
-    AnimatedBackground(effect: "cyber-wave", primaryColor: "neon-purple", secondaryColor: "neon-cyan") {
+component Main():
+    AnimatedBackground(effect="cyber-wave", primaryColor="neon-purple", secondaryColor="neon-cyan"):
         
-        Navbar(padding: 20, blur: true) {
-            Row(align: "center", justify: "space-between", width: "full") {
-                Text(text: "AppLogo", color: "neon-cyan", weight: "bold")
-                Row(gap: 30, color: "white") {
-                    NavLink(text: "Features")
-                    NavLink(text: "Docs")
-                }
-            }
-        }
+        Navbar(padding=20, blur=true):
+            Row(align="center", justify="space-between", width="full"):
+                Text(text="AppLogo", color="white", weight="bold")
+                Row(gap=30, color="white"):
+                    NavLink(text="Features")
+                    NavLink(text="Docs")
 
-        Section(align: "center", paddingY: 100, maxWidth: 800, justify: "center") {
-            GradientText(text: "The WASM UI Engine", gradient: ["neon-cyan", "neon-purple"], size: "hero")
-            Text(text: "Build faster.", size: "large", color: "white", marginTop: 20)
+        Section(align="center", paddingY=100, maxWidth=800, justify="center"):
+            GradientText(text="The WASM UI Engine", gradient=["neon-cyan", "neon-purple"], size="hero")
+            Text(text="Build faster.", size="large", color="white", marginTop=20)
             
-            Row(gap: 20, align: "center", justify: "center", marginTop: 40) {
-                Button(text: "Get Started", variant: "solid", glow: "neon-cyan", radius: "pill")
-            }
-        }
-    }
-}
+            Row(gap=20, align="center", justify="center", marginTop=40):
+                Button(text="Get Started", variant="solid", glow="neon-cyan", radius="pill")

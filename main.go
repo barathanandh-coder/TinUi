@@ -61,6 +61,11 @@ func main() {
 	}
 
 	if command == "dev" {
+		// Zero-DOM: Always compile IR into public/ so all Wasm assets are co-located
+		outDir = "public"
+		base = strings.TrimSuffix(filepath.Base(inputFile), ext)
+		outputFile = filepath.Join("public", "app.ir.json")
+		os.MkdirAll(outDir, 0755)
 		startDevServer(inputFile, outDir, outputFile, hydrate)
 		return
 	}

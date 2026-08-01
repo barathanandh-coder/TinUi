@@ -1,8 +1,0 @@
-{
-  "name": "my-cyber-app-2",
-  "version": "1.0.0",
-  "compilerSettings": {
-    "entry": "src/index.tin",
-    "output": "public/app.ir.json"
-  }
-}

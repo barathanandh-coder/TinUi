@@ -31,72 +31,15 @@ func createProject(projectName string) {
 
 	fmt.Println("[+] Assembling Pythonic lexer environment...")
 
-	// 1. Write public/index.html
-	indexHTML := `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>` + projectName + ` - TinPyUI</title>
-    <style>
-        body { margin: 0; padding: 0; background: #000; overflow: hidden; color: white; font-family: sans-serif; }
-        #tin-root { width: 100vw; height: 100vh; position: relative; }
-    </style>
-</head>
-<body>
-    <div id="tin-root">
-        <!-- The Wasm Engine mounts here -->
-    </div>
-    <script src="wasm_exec.js"></script>
-    <script src="tin-runtime.js"></script>
-</body>
-</html>`
-	writeFile(filepath.Join(projectName, "public", "index.html"), indexHTML)
-
-	// 2. Write public/tin-runtime.js
-	runtimeJS := `// tin-runtime.js
-const go = new Go();
-
-WebAssembly.instantiateStreaming(fetch("app.wasm"), go.importObject).then((result) => {
-    go.run(result.instance);
-    
-    // Intercept standard link clicks to prevent full page reloads
-    document.body.addEventListener('click', (e) => {
-        const target = e.target.closest('[data-route-path]');
-        if (target) {
-            e.preventDefault();
-            const route = target.getAttribute('href');
-            if (route) {
-                window.history.pushState({ route: route }, "", route);
-                if (window.TinPyUI && window.TinPyUI.navigate) {
-                    window.TinPyUI.navigate(route); 
-                }
-            }
-        }
-    });
-
-    window.addEventListener('popstate', (e) => {
-        const route = e.state ? e.state.route : "/"; 
-        if (window.TinPyUI && window.TinPyUI.navigate) {
-            window.TinPyUI.navigate(route, { reverse: true });
-        }
-    });
-});`
-	writeFile(filepath.Join(projectName, "public", "tin-runtime.js"), runtimeJS)
+	// 1. & 2. Zero-DOM: index.html and tin-runtime.js are no longer written to disk.
+	// They are served dynamically from memory by the dev server.
 
 	// Copy wasm_exec.js and tinui_engine.wasm if they exist in the root (for dev testing)
 	copyFile("wasm_exec.js", filepath.Join(projectName, "public", "wasm_exec.js"))
 	copyFile(filepath.Join("wasm_engine", "tinui_engine.wasm"), filepath.Join(projectName, "public", "app.wasm"))
 
 	// 3. Write main.tin
-	mainTin := `fade_through_black = Keyframes.transition(type="fade", duration="400ms", color="#000000")
-
-component App():
-    Surface(width="full", height="100vh", background="dark-core"):
-        Router(default_route="/", global_transition=fade_through_black):
-            Route(path="/", scene="Dashboard")
-`
-	writeFile(filepath.Join(projectName, "main.tin"), mainTin)
+	writeFile(filepath.Join(projectName, "main.tin"), DefaultMainTin)
 
 	// 4. Write scenes/dashboard.tin
 	dashboardTin := `component Dashboard():

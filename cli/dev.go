@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -15,6 +16,8 @@ import (
 func startDevServer() {
 	fmt.Println("⚡️ TinPyUI v1.5 Dev Server")
 	
+	mime.AddExtensionType(".wasm", "application/wasm")
+
 	// Start file watcher in a goroutine
 	go watchFiles()
 
@@ -23,14 +26,23 @@ func startDevServer() {
 	
 	// Simple SPA handler
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		path := filepath.Join("public", r.URL.Path)
-		if r.URL.Path == "/" {
-			path = filepath.Join("public", "index.html")
+		if r.URL.Path == "/" || r.URL.Path == "/index.html" {
+			w.Header().Set("Content-Type", "text/html")
+			fmt.Fprint(w, DefaultIndexHTML)
+			return
 		}
 
+		if r.URL.Path == "/tin-runtime.js" {
+			w.Header().Set("Content-Type", "application/javascript")
+			fmt.Fprint(w, DefaultTinRuntimeJS)
+			return
+		}
+
+		path := filepath.Join("public", r.URL.Path)
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			// SPA Fallback to index.html for unknown routes (Cinematic Router)
-			http.ServeFile(w, r, filepath.Join("public", "index.html"))
+			w.Header().Set("Content-Type", "text/html")
+			fmt.Fprint(w, DefaultIndexHTML)
 			return
 		}
 

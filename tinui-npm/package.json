@@ -1,6 +1,6 @@
 {
   "name": "tinpyui",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "The official compiler and CLI for the TinUI framework. A WebAssembly-powered UI framework with Pythonic, indentation-based syntax.",
   "main": "index.js",
   "bin": {

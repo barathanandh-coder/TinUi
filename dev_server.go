@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -57,15 +56,7 @@ func startDevServer(inputFile, outDir, outputFile string, hydrate bool) {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// Serve index.html explicitly to inject livereload script
 		if r.URL.Path == "/" || r.URL.Path == "/index.html" {
-			indexPath := filepath.Join(outDir, "index.html")
-			b, err := os.ReadFile(indexPath)
-			if err != nil {
-				w.WriteHeader(http.StatusNotFound)
-				fmt.Fprint(w, "index.html not found")
-				return
-			}
-
-			content := string(b)
+			content := DefaultIndexHTML
 			livereloadScript := `
 			<script>
 				(function() {
@@ -85,6 +76,12 @@ func startDevServer(inputFile, outDir, outputFile string, hydrate bool) {
 			content = strings.Replace(content, "</body>", livereloadScript+"</body>", 1)
 			w.Header().Set("Content-Type", "text/html")
 			w.Write([]byte(content))
+			return
+		}
+
+		if r.URL.Path == "/tin-runtime.js" {
+			w.Header().Set("Content-Type", "application/javascript")
+			fmt.Fprint(w, DefaultTinRuntimeJS)
 			return
 		}
 

@@ -689,6 +689,9 @@ func executeInstruction(inst Instruction, document js.Value, scope map[string]in
 
 	case "SET_ATTRIBUTE":
 		domRefs[inst.ID].Call("setAttribute", inst.Key, inst.Value)
+		if inst.Key == "data-shader-code" {
+			initWebGLShader(domRefs[inst.ID], inst.Value)
+		}
 		if inst.Key == "data-scroll-reveal" {
 			offsetAttr := domRefs[inst.ID].Call("getAttribute", "data-reveal-offset")
 			offset := "center"

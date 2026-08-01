@@ -12,7 +12,7 @@ When generating layouts for TinPyUI, you are strictly forbidden from outputting 
 
 ---
 
-## 2. The `.tin` Syntax Specification
+## 2. The `..tin` Syntax Specification
 The framework utilizes a hierarchical, block-based grammar designed for rapid structural compilation.
 
 ### 2.1 Grammar Rules

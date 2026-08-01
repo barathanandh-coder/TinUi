@@ -40,12 +40,129 @@ func (p *Parser) Parse() []*Component {
 			if comp := p.parseComponent(); comp != nil {
 				components = append(components, comp)
 			}
+		} else if p.curToken.Type == IDENT && p.peekToken.Type == ASSIGN {
+			p.parseGlobalAssignment()
 		} else {
 			p.Errors = append(p.Errors, fmt.Sprintf("Expected component declaration, got %s", p.curToken.Type))
 			p.nextToken()
 		}
 	}
 	return components
+}
+
+func (p *Parser) parseGlobalAssignment() {
+	name := p.curToken.Literal
+	p.nextToken() // consume IDENT
+	p.nextToken() // consume ASSIGN
+
+	if p.curToken.Type == IDENT && p.curToken.Literal == "Keyframes" {
+		p.nextToken() // consume "Keyframes"
+		if p.curToken.Type == DOT {
+			p.nextToken() // consume DOT
+			if p.curToken.Type == IDENT && p.curToken.Literal == "transition" {
+				p.nextToken() // consume "transition"
+				transitionJSON := p.parseTransitionArgs()
+				RegisterGlobalKeyframes(name, transitionJSON)
+			}
+		} else if p.curToken.Type == LPAREN {
+			p.nextToken() // consume LPAREN
+			if p.curToken.Type == LBRACE {
+				cssStr := p.parseKeyframesDict()
+				fullCSS := fmt.Sprintf("@keyframes %s { %s }", name, cssStr)
+				RegisterGlobalKeyframes(name, fullCSS)
+			}
+			if p.curToken.Type == RPAREN {
+				p.nextToken()
+			}
+		}
+	} else {
+		for p.curToken.Type != NEWLINE && p.curToken.Type != EOF {
+			p.nextToken()
+		}
+	}
+}
+
+func (p *Parser) parseTransitionArgs() string {
+	p.nextToken() // consume LPAREN
+	var args []string
+	for p.curToken.Type != RPAREN && p.curToken.Type != EOF {
+		if p.curToken.Type == IDENT {
+			key := p.curToken.Literal
+			p.nextToken()
+			if p.curToken.Type == ASSIGN {
+				p.nextToken()
+				val := p.curToken.Literal
+				args = append(args, fmt.Sprintf(`"%s":"%s"`, key, val))
+				p.nextToken()
+			}
+		} else if p.curToken.Type == COMMA {
+			p.nextToken()
+		} else {
+			p.nextToken()
+		}
+	}
+	if p.curToken.Type == RPAREN {
+		p.nextToken() // consume RPAREN
+	}
+	return "{" + strings.Join(args, ",") + "}"
+}
+
+func (p *Parser) parseKeyframesDict() string {
+	p.nextToken() // consume LBRACE
+	var cssFrames []string
+
+	for p.curToken.Type != RBRACE && p.curToken.Type != EOF {
+		if p.curToken.Type == NEWLINE || p.curToken.Type == COMMA || p.curToken.Type == INDENT || p.curToken.Type == DEDENT {
+			p.nextToken()
+			continue
+		}
+
+		if p.curToken.Type == STRING {
+			percentage := p.curToken.Literal
+			p.nextToken()
+
+			if p.curToken.Type == COLON {
+				p.nextToken()
+				if p.curToken.Type == LBRACE {
+					p.nextToken() // consume LBRACE
+					var props []string
+					for p.curToken.Type != RBRACE && p.curToken.Type != EOF {
+						if p.curToken.Type == NEWLINE || p.curToken.Type == COMMA || p.curToken.Type == INDENT || p.curToken.Type == DEDENT {
+							p.nextToken()
+							continue
+						}
+						if p.curToken.Type == STRING || p.curToken.Type == IDENT {
+							key := p.curToken.Literal
+							p.nextToken()
+							if p.curToken.Type == COLON {
+								p.nextToken()
+								val := ""
+								if p.curToken.Type == STRING || p.curToken.Type == NUMBER || p.curToken.Type == IDENT {
+									val = p.curToken.Literal
+									p.nextToken()
+								}
+								if key == "translateY" {
+									props = append(props, fmt.Sprintf("transform: translateY(%s);", val))
+								} else if key == "shadow" {
+									props = append(props, fmt.Sprintf("box-shadow: %s;", val))
+								} else {
+									props = append(props, fmt.Sprintf("%s: %s;", key, val))
+								}
+							}
+						} else {
+							p.nextToken()
+						}
+					}
+					p.nextToken() // consume RBRACE
+					cssFrames = append(cssFrames, fmt.Sprintf("%s { %s }", percentage, strings.Join(props, " ")))
+				}
+			}
+		} else {
+			p.nextToken()
+		}
+	}
+	p.nextToken() // consume RBRACE
+	return strings.Join(cssFrames, " ")
 }
 
 func (p *Parser) parseComponent() *Component {

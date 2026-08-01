@@ -160,6 +160,16 @@ func (l *Lexer) NextToken() Token {
 			l.parenLevel--
 		}
 		tok = Token{Type: RBRACKET, Literal: string(l.ch)}
+	case '{':
+		l.parenLevel++
+		tok = Token{Type: LBRACE, Literal: string(l.ch)}
+	case '}':
+		if l.parenLevel > 0 {
+			l.parenLevel--
+		}
+		tok = Token{Type: RBRACE, Literal: string(l.ch)}
+	case '.':
+		tok = Token{Type: DOT, Literal: string(l.ch)}
 	case '\n', '\r':
 		if l.ch == '\r' {
 			l.readChar()

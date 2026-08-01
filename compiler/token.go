@@ -28,6 +28,9 @@ const (
 	RPAREN       TokenType = ")"
 	LBRACKET     TokenType = "["
 	RBRACKET     TokenType = "]"
+	LBRACE       TokenType = "{"
+	RBRACE       TokenType = "}"
+	DOT          TokenType = "."
 
 	// Keywords
 	COMPONENT TokenType = "COMPONENT"

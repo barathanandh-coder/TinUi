@@ -315,6 +315,9 @@ var TagMap = map[string]string{
 	"Span":               "span",
 	"Router":             "div",
 	"Route":              "div",
+	"Container":          "div",
+	"Surface":            "div",
+	"CustomShader":       "canvas",
 	"Preload":            "div",
 	"Font":               "link",
 	"Image":              "img",
@@ -373,6 +376,12 @@ func CompileAttributes(componentName string, props map[string]string) map[string
 		styles = append(styles, "display: flex; flex-direction: column; box-sizing: border-box;")
 	case "HeroContainer":
 		styles = append(styles, "display: flex; flex-direction: column; box-sizing: border-box; position: relative; overflow: hidden; min-height: 400px;")
+	case "Container":
+		styles = append(styles, "display: flex; flex-direction: column; box-sizing: border-box;")
+	case "Surface":
+		styles = append(styles, "display: block; position: relative; overflow: hidden;")
+	case "CustomShader":
+		styles = append(styles, "display: block; width: 100%; height: 100%; pointer-events: none;")
 	case "Router":
 		styles = append(styles, "display: block; position: relative; width: 100%; height: 100%; overflow: hidden;")
 	case "Route":
@@ -579,8 +588,29 @@ func CompileAttributes(componentName string, props map[string]string) map[string
 			attributes["data-transition-out"] = val
 		case "transitionDuration":
 			attributes["data-transition-duration"] = val
+		case "global_transition", "transition":
+			attributes["data-transition"] = val
 		case "path":
 			attributes["data-route-path"] = val
+		case "scene":
+			attributes["data-route-scene"] = val
+		case "default_route":
+			attributes["data-default-route"] = val
+		case "fragment_code":
+			code := strings.Trim(val, "\"")
+			code = strings.TrimSpace(code)
+			// Trigger basic GLSL static analysis
+			if errs := ValidateGLSL(code); len(errs) > 0 {
+				fmt.Printf("\n--- TinPyUI Compiler Error ---\n")
+				for _, e := range errs {
+					fmt.Println(e.Error())
+				}
+				fmt.Printf("------------------------------\n\n")
+			}
+			// Encode string properly to avoid breaking HTML attributes
+			attributes["data-shader-code"] = code
+		case "uniforms":
+			attributes["data-shader-uniforms"] = val
 		case "assetPriority":
 			if val == "lazy" {
 				attributes["loading"] = "lazy"

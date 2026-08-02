@@ -66,31 +66,31 @@ func (g *IRGenerator) Generate(components []*Component) IRBlueprint {
 		}
 	}
 
-	if len(GlobalKeyframes) > 0 {
-		styleNodeID := g.nextID
-		g.nextID++
-		g.instructions = append(g.instructions, CreateNode(styleNodeID, "style"))
-		var allFrames []string
-
-		// Add core framework styles
-		coreStyles := `
-        *, *::before, *::after { box-sizing: border-box; }
-        html, body { margin: 0; padding: 0; background: #030712; color: white; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; scroll-behavior: smooth; }
-        #tinui-root { position: relative; min-height: 100vh; }
-        .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; }
-        .cursor-trail { position: fixed; width: 20px; height: 20px; border-radius: 50%; pointer-events: none; z-index: 9999; background: radial-gradient(circle, rgba(207,188,255,0.8) 0%, transparent 70%); transition: transform 0.1s ease-out; }
-        .glass-card { background: rgba(20, 18, 24, 0.2); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .neon-border-cyan { box-shadow: 0 0 15px rgba(0, 255, 255, 0.2); border-color: rgba(0, 255, 255, 0.3); }
-        .neon-border-primary { box-shadow: 0 0 15px rgba(207,188,255,0.2); border-color: rgba(207,188,255,0.3); }
-        .reveal-section { transition: all 1s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; transform: perspective(1000px) translateZ(-100px); filter: blur(10px); }
-        .reveal-section.active { opacity: 1; transform: perspective(1000px) translateZ(0); filter: blur(0); }
-        .glitch-hover:hover { animation: glitch 0.3s cubic-bezier(.25,.46,.45,.94) both infinite; }
-        @keyframes glitch { 0% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(-2px, -2px); } 60% { transform: translate(2px, 2px); } 80% { transform: translate(2px, -2px); } 100% { transform: translate(0); } }
-        .pulse-glitch { animation: pulse-glitch 2s infinite; }
-        @keyframes pulse-glitch { 0%, 100% { opacity: 1; filter: hue-rotate(0deg); } 50% { opacity: 0.8; filter: hue-rotate(90deg) brightness(1.2); } }
+	// Add core framework styles unconditionally
+	styleNodeID := g.nextID
+	g.nextID++
+	g.instructions = append(g.instructions, CreateNode(styleNodeID, "style"))
+	
+	coreStyles := `
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #030712 !important; color: white !important; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; scroll-behavior: smooth; }
+    #tinui-root { position: relative; min-height: 100vh; }
+    .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; }
+    .cursor-trail { position: fixed; width: 20px; height: 20px; border-radius: 50%; pointer-events: none; z-index: 9999; background: radial-gradient(circle, rgba(207,188,255,0.8) 0%, transparent 70%); transition: transform 0.1s ease-out; }
+    .glass-card { background: rgba(20, 18, 24, 0.2); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
+    .neon-border-cyan { box-shadow: 0 0 15px rgba(0, 255, 255, 0.2); border-color: rgba(0, 255, 255, 0.3); }
+    .neon-border-primary { box-shadow: 0 0 15px rgba(207,188,255,0.2); border-color: rgba(207,188,255,0.3); }
+    .reveal-section { transition: all 1s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; transform: perspective(1000px) translateZ(-100px); filter: blur(10px); }
+    .reveal-section.active { opacity: 1; transform: perspective(1000px) translateZ(0); filter: blur(0); }
+    .glitch-hover:hover { animation: glitch 0.3s cubic-bezier(.25,.46,.45,.94) both infinite; }
+    @keyframes glitch { 0% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(-2px, -2px); } 60% { transform: translate(2px, 2px); } 80% { transform: translate(2px, -2px); } 100% { transform: translate(0); } }
+    .pulse-glitch { animation: pulse-glitch 2s infinite; }
+    @keyframes pulse-glitch { 0%, 100% { opacity: 1; filter: hue-rotate(0deg); } 50% { opacity: 0.8; filter: hue-rotate(90deg) brightness(1.2); } }
 `
-		allFrames = append(allFrames, coreStyles)
+	var allFrames []string
+	allFrames = append(allFrames, coreStyles)
 
+	if len(GlobalKeyframes) > 0 {
 		// Sort keyframes for determinism too!
 		var frameKeys []string
 		for k := range GlobalKeyframes {
@@ -100,9 +100,9 @@ func (g *IRGenerator) Generate(components []*Component) IRBlueprint {
 		for _, k := range frameKeys {
 			allFrames = append(allFrames, GlobalKeyframes[k])
 		}
-		g.instructions = append(g.instructions, SetText(styleNodeID, strings.Join(allFrames, " ")))
-		g.instructions = append(g.instructions, AppendChild(0, styleNodeID))
 	}
+	g.instructions = append(g.instructions, SetText(styleNodeID, strings.Join(allFrames, " ")))
+	g.instructions = append(g.instructions, AppendChild(0, styleNodeID))
 
 	// Dynamically inject Tailwind Config
 	twConfigID := g.nextID

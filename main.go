@@ -12,13 +12,23 @@ import (
 
 func main() {
 	// 1. Handle Command Line Arguments
-	if len(os.Args) < 3 {
+	if len(os.Args) < 2 {
 		printUsage()
 		os.Exit(1)
 	}
 
 	command := os.Args[1]
-	if command != "compile" && command != "build" && command != "dev" {
+	if command != "compile" && command != "build" && command != "dev" && command != "init" {
+		printUsage()
+		os.Exit(1)
+	}
+
+	if command == "init" {
+		initProject()
+		return
+	}
+
+	if len(os.Args) < 3 {
 		printUsage()
 		os.Exit(1)
 	}
@@ -92,9 +102,9 @@ func compileFile(inputFile, outDir, outputFile string, hydrate bool) bool {
 	astRoots := parser.Parse()
 
 	if len(parser.Errors) > 0 {
-		fmt.Println("[Error] Syntax Errors found:")
+		fmt.Println("\x1b[1;31m[Error] Syntax Errors found:\x1b[0m")
 		for _, msg := range parser.Errors {
-			fmt.Printf("  - %s\n", msg)
+			fmt.Printf("  \x1b[31m✗\x1b[0m \x1b[33m%s\x1b[0m\n", msg)
 		}
 		return false
 	}
@@ -123,6 +133,17 @@ func compileFile(inputFile, outDir, outputFile string, hydrate bool) bool {
 		} else {
 			fmt.Printf("Success! Generated Static SEO Hydration Shell at: %s\n", htmlOutputFile)
 		}
+
+		runtimeJsFile := filepath.Join(outDir, "tin-runtime.js")
+		err = os.WriteFile(runtimeJsFile, []byte(DefaultTinRuntimeJS), 0644)
+		if err != nil {
+			fmt.Printf("[Error] Error writing tin-runtime.js: %v\n", err)
+		} else {
+			fmt.Printf("Success! Generated Runtime JS at: %s\n", runtimeJsFile)
+		}
+
+		ensureWasmAssets(outDir)
+		fmt.Printf("Success! Copied WebAssembly assets to: %s\n", outDir)
 	}
 
 	fmt.Printf("Success! Generated Intermediate Representation at: %s\n", outputFile)
@@ -131,5 +152,43 @@ func compileFile(inputFile, outDir, outputFile string, hydrate bool) bool {
 
 func printUsage() {
 	fmt.Println("TinUI Compiler CLI")
-	fmt.Println("Usage: tinui [compile|dev] <filename>.tin")
+	fmt.Println("Usage: tinui [compile|dev|init] <filename>.tin")
+}
+
+func initProject() {
+	fmt.Println("Initializing new TinPyUI project...")
+	
+	// Create main.tin
+	if _, err := os.Stat("main.tin"); os.IsNotExist(err) {
+		err := os.WriteFile("main.tin", []byte(DefaultStarterTin), 0644)
+		if err != nil {
+			fmt.Println("[Error] Could not create main.tin:", err)
+		} else {
+			fmt.Println("Created main.tin")
+		}
+	} else {
+		fmt.Println("main.tin already exists, skipping.")
+	}
+
+	// Create public dir
+	os.MkdirAll("public", 0755)
+
+	// Create config
+	if _, err := os.Stat("tinpyui.config.json"); os.IsNotExist(err) {
+		configStr := `{
+  "compilerSettings": {
+    "output": "public/app.ir.json"
+  }
+}`
+		err := os.WriteFile("tinpyui.config.json", []byte(configStr), 0644)
+		if err != nil {
+			fmt.Println("[Error] Could not create config:", err)
+		} else {
+			fmt.Println("Created tinpyui.config.json")
+		}
+	} else {
+		fmt.Println("tinpyui.config.json already exists, skipping.")
+	}
+
+	fmt.Println("\nProject initialized! Run 'go run . dev main.tin' to start the dev server.")
 }

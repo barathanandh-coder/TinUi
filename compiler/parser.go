@@ -43,7 +43,7 @@ func (p *Parser) Parse() []*Component {
 		} else if p.curToken.Type == IDENT && p.peekToken.Type == ASSIGN {
 			p.parseGlobalAssignment()
 		} else {
-			p.Errors = append(p.Errors, fmt.Sprintf("Expected component declaration, got %s", p.curToken.Type))
+			p.Errors = append(p.Errors, fmt.Sprintf("[line %d:%d] Expected component declaration, got %s (%q)", p.curToken.Line, p.curToken.Col, p.curToken.Type, p.curToken.Literal))
 			p.nextToken()
 		}
 	}

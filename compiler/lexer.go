@@ -1,5 +1,14 @@
 package compiler
 
+type TokenType string
+
+type Token struct {
+	Type    TokenType
+	Literal string
+	Line    int
+	Col     int
+}
+
 type Lexer struct {
 	input        string
 	position     int
@@ -9,6 +18,8 @@ type Lexer struct {
 	indentStack  []int
 	parenLevel   int
 	pending      []Token
+	line         int
+	col          int
 }
 
 func NewLexer(input string) *Lexer {
@@ -16,6 +27,8 @@ func NewLexer(input string) *Lexer {
 		input:       input,
 		isLineStart: true,
 		indentStack: []int{0},
+		line:        1,
+		col:         0,
 	}
 	l.readChar()
 	return l
@@ -29,6 +42,16 @@ func (l *Lexer) readChar() {
 	}
 	l.position = l.readPosition
 	l.readPosition++
+	if l.ch == '\n' {
+		l.line++
+		l.col = 0
+	} else {
+		l.col++
+	}
+}
+
+func (l *Lexer) curPos() (int, int) {
+	return l.line, l.col
 }
 
 func (l *Lexer) peekChar() byte {
@@ -68,7 +91,6 @@ func (l *Lexer) NextToken() Token {
 				l.isLineStart = false
 			} else {
 				l.isLineStart = true
-				// Skip the newline since we are already on an empty line
 				if l.ch == '\r' {
 					l.readChar()
 				}
@@ -82,14 +104,16 @@ func (l *Lexer) NextToken() Token {
 		currentIndent := l.indentStack[len(l.indentStack)-1]
 
 		if spaces > currentIndent {
+			lin, col := l.curPos()
 			l.indentStack = append(l.indentStack, spaces)
-			return Token{Type: INDENT, Literal: ""}
+			return Token{Type: INDENT, Literal: "", Line: lin, Col: col}
 		}
 
 		if spaces < currentIndent {
+			lin, col := l.curPos()
 			for len(l.indentStack) > 1 && spaces < l.indentStack[len(l.indentStack)-1] {
 				l.indentStack = l.indentStack[:len(l.indentStack)-1]
-				l.pending = append(l.pending, Token{Type: DEDENT, Literal: ""})
+				l.pending = append(l.pending, Token{Type: DEDENT, Literal: "", Line: lin, Col: col})
 			}
 			return l.NextToken()
 		}
@@ -105,6 +129,7 @@ func (l *Lexer) NextToken() Token {
 		}
 	}
 
+	lin, col := l.curPos()
 	var tok Token
 
 	switch l.ch {
@@ -112,113 +137,122 @@ func (l *Lexer) NextToken() Token {
 		if l.peekChar() == '=' {
 			ch := l.ch
 			l.readChar()
-			tok = Token{Type: OPERATOR, Literal: string(ch) + string(l.ch)}
+			tok = Token{Type: OPERATOR, Literal: string(ch) + string(l.ch), Line: lin, Col: col}
 		} else {
-			tok = Token{Type: ASSIGN, Literal: string(l.ch)}
+			tok = Token{Type: ASSIGN, Literal: string(l.ch), Line: lin, Col: col}
 		}
 	case '!':
 		if l.peekChar() == '=' {
 			ch := l.ch
 			l.readChar()
-			tok = Token{Type: OPERATOR, Literal: string(ch) + string(l.ch)}
+			tok = Token{Type: OPERATOR, Literal: string(ch) + string(l.ch), Line: lin, Col: col}
 		} else {
-			tok = Token{Type: ILLEGAL, Literal: string(l.ch)}
+			tok = Token{Type: ILLEGAL, Literal: string(l.ch), Line: lin, Col: col}
 		}
 	case '+':
 		if l.peekChar() == '=' {
 			ch := l.ch
 			l.readChar()
-			tok = Token{Type: PLUS_ASSIGN, Literal: string(ch) + string(l.ch)}
+			tok = Token{Type: PLUS_ASSIGN, Literal: string(ch) + string(l.ch), Line: lin, Col: col}
 		} else {
-			tok = Token{Type: ILLEGAL, Literal: string(l.ch)}
+			tok = Token{Type: ILLEGAL, Literal: string(l.ch), Line: lin, Col: col}
 		}
 	case '-':
 		if l.peekChar() == '=' {
 			ch := l.ch
 			l.readChar()
-			tok = Token{Type: MINUS_ASSIGN, Literal: string(ch) + string(l.ch)}
+			tok = Token{Type: MINUS_ASSIGN, Literal: string(ch) + string(l.ch), Line: lin, Col: col}
 		} else {
-			tok = Token{Type: ILLEGAL, Literal: string(l.ch)}
+			tok = Token{Type: ILLEGAL, Literal: string(l.ch), Line: lin, Col: col}
 		}
 	case ':':
-		tok = Token{Type: COLON, Literal: string(l.ch)}
+		tok = Token{Type: COLON, Literal: string(l.ch), Line: lin, Col: col}
 	case ',':
-		tok = Token{Type: COMMA, Literal: string(l.ch)}
+		tok = Token{Type: COMMA, Literal: string(l.ch), Line: lin, Col: col}
 	case '(':
 		l.parenLevel++
-		tok = Token{Type: LPAREN, Literal: string(l.ch)}
+		tok = Token{Type: LPAREN, Literal: string(l.ch), Line: lin, Col: col}
 	case ')':
 		if l.parenLevel > 0 {
 			l.parenLevel--
 		}
-		tok = Token{Type: RPAREN, Literal: string(l.ch)}
+		tok = Token{Type: RPAREN, Literal: string(l.ch), Line: lin, Col: col}
 	case '[':
 		l.parenLevel++
-		tok = Token{Type: LBRACKET, Literal: string(l.ch)}
+		tok = Token{Type: LBRACKET, Literal: string(l.ch), Line: lin, Col: col}
 	case ']':
 		if l.parenLevel > 0 {
 			l.parenLevel--
 		}
-		tok = Token{Type: RBRACKET, Literal: string(l.ch)}
+		tok = Token{Type: RBRACKET, Literal: string(l.ch), Line: lin, Col: col}
 	case '{':
 		l.parenLevel++
-		tok = Token{Type: LBRACE, Literal: string(l.ch)}
+		tok = Token{Type: LBRACE, Literal: string(l.ch), Line: lin, Col: col}
 	case '}':
 		if l.parenLevel > 0 {
 			l.parenLevel--
 		}
-		tok = Token{Type: RBRACE, Literal: string(l.ch)}
+		tok = Token{Type: RBRACE, Literal: string(l.ch), Line: lin, Col: col}
 	case '.':
-		tok = Token{Type: DOT, Literal: string(l.ch)}
+		tok = Token{Type: DOT, Literal: string(l.ch), Line: lin, Col: col}
 	case '\n', '\r':
 		if l.ch == '\r' {
 			l.readChar()
 			if l.ch != '\n' {
-				tok = Token{Type: ILLEGAL, Literal: "\r"}
+				tok = Token{Type: ILLEGAL, Literal: "\r", Line: lin, Col: col}
 				return tok
 			}
 		}
 		if l.parenLevel > 0 {
-			// Inside parens, treat newline as whitespace (skip)
 			l.readChar()
 			return l.NextToken()
 		}
-		tok = Token{Type: NEWLINE, Literal: "\n"}
+		tok = Token{Type: NEWLINE, Literal: "\n", Line: lin, Col: col}
 		l.isLineStart = true
 	case 0:
 		if len(l.indentStack) > 1 {
 			for len(l.indentStack) > 1 {
 				l.indentStack = l.indentStack[:len(l.indentStack)-1]
-				l.pending = append(l.pending, Token{Type: DEDENT, Literal: ""})
+				l.pending = append(l.pending, Token{Type: DEDENT, Literal: "", Line: lin, Col: col})
 			}
-			l.pending = append(l.pending, Token{Type: EOF, Literal: ""})
+			l.pending = append(l.pending, Token{Type: EOF, Literal: "", Line: lin, Col: col})
 			return l.NextToken()
 		}
-		tok = Token{Type: EOF, Literal: ""}
+		tok = Token{Type: EOF, Literal: "", Line: lin, Col: col}
 	case '"':
 		tok.Type = STRING
+		tok.Line = lin
+		tok.Col = col
 		tok.Literal = l.readString()
 	case 'f':
 		if l.peekChar() == '"' {
 			l.readChar()
 			tok.Type = FSTRING
+			tok.Line = lin
+			tok.Col = col
 			tok.Literal = l.readString()
 		} else {
 			tok.Literal = l.readIdentifier()
 			tok.Type = LookupIdent(tok.Literal)
+			tok.Line = lin
+			tok.Col = col
 			return tok
 		}
 	default:
 		if isLetter(l.ch) || l.ch == '_' {
 			tok.Literal = l.readIdentifier()
 			tok.Type = LookupIdent(tok.Literal)
+			tok.Line = lin
+			tok.Col = col
 			return tok
 		} else if isDigit(l.ch) {
 			tok.Literal = l.readNumber()
 			tok.Type = NUMBER
+			tok.Line = lin
+			tok.Col = col
 			return tok
 		} else {
-			tok = Token{Type: ILLEGAL, Literal: string(l.ch)}
+			tok = Token{Type: ILLEGAL, Literal: string(l.ch), Line: lin, Col: col}
 		}
 	}
 

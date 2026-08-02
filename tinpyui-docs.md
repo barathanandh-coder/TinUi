@@ -16,22 +16,20 @@ When generating layouts for TinPyUI, you are strictly forbidden from outputting 
 The framework utilizes a hierarchical, block-based grammar designed for rapid structural compilation.
 
 ### 2.1 Grammar Rules
-*   **Root:** Every file must begin with the `main { ... }` block.
+*   **Root:** Every file must begin with the `component Main():` block.
 *   **Components:** Component names must be strictly PascalCase (e.g., `Section`, `GradientText`).
-*   **Properties:** Passed inside parentheses using `key: value` pairs. Multiple properties are separated by commas.
+*   **Properties:** Passed inside parentheses using `key = value` pairs. Multiple properties are separated by commas.
 *   **Data Types:** 
-    *   Strings must be wrapped in double quotes (`text: "Submit"`).
-    *   Numbers and booleans are unquoted (`padding: 20`, `blur: true`).
-    *   Arrays are wrapped in brackets (`gradient: ["cyan", "purple"]`).
-*   **Nesting:** Child components are placed inside curly braces `{ ... }` immediately following the parent's properties.
+    *   Strings must be wrapped in double quotes (`text = "Submit"`).
+    *   Numbers and booleans are unquoted (`padding = 20`, `blur = True`).
+    *   Arrays/Lists are wrapped in brackets (`gradient = ["cyan", "purple"]`).
+*   **Nesting:** Child components are placed on a new line and indented under the parent component, which must end with a colon (`:`).
 
 ### 2.2 Example Syntax
 ```text
-main {
-    Section(paddingY: 40) {
-        Heading(text: "Dashboard", color: "white")
-    }
-}
+component Main():
+    Section(paddingY = 40):
+        Heading(text = "Dashboard", color = "white")
 ```
 
 ## 3. Strict Layout Constraints (The 100% Width Rule)

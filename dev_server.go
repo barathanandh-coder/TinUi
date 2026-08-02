@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -13,6 +15,7 @@ func startDevServer(inputFile, outDir, outputFile string, hydrate bool) {
 	fmt.Printf("Starting Dev Server for %s on http://localhost:3000\n", inputFile)
 
 	compileFile(inputFile, outDir, outputFile, hydrate)
+	ensureWasmAssets(outDir)
 
 	var reloadChannels []chan struct{}
 	var chanMutex sync.Mutex
@@ -108,4 +111,51 @@ func startDevServer(inputFile, outDir, outputFile string, hydrate bool) {
 	if err != nil {
 		fmt.Printf("[Error] Failed to start dev server: %v\n", err)
 	}
+}
+
+func ensureWasmAssets(outDir string) {
+	wasmExecDest := filepath.Join(outDir, "wasm_exec.js")
+	appWasmDest := filepath.Join(outDir, "app.wasm")
+
+	if _, err := os.Stat(wasmExecDest); os.IsNotExist(err) {
+		fmt.Println("[Dev Server] Copying wasm_exec.js...")
+		exePath, err := os.Executable()
+		if err == nil {
+			execSrc := filepath.Join(filepath.Dir(exePath), "wasm_exec.js")
+			copyFile(execSrc, wasmExecDest)
+		}
+	}
+
+	if _, err := os.Stat(appWasmDest); os.IsNotExist(err) {
+		fmt.Println("[Dev Server] Copying app.wasm from engine...")
+		exePath, err := os.Executable()
+		if err == nil {
+			enginePath := filepath.Join(filepath.Dir(exePath), "tinui_engine.wasm")
+			copyFile(enginePath, appWasmDest)
+		} else {
+			copyFile(filepath.Join("wasm_engine", "tinui_engine.wasm"), appWasmDest)
+		}
+	}
+}
+
+func getGoRoot() (string, error) {
+	// Simple fallback if env var is set
+	if root := os.Getenv("GOROOT"); root != "" {
+		return root, nil
+	}
+	// Try to get from go command
+	out, err := exec.Command("go", "env", "GOROOT").Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(out)), nil
+}
+
+func copyFile(src, dst string) error {
+	data, err := os.ReadFile(src)
+	if err != nil {
+		fmt.Printf("[Warning] Failed to read asset %s: %v\n", src, err)
+		return err
+	}
+	return os.WriteFile(dst, data, 0644)
 }

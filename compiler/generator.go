@@ -72,6 +72,25 @@ func (g *IRGenerator) Generate(components []*Component) IRBlueprint {
 		g.instructions = append(g.instructions, CreateNode(styleNodeID, "style"))
 		var allFrames []string
 
+		// Add core framework styles
+		coreStyles := `
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; background: #030712; color: white; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; scroll-behavior: smooth; }
+        #tinui-root { position: relative; min-height: 100vh; }
+        .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; }
+        .cursor-trail { position: fixed; width: 20px; height: 20px; border-radius: 50%; pointer-events: none; z-index: 9999; background: radial-gradient(circle, rgba(207,188,255,0.8) 0%, transparent 70%); transition: transform 0.1s ease-out; }
+        .glass-card { background: rgba(20, 18, 24, 0.2); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .neon-border-cyan { box-shadow: 0 0 15px rgba(0, 255, 255, 0.2); border-color: rgba(0, 255, 255, 0.3); }
+        .neon-border-primary { box-shadow: 0 0 15px rgba(207,188,255,0.2); border-color: rgba(207,188,255,0.3); }
+        .reveal-section { transition: all 1s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; transform: perspective(1000px) translateZ(-100px); filter: blur(10px); }
+        .reveal-section.active { opacity: 1; transform: perspective(1000px) translateZ(0); filter: blur(0); }
+        .glitch-hover:hover { animation: glitch 0.3s cubic-bezier(.25,.46,.45,.94) both infinite; }
+        @keyframes glitch { 0% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(-2px, -2px); } 60% { transform: translate(2px, 2px); } 80% { transform: translate(2px, -2px); } 100% { transform: translate(0); } }
+        .pulse-glitch { animation: pulse-glitch 2s infinite; }
+        @keyframes pulse-glitch { 0%, 100% { opacity: 1; filter: hue-rotate(0deg); } 50% { opacity: 0.8; filter: hue-rotate(90deg) brightness(1.2); } }
+`
+		allFrames = append(allFrames, coreStyles)
+
 		// Sort keyframes for determinism too!
 		var frameKeys []string
 		for k := range GlobalKeyframes {
@@ -298,16 +317,19 @@ func RegisterGlobalKeyframes(name, frames string) {
 
 // TagMap maps TinPyUI high-level components to browser primitives
 var TagMap = map[string]string{
-	"Section":            "div",
+	"Section":            "section",
 	"Row":                "div",
 	"Card":               "div",
-	"Form":               "div",
+	"Form":               "form",
 	"Heading":            "h2",
 	"Text":               "p",
-	"GradientText":       "h1",
+	"GradientText":       "span",
 	"Button":             "button",
 	"Input":              "input",
 	"AnimatedBackground": "div",
+	"ShaderLayer":        "div",
+	"WebGLCanvas":        "canvas",
+	"ParticleField":      "div",
 	"Navbar":             "nav",
 	"NavLink":            "a",
 	"Marquee":            "marquee",
@@ -321,6 +343,22 @@ var TagMap = map[string]string{
 	"Preload":            "div",
 	"Font":               "link",
 	"Image":              "img",
+	"Video":              "video",
+	"Audio":              "audio",
+	"Header":             "header",
+	"Footer":             "footer",
+	"Main":               "main",
+	"Grid":               "div",
+	"Badge":              "span",
+	"Divider":            "hr",
+	"Icon":               "span",
+	"Link":               "a",
+	"Label":              "label",
+	"Select":             "select",
+	"Textarea":           "textarea",
+	"Modal":              "dialog",
+	"Tooltip":            "div",
+	"Progress":           "progress",
 }
 
 // ColorPalette defines the framework's internal global design variables
@@ -342,20 +380,77 @@ func CompileAttributes(componentName string, props map[string]string) map[string
 	// Apply component-specific base styling defaults
 	switch componentName {
 	case "AnimatedBackground":
-		styles = append(styles, "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; overflow-y: auto; box-sizing: border-box;")
-		if _, ok := props["primaryColor"]; ok {
-			styles = append(styles, fmt.Sprintf("background: radial-gradient(circle at top right, rgba(155,81,224,0.15), %s);", ColorPalette["dark-core"]))
+		styles = append(styles, "position: relative; width: 100%; min-height: 100vh; box-sizing: border-box; z-index: 0;")
+		effect := props["effect"]
+		if effect == "" {
+			effect = "particles"
+		}
+		attributes["data-shader-effect"] = effect
+		attributes["data-bg-fixed"] = "true"
+		if primary, ok := props["primaryColor"]; ok {
+			attributes["data-shader-primary"] = primary
+			if hex, exists := ColorPalette[primary]; exists {
+				styles = append(styles, fmt.Sprintf("background: radial-gradient(circle at top right, %s22, %s);", hex, ColorPalette["dark-core"]))
+			} else {
+				styles = append(styles, fmt.Sprintf("background: radial-gradient(circle at top right, rgba(155,81,224,0.15), %s);", ColorPalette["dark-core"]))
+			}
 		} else {
 			styles = append(styles, fmt.Sprintf("background: %s;", ColorPalette["dark-core"]))
 		}
-		if p, ok := props["particles"]; ok && p == "true" {
-			attributes["data-render-particles"] = "enabled"
-			if count, ok := props["particleCount"]; ok {
-				attributes["data-particle-count"] = count
-			} else {
-				attributes["data-particle-count"] = "30"
-			}
+		if secondary, ok := props["secondaryColor"]; ok {
+			attributes["data-shader-secondary"] = secondary
 		}
+	case "ShaderLayer":
+		styles = append(styles, "position: relative; overflow: hidden; display: block;")
+		effect := props["effect"]
+		if effect == "" {
+			effect = "cyber-wave"
+		}
+		attributes["data-shader-effect"] = effect
+		if speed, ok := props["speed"]; ok {
+			attributes["data-shader-speed"] = speed
+		}
+		if primary, ok := props["primaryColor"]; ok {
+			attributes["data-shader-primary"] = primary
+		}
+		if secondary, ok := props["secondaryColor"]; ok {
+			attributes["data-shader-secondary"] = secondary
+		}
+	case "WebGLCanvas":
+		styles = append(styles, "display: block; width: 100%; height: 100%; pointer-events: none;")
+		if code, ok := props["fragmentCode"]; ok {
+			if errs := ValidateGLSL(code); len(errs) > 0 {
+				fmt.Printf("\n--- TinPyUI GLSL Validation Error ---\n")
+				for _, e := range errs {
+					fmt.Println(e.Error())
+				}
+				fmt.Printf("--------------------------------------\n\n")
+			}
+			attributes["data-shader-code"] = code
+			attributes["data-webgl-canvas"] = "true"
+		}
+		if uniforms, ok := props["uniforms"]; ok {
+			attributes["data-shader-uniforms"] = uniforms
+		}
+	case "ParticleField":
+		styles = append(styles, "position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden;")
+		attributes["data-particle-field"] = "true"
+		if count, ok := props["count"]; ok {
+			attributes["data-particle-count"] = count
+		} else {
+			attributes["data-particle-count"] = "60"
+		}
+		if color, ok := props["color"]; ok {
+			attributes["data-particle-color"] = color
+		}
+		if speed, ok := props["speed"]; ok {
+			attributes["data-particle-speed"] = speed
+		}
+		if interactive, ok := props["interactive"]; ok {
+			attributes["data-particle-interactive"] = interactive
+		}
+	case "Icon":
+		styles = append(styles, "font-family: 'Material Symbols Outlined'; font-size: 24px; display: inline-flex; align-items: center; justify-content: center;")
 	case "Marquee":
 		styles = append(styles, "display: flex; white-space: nowrap; overflow: hidden; width: 100%; font-family: monospace;")
 		if dir, ok := props["direction"]; ok {
@@ -372,8 +467,16 @@ func CompileAttributes(componentName string, props map[string]string) map[string
 		}
 	case "Row":
 		styles = append(styles, "display: flex; flex-direction: row; box-sizing: border-box;")
+	case "Grid":
+		cols := props["cols"]
+		if cols == "" {
+			cols = "3"
+		}
+		styles = append(styles, fmt.Sprintf("display: grid; grid-template-columns: repeat(%s, 1fr); box-sizing: border-box;", cols))
 	case "Form", "Section", "Card":
 		styles = append(styles, "display: flex; flex-direction: column; box-sizing: border-box;")
+	case "Modal":
+		styles = append(styles, "position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; border: none; padding: 0;")
 	case "HeroContainer":
 		styles = append(styles, "display: flex; flex-direction: column; box-sizing: border-box; position: relative; overflow: hidden; min-height: 400px;")
 	case "Container":
@@ -390,10 +493,12 @@ func CompileAttributes(componentName string, props map[string]string) map[string
 		styles = append(styles, "display: flex; position: sticky; top: 0; width: 100%; z-index: 100; box-sizing: border-box;")
 	case "Button":
 		styles = append(styles, "cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; border: none; transition: all 0.2s ease;")
-	case "Input":
+	case "Input", "Textarea":
 		styles = append(styles, "outline: none; box-sizing: border-box; background: rgba(0,0,0,0.2); color: #ffffff;")
 	case "Preload":
 		styles = append(styles, "display: none;")
+	case "Divider":
+		styles = append(styles, "border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 0; width: 100%;")
 	case "Font":
 		if url, ok := props["url"]; ok {
 			attributes["href"] = url
@@ -405,10 +510,20 @@ func CompileAttributes(componentName string, props map[string]string) map[string
 		if src, ok := props["src"]; ok {
 			attributes["src"] = src
 		}
+		if alt, ok := props["alt"]; ok {
+			attributes["alt"] = alt
+		}
 		if url, ok := props["url"]; ok {
 			attributes["href"] = url
 			attributes["rel"] = "preload"
 			attributes["as"] = "image"
+		}
+	case "NavLink":
+		if link, ok := props["link"]; ok {
+			attributes["href"] = link
+		}
+		if target, ok := props["target"]; ok {
+			attributes["target"] = target
 		}
 	}
 
@@ -423,20 +538,66 @@ func CompileAttributes(componentName string, props map[string]string) map[string
 		val := props[key]
 		switch key {
 		case "align":
-			if val == "center" {
+			switch val {
+			case "center":
 				styles = append(styles, "align-items: center;")
+			case "flex-start", "start":
+				styles = append(styles, "align-items: flex-start;")
+			case "flex-end", "end":
+				styles = append(styles, "align-items: flex-end;")
+			case "stretch":
+				styles = append(styles, "align-items: stretch;")
 			}
 		case "justify":
-			if val == "center" {
+			switch val {
+			case "center":
 				styles = append(styles, "justify-content: center;")
-			} else if val == "space-between" {
+			case "space-between":
 				styles = append(styles, "justify-content: space-between;")
+			case "space-around":
+				styles = append(styles, "justify-content: space-around;")
+			case "flex-start", "start":
+				styles = append(styles, "justify-content: flex-start;")
+			case "flex-end", "end":
+				styles = append(styles, "justify-content: flex-end;")
 			}
 		case "maxWidth":
-			styles = append(styles, fmt.Sprintf("max-width: %spx; width: 100%%; margin-left: auto; margin-right: auto;", val))
+			if val != "0" {
+				styles = append(styles, fmt.Sprintf("max-width: %spx; width: 100%%; margin-left: auto; margin-right: auto;", val))
+			}
+		case "minHeight":
+			if val == "screen" {
+				styles = append(styles, "min-height: 100vh;")
+			} else {
+				styles = append(styles, fmt.Sprintf("min-height: %spx;", val))
+			}
+		case "height":
+			if val == "screen" {
+				styles = append(styles, "height: 100vh;")
+			} else if val == "full" {
+				styles = append(styles, "height: 100%;")
+			} else {
+				styles = append(styles, fmt.Sprintf("height: %spx;", val))
+			}
+		case "overflow":
+			styles = append(styles, fmt.Sprintf("overflow: %s;", val))
+		case "opacity":
+			styles = append(styles, fmt.Sprintf("opacity: %s;", val))
+		case "flex":
+			if val == "1" || val == "auto" {
+				styles = append(styles, fmt.Sprintf("flex: %s;", val))
+			}
+		case "wrap":
+			if val == "true" {
+				styles = append(styles, "flex-wrap: wrap;")
+			}
+		case "cols":
+			// handled in Grid component init above
 		case "width":
 			if val == "full" {
 				styles = append(styles, "width: 100%;")
+			} else if val != "" {
+				styles = append(styles, fmt.Sprintf("width: %spx;", val))
 			}
 		case "padding", "paddingY", "paddingBottom":
 			// Map padding models quickly
@@ -528,10 +689,21 @@ func CompileAttributes(componentName string, props map[string]string) map[string
 				styles = append(styles, "font-weight: bold;")
 			}
 		case "size":
-			if val == "hero" {
+			switch val {
+			case "hero":
 				styles = append(styles, "font-size: 3.5rem; font-weight: 800; margin: 0;")
-			} else if val == "large" {
+			case "h1":
+				styles = append(styles, "font-size: 2.5rem; font-weight: 800; margin: 0;")
+			case "h2":
+				styles = append(styles, "font-size: 2rem; font-weight: 700; margin: 0;")
+			case "h3":
+				styles = append(styles, "font-size: 1.5rem; font-weight: 600; margin: 0;")
+			case "large":
 				styles = append(styles, "font-size: 1.25rem; margin: 0;")
+			case "normal":
+				styles = append(styles, "font-size: 1rem; margin: 0;")
+			case "small":
+				styles = append(styles, "font-size: 0.75rem; margin: 0;")
 			}
 		case "blur":
 			if val == "true" {
@@ -633,7 +805,23 @@ func CompileAttributes(componentName string, props map[string]string) map[string
 
 	// Handle gradient text effects explicitly
 	if componentName == "GradientText" {
-		styles = append(styles, "background: linear-gradient(45deg, #00f2fe, #9b51e0); -webkit-background-clip: text; -webkit-text-fill-color: transparent;")
+		gradFrom := "#00f2fe"
+		gradTo := "#9b51e0"
+		if g, ok := props["gradient"]; ok {
+			// gradient = ["neon-cyan", "neon-purple"] parsed as JSON array string
+			parts := strings.Split(strings.Trim(g, "[]"), ",")
+			if len(parts) >= 2 {
+				c1 := strings.Trim(strings.TrimSpace(parts[0]), `"`)
+				c2 := strings.Trim(strings.TrimSpace(parts[1]), `"`)
+				if hex1, ok := ColorPalette[c1]; ok {
+					gradFrom = hex1
+				}
+				if hex2, ok := ColorPalette[c2]; ok {
+					gradTo = hex2
+				}
+			}
+		}
+		styles = append(styles, fmt.Sprintf("background: linear-gradient(135deg, %s, %s); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; display: inline-block;", gradFrom, gradTo))
 	}
 
 	// Consolidate array slice to style attribute

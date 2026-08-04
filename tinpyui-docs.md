@@ -41,17 +41,14 @@ By default, block-level components in TinPyUI (like Form, Input, and Button) wil
 *   **The `maxWidth` Property:** You must wrap interactive clusters inside a container (`Section` or `Card`) and explicitly define a `maxWidth` constraint.
 *   **Horizontal Grouping:** To place buttons side-by-side, they must be wrapped in a `Row` component.
 
-### 3.1 Correct Constraint Example
+#### 3.1 Correct Constraint Example
 ```text
-Section(align: "center", justify: "center") {
-    // The Card traps the inputs, preventing them from stretching to the edges of the screen
-    Card(maxWidth: 600, padding: 30) {
-        Form(gap: 15) {
-            Input(placeholder: "Email", width: "full")
-            Button(text: "Login", width: "full")
-        }
-    }
-}
+component Main():
+    Section(align="center", justify="center"):
+        Card(maxWidth=600, padding=30):
+            Form(gap=15):
+                Input(placeholder="Email", width="full")
+                Button(text="Login", width="full")
 ```
 
 ## 4. Component API Reference
@@ -101,27 +98,19 @@ Accepted Color Variables:
 AI Agents should use this structure as the definitive blueprint for generating new layouts.
 
 ```text
-main {
-    AnimatedBackground(effect: "cyber-wave", primaryColor: "neon-purple", secondaryColor: "neon-cyan") {
-        
-        Navbar(padding: 20, blur: true) {
-            Row(align: "center", justify: "space-between", width: "full") {
-                Text(text: "AppLogo", color: "neon-cyan", weight: "bold")
-                Row(gap: 30, color: "white") {
-                    NavLink(text: "Features")
-                    NavLink(text: "Docs")
-                }
-            }
-        }
+component Main():
+    AnimatedBackground(effect="cyber-wave", primaryColor="neon-purple", secondaryColor="neon-cyan"):
+        Navbar(padding=20, blur=true):
+            Row(align="center", justify="space-between", width="full"):
+                Text(text="AppLogo", color="neon-cyan", weight="bold")
+                Row(gap=30, color="white"):
+                    NavLink(text="Features")
+                    NavLink(text="Docs")
 
-        Section(align: "center", paddingY: 100, maxWidth: 800, justify: "center") {
-            GradientText(text: "The WASM UI Engine", gradient: ["neon-cyan", "neon-purple"], size: "hero")
-            Text(text: "Build faster.", size: "large", color: "white", marginTop: 20)
+        Section(align="center", paddingY=100, maxWidth=800, justify="center"):
+            GradientText(text="The WASM UI Engine", gradient=["neon-cyan", "neon-purple"], size="hero")
+            Text(text="Build faster.", size="large", color="white", marginTop=20)
             
-            Row(gap: 20, align: "center", justify: "center", marginTop: 40) {
-                Button(text: "Get Started", variant: "solid", glow: "neon-cyan", radius: "pill")
-            }
-        }
-    }
-}
+            Row(gap=20, align="center", justify="center", marginTop=40):
+                Button(text="Get Started", variant="solid", glow="neon-cyan", radius="pill")
 ```

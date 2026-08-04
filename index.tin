@@ -1,0 +1,19 @@
+component Main():
+    AnimatedBackground(effect="cyber-wave", primaryColor="neon-purple", secondaryColor="neon-cyan"):
+        
+        Navbar(padding=20, blur=true):
+            Row(align="center", justify="space-between", width="full"):
+                Row(align="center", gap=10):
+                    Text(text="TinPyUI v1.5.2", color="neon-cyan", weight="bold")
+                
+                Row(gap=30, color="white"):
+                    NavLink(text="Documentation")
+                    NavLink(text="GitHub")
+
+        Section(align="center", paddingY=120, maxWidth=800, justify="center"):
+            GradientText(text="TinPyUI Framework", gradient=["neon-cyan", "neon-purple"], size="hero")
+            Text(text="The Zero-DOM WebAssembly Engine powered by Pythonic DSL", size="large", color="white", weight="bold", marginTop=20)
+            
+            Row(gap=20, align="center", justify="center", marginTop=40):
+                Button(text="Get Started", variant="solid", glow="neon-cyan", radius="pill")
+                Button(text="Documentation", variant="outline", radius="pill")

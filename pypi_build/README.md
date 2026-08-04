@@ -1,22 +1,3 @@
-Metadata-Version: 2.4
-Name: tinpyui-ff
-Version: 1.5.2
-Summary: The official Python type stubs and CLI integration for the TinUI framework.
-Home-page: https://github.com/barathanandh-coder/tinui
-Author: Barathanandh
-Classifier: Programming Language :: Python :: 3
-Classifier: License :: OSI Approved :: MIT License
-Classifier: Operating System :: OS Independent
-Requires-Python: >=3.6
-Description-Content-Type: text/markdown
-Dynamic: author
-Dynamic: classifier
-Dynamic: description
-Dynamic: description-content-type
-Dynamic: home-page
-Dynamic: requires-python
-Dynamic: summary
-
 # TinPyUI (`tinpyui-ff`)
 
 > Official Python type stubs and CLI integration for **TinPyUI v1.5.2** — the Zero-DOM WebAssembly UI framework with Pythonic syntax.

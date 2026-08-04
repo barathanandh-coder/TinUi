@@ -31,7 +31,7 @@ func main() {
 }
 
 func printUsage() {
-	fmt.Println("⚡️ TinPyUI v1.5 - The Zero-DOM Wasm Engine")
+	fmt.Println("⚡️ TinPyUI v1.5.2 - The Zero-DOM Wasm Engine")
 	fmt.Println("\nUsage:")
 	fmt.Println("  tinpy create <project-name>   Scaffold a new TinPyUI project")
 	fmt.Println("  tinpy dev                     Start the development server with HGR")

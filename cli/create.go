@@ -7,7 +7,7 @@ import (
 )
 
 func createProject(projectName string) {
-	fmt.Printf("\n⚡️ TinPyUI v1.5 - The Zero-DOM Wasm Engine\n\n")
+	fmt.Printf("\n⚡️ TinPyUI v1.5.2 - The Zero-DOM Wasm Engine\n\n")
 	fmt.Printf("[+] Initializing Matrix: %s\n", projectName)
 
 	// Create root directory

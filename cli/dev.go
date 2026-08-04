@@ -14,7 +14,7 @@ import (
 )
 
 func startDevServer() {
-	fmt.Println("⚡️ TinPyUI v1.5 Dev Server")
+	fmt.Println("⚡️ TinPyUI v1.5.2 Dev Server")
 	
 	mime.AddExtensionType(".wasm", "application/wasm")
 

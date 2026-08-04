@@ -1,110 +1,122 @@
-# TinPyUI Framework
+# TinPyUI Framework v1.5.2
 
-TinPyUI is a memory-safe, blazing-fast, and entirely custom UI framework. It completely bypasses Virtual DOM diffing by leveraging a custom Go WebAssembly linear memory engine mapped to a declarative Python-like syntax (`.tin`).
+[![npm](https://img.shields.io/badge/npm-tinpyui-v1.5.2-cyan)](https://www.npmjs.com/package/tinpyui)
+[![pypi](https://img.shields.io/badge/pypi-tinpyui--ff-v1.5.2-blue)](https://pypi.org/project/tinpyui-ff/)
+[![license](https://img.shields.io/badge/license-MIT-green)](#license)
+[![architecture](https://img.shields.io/badge/engine-Zero--DOM--Wasm-purple)](#architecture)
 
-This is not a React clone. This is a ground-up systems engineering project featuring its own Lexer, Parser, Intermediate Representation (IR) Compiler, and Wasm runtime.
+TinPyUI is a memory-safe, blazing-fast, and custom UI compilation framework. It completely bypasses Virtual DOM diffing by leveraging a custom Go WebAssembly linear memory engine mapped to a declarative, Pythonic syntax (`.tin`).
 
-## Installation
+This is not a React clone. TinPyUI is a ground-up systems engineering project featuring its own Lexer, Parser, Intermediate Representation (IR) Compiler, and Wasm runtime.
 
-### 1. The TinUI Compiler (CLI)
-The core TinUI compiler is distributed as a universal WebAssembly binary via NPM. To install it globally, run:
+---
+
+## 📦 Installation
+
+### 1. NPM Package (Universal CLI)
+The core TinPyUI compiler CLI is distributed globally via NPM. Install it with:
 
 ```bash
 npm install -g tinpyui
 ```
-*Note: Requires Node.js installed on your machine.*
+*Note: Requires Node.js (>= 18.0.0).*
 
-### 2. VS Code Syntax Highlighting
-To enable official syntax highlighting for `.tin` files in your editor:
+### 2. PyPI Package (Python Ecosystem)
+For Python developers and Flask integration:
 
-1. Download the latest `.vsix` file from the Releases page.
-2. Open VS Code and navigate to the Extensions panel (`Ctrl+Shift+X`).
-3. Click the `...` menu in the top right corner of the panel.
-4. Select **Install from VSIX...** and choose the downloaded file.
+```bash
+pip install tinpyui-ff
+```
+
+### 3. VS Code Syntax Highlighting
+To enable official syntax highlighting for `.tin` files:
+1. Download the latest `.vsix` from the [tinui-syntax](file:///c:/Users/barat/Portfolio_Projects/TinUi/tinui-syntax) directory or Releases.
+2. Open VS Code and open Extensions (`Ctrl+Shift+X`).
+3. Click `...` > **Install from VSIX...** and select the `.vsix` package.
 
 ---
 
-## 🚀 The Developer Workflow
+## 🚀 Developer Workflow
 
 ### Step 1: Initialize a New Workspace
 ```bash
 tinpyui init my-cyber-app
 cd my-cyber-app
 ```
-This scaffolds your `main.tin` configuration layout, `tinpy.toml`, and the essential `public/` web assembly bootloader files automatically.
+This scaffolds your `src/index.tin` configuration layout, `tinpyui.config.json`, static Wasm bootloader files, and an optional Flask `app.py` server.
 
 ### Step 2: Write Your UI
-Edit `main.tin` using strict Pythonic and declarative rules, invoking rich components like `AnimatedBackground`, `Row`, or `GradientText`. Zero CSS overhead.
+Edit `src/index.tin` using Pythonic indentation rules (`component Main():`), invoking components like `AnimatedBackground`, `Navbar`, `Row`, `GradientText`, and `Button`.
 
 ### Step 3: Compile the Layout
 ```bash
-tinpyui compile main.tin
+tinpyui compile src/index.tin
 ```
-The internal style compiler traverses your configuration, executes dynamic translation, maps explicit color palettes, validates indentation precisely, and outputs a native `app.ir.json` payload.
+The internal compiler parses your `.tin` file, validates indentation and token schemas, converts component hierarchies into optimized IR, and outputs `public/app.ir.json`.
 
 ### Step 4: Launch the Dev Server
 ```bash
-tinpyui dev main.tin
+tinpyui serve
 ```
-Spin up the local dev server hosting your fully formed WebAssembly target instantly.
+Or start the dev server directly with hot reloading:
+```bash
+tinpyui dev src/index.tin
+```
 
 ---
 
-## 🧠 Architecture Overview: The Zero-Cost Wasm Runtime
+## 🧠 Architecture: The Zero-DOM Wasm Engine
 
-When the Go WebAssembly runtime boots in the browser:
-- It hydrates a `StateRegistry` tracking every variable.
-- It allocates a 64-bit **Dirty Bitmap**. 
-- When an event occurs (e.g., clicking a button or typing in an input), a JavaScript bridge triggers `TinUIDispatch` or `TinUIMutateState`.
-- The Wasm engine mutates memory, flips a bit on the dirty bitmap, and runs `flushPatches()`.
-- **The Result**: The DOM is patched surgically in $O(1)$ time. No tree walking. No diffing. Just microsecond pointer swaps.
+When the TinPyUI WebAssembly runtime initializes in the browser:
+- **State Hydration**: Hydrates a `StateRegistry` tracking reactive variables in Wasm linear memory.
+- **Dirty Bitmaps**: Allocates a 64-bit Dirty Bitmap tracking modified layout nodes.
+- **Event Dispatching**: When user interactions occur (clicks, inputs), the JS bridge invokes `TinUIDispatch` or `TinUIMutateState` directly in Wasm.
+- **Microsecond Pointer Swaps**: The Wasm engine updates memory and flushes surgical patches (`flushPatches()`) in $O(1)$ time without traversing virtual DOM trees.
 
 ---
 
-## 📖 Detailed `.tin` Syntax and Usage Guide
+## 📖 Detailed `.tin` Pythonic Syntax Guide
 
-TinPyUI uses a hierarchical, block-based grammar designed for rapid structural compilation. You do **not** write HTML, CSS, or JS. You strictly use `.tin` syntax.
+TinPyUI uses an indentation-based, Pythonic grammar ending with colons (`:`). **Do not use curly braces `{}` for UI structure.**
 
 ### Grammar & Syntax Rules
-1. **Root Block**: Every UI must be wrapped inside a `main { ... }` block (or `component ComponentName():` depending on engine version, but `main { ... }` is standard).
-2. **Components**: All component names must be strictly PascalCase (e.g., `Section`, `GradientText`, `Button`).
-3. **Properties (Props)**: Passed inside parentheses as `key: value` pairs, separated by commas.
-   - Strings: `"Submit"`
-   - Numbers: `42`
-   - Booleans: `true`, `false`
-   - Arrays: `["neon-cyan", "neon-purple"]`
-4. **Nesting**: Child components are placed inside curly braces `{ ... }` immediately following the parent's properties.
+1. **Root Block**: Every file **must** begin with a `component Main():` block.
+2. **Components**: Component names must strictly use PascalCase (e.g. `Section`, `GradientText`, `Button`).
+3. **Properties (Props)**: Passed inside parentheses using `key="value"` or `key=value` pairs separated by commas.
+   - **Strings**: `"Submit"`, `"neon-cyan"`
+   - **Numbers**: `20`, `600`, `120`
+   - **Booleans**: `true`, `false`
+   - **Arrays**: `["neon-cyan", "neon-purple"]`
+4. **Nesting & Indentation**: Child components are placed on new lines, indented 4 spaces under parent components that end with a colon (`:`).
 
-#### Example Syntax:
+#### Official Syntax Blueprint:
 ```text
-main {
-    Section(paddingY: 40) {
-        Heading(text: "Dashboard", color: "white")
-        Text(text: "Welcome back.", size: "large")
-    }
-}
+component Main():
+    Section(paddingY=40, align="center"):
+        Heading(text="Dashboard", color="white", size="h1")
+        Text(text="Welcome back to your workspace.", size="large")
 ```
 
-### Strict Layout Constraints (100% Width Rule)
-By default, block-level interactive components (like `Form`, `Input`, and `Button`) will aggressively expand to consume **100% of the available width**.
+---
 
-**Constraint Rules to Prevent Visual Bugs:**
-- **Never leave forms unconstrained**: Do not place inputs or buttons directly inside `main` without a wrapper, or they will stretch across the entire screen.
-- **Use `maxWidth`**: Wrap interactive clusters inside a container (`Section` or `Card`) and explicitly define a `maxWidth`.
-- **Horizontal Grouping**: To place buttons side-by-side, wrap them in a `Row` component.
+## 📐 Strict Layout Constraints (100% Width Rule)
 
-#### Correct Constraint Example:
+By default, block-level interactive components (like `Form`, `Input`, and `Button`) aggressively consume **100% of available container width**.
+
+### Layout Rules to Avoid Visual Stretching:
+- **Wrap in Containers**: Never place inputs or buttons directly under `Main()` without a wrapper.
+- **Use `Card` & `maxWidth`**: Place forms and interactive elements inside a `Card` or `Section` with an explicit `maxWidth` (e.g. `maxWidth=600`).
+- **Horizontal Grouping**: Wrap side-by-side elements inside a `Row` component.
+
+#### Correct Constraint Blueprint:
 ```text
-Section(align: "center", justify: "center") {
-    // The Card traps the inputs, preventing infinite stretching
-    Card(maxWidth: 600, padding: 30) {
-        Form(gap: 15) {
-            Input(placeholder: "Email Address", width: "full")
-            Input(placeholder: "Password", width: "full")
-            Button(text: "Login", width: "full", variant: "primary")
-        }
-    }
-}
+component Main():
+    Section(align="center", justify="center"):
+        Card(maxWidth=600, padding=30):
+            Form(gap=15):
+                Input(placeholder="Email Address", width="full")
+                Input(placeholder="Password", width="full")
+                Button(text="Login", width="full", variant="primary")
 ```
 
 ---
@@ -112,81 +124,76 @@ Section(align: "center", justify: "center") {
 ## 🧩 Component API Reference
 
 ### 1. Structural Containers
-*   **`Section(align: string, justify: string, paddingY: number, paddingBottom: number, maxWidth: number)`**
-    The primary layout wrapper. Used to isolate different horizontal blocks of the webpage.
-*   **`Card(maxWidth: number, padding: number, background: string, border: string, radius: number, shadow: string)`**
-    A visually distinct container (glassmorphism/solid). Excellent for forms, pricing tiers, or feature highlights.
-*   **`Row(gap: number, align: string, justify: string, width: string, marginTop: number)`**
-    Forces child components to align horizontally using flexbox mechanics.
-*   **`Form(gap: number)`**
-    A vertical stack specifically designed to hold `Input` and `Button` elements.
+- **`Section(align: string, justify: string, paddingY: number, paddingBottom: number, maxWidth: number)`**  
+  Primary layout wrapper isolating horizontal content blocks.
+- **`Card(maxWidth: number, padding: number, background: string, border: string, radius: number, shadow: string)`**  
+  Glassmorphism / solid container for forms, features, and cards.
+- **`Row(gap: number, align: string, justify: string, width: string, marginTop: number)`**  
+  Aligns child components horizontally using flex mechanics.
+- **`Form(gap: number)`**  
+  Vertical layout stack for form inputs and action buttons.
 
 ### 2. Typography
-*   **`Text(text: string, size: string, color: string, weight: string, marginTop: number, marginBottom: number)`**
-    Standard paragraph text. Sizes include `"small"`, `"normal"`, `"large"`.
-*   **`Heading(text: string, color: string, size: string)`**
-    Standard header text. Sizes include `"h1"`, `"h2"`, `"h3"`.
-*   **`GradientText(text: string, gradient: ["string", "string"], size: string)`**
-    Renders text with a linear gradient. Primarily used for `"hero"` sizes.
+- **`Text(text: string, size: string, color: string, weight: string, marginTop: number, marginBottom: number)`**  
+  Standard text element. Sizes: `"small"`, `"normal"`, `"large"`.
+- **`Heading(text: string, color: string, size: string)`**  
+  Heading typography. Sizes: `"h1"`, `"h2"`, `"h3"`.
+- **`GradientText(text: string, gradient: ["string", "string"], size: string)`**  
+  Displays vibrant linear gradient text for headers and hero sections.
 
 ### 3. Interactive Elements
-*   **`Button(text: string, variant: string, glow: string, radius: string | number, width: string, link: string)`**
-    Variants: `"solid"`, `"outline"`, `"primary"`. Radius can be a number (`8`) or a string (`"pill"`).
-*   **`Input(value: string, placeholder: string, width: string, border: string)`**
-    Data entry field. Recommended to use `width: "full"` inside a constrained parent.
-*   **`NavLink(text: string, target: string)`**
-    Navigation text that anchors to a section ID.
+- **`Button(text: string, variant: string, glow: string, radius: string | number, width: string, link: string)`**  
+  Variants: `"solid"`, `"outline"`, `"primary"`. Radius: number (`8`) or string (`"pill"`).
+- **`Input(value: string, placeholder: string, width: string, border: string)`**  
+  Interactive data entry field.
+- **`NavLink(text: string, target: string)`**  
+  Navigation link anchoring to target sections.
 
-### 4. Advanced Wrappers (Visuals & Animation)
-*   **`AnimatedBackground(effect: string, primaryColor: string, secondaryColor: string, speed: string)`**
-    Effects: `"cyber-wave"`, `"cyber-grid"`, `"particles"`. Must wrap the entire page layout immediately inside the `main` block.
-*   **`Navbar(padding: number, blur: boolean, borderBottom: string)`**
-    Sticks to the top of the viewport. Supports glassmorphism (`blur: true`).
-*   **`Icon(name: string, color: string)`**
-    Renders an SVG vector natively.
-
----
-
-## 🎨 Design System: Cyberpunk Theme
-
-TinPyUI is optimized for modern, dark-mode-first developer aesthetics out of the box.
-
-**Accepted Color Variables:**
-*   **Backgrounds:** `"dark-core"` (`#0a0b10`), `"dark-glass"` (`rgba(18,19,28,0.7)`).
-*   **Accents (Neon):** `"neon-cyan"` (`#00f2fe`), `"neon-purple"` (`#9b51e0`), `"neon-pink"` (`#ff007f`).
-*   **Text:** `"white"`, `"muted"` (gray).
+### 4. Advanced Visual & Animated Components
+- **`AnimatedBackground(effect: string, primaryColor: string, secondaryColor: string, speed: string)`**  
+  Full-viewport canvas effects (`"cyber-wave"`, `"cyber-grid"`, `"particles"`).
+- **`Navbar(padding: number, blur: boolean, borderBottom: string)`**  
+  Fixed header bar supporting background blur glassmorphism (`blur=true`).
+- **`Icon(name: string, color: string)`**  
+  Renders native SVG icons directly inside the component graph.
 
 ---
 
-## 🚀 Full Page Example (The Standard Blueprint)
+## 🎨 Cyberpunk Design System & Color Tokens
 
-Below is the definitive blueprint for generating new layouts. Use this as a starting point for complex applications.
+TinPyUI ships with an ultra-modern dark-mode-first aesthetic:
+
+- **Backgrounds**: `"dark-core"` (`#0a0b10`), `"dark-glass"` (`rgba(18,19,28,0.7)`).
+- **Neon Accents**: `"neon-cyan"` (`#00f2fe`), `"neon-purple"` (`#9b51e0`), `"neon-pink"` (`#ff007f`).
+- **Typography Tokens**: `"white"`, `"muted"`.
+
+---
+
+## 🚀 Complete Blueprint Example
+
+Below is the production-ready reference blueprint for TinPyUI v1.5.2 applications:
 
 ```text
-main {
-    AnimatedBackground(effect: "cyber-wave", primaryColor: "neon-purple", secondaryColor: "neon-cyan") {
+component Main():
+    AnimatedBackground(effect="cyber-wave", primaryColor="neon-purple", secondaryColor="neon-cyan"):
         
-        Navbar(padding: 20, blur: true) {
-            Row(align: "center", justify: "space-between", width: "full") {
-                Text(text: "AppLogo", color: "neon-cyan", weight: "bold")
-                Row(gap: 30, color: "white") {
-                    NavLink(text: "Features")
-                    NavLink(text: "Docs")
-                }
-            }
-        }
+        Navbar(padding=20, blur=true):
+            Row(align="center", justify="space-between", width="full"):
+                Text(text="TinPyUI App", color="neon-cyan", weight="bold")
+                Row(gap=30, color="white"):
+                    NavLink(text="Features")
+                    NavLink(text="Docs")
 
-        Section(align: "center", paddingY: 100, maxWidth: 800, justify: "center") {
-            GradientText(text: "The WASM UI Engine", gradient: ["neon-cyan", "neon-purple"], size: "hero")
-            Text(text: "Build faster.", size: "large", color: "white", marginTop: 20)
+        Section(align="center", paddingY=100, maxWidth=800, justify="center"):
+            GradientText(text="The Zero-DOM Wasm Engine", gradient=["neon-cyan", "neon-purple"], size="hero")
+            Text(text="Build high-performance web applications with Pythonic DSL.", size="large", color="white", marginTop=20)
             
-            Row(gap: 20, align: "center", justify: "center", marginTop: 40) {
-                Button(text: "Get Started", variant: "solid", glow: "neon-cyan", radius: "pill")
-                Button(text: "Documentation", variant: "outline", radius: "pill")
-            }
-        }
-    }
-}
+            Row(gap=20, align="center", justify="center", marginTop=40):
+                Button(text="Get Started", variant="solid", glow="neon-cyan", radius="pill")
+                Button(text="Documentation", variant="outline", radius="pill")
 ```
 
-Enjoy building at the speed of memory.
+---
+
+## 📄 License
+MIT License © Barathanandh

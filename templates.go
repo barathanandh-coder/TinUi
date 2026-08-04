@@ -4,37 +4,6 @@ const DefaultIndexHTML = `<!DOCTYPE html><html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TinPyUI App</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
-	<script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            "colors": {
-                    "on-tertiary-container": "#503d00", "surface-variant": "#36343a", "secondary-fixed-dim": "#cdc0e9",
-                    "on-error-container": "#ffdad6", "tertiary-container": "#c9a74d", "surface-tint": "#cfbcff",
-                    "primary": "#cfbcff", "outline-variant": "#494551", "secondary": "#cdc0e9", "on-surface": "#e6e0e9",
-                    "on-background": "#e6e0e9", "surface": "#141218", "on-secondary-fixed": "#1f1635", "background": "transparent",
-                    "on-tertiary-fixed": "#241a00", "on-tertiary": "#3e2e00", "on-primary-fixed-variant": "#4f378a",
-                    "surface-container-high": "#2b292f", "primary-container": "#6750a4", "inverse-surface": "#e6e0e9",
-                    "on-secondary-fixed-variant": "#4b4263", "surface-container-low": "#1d1b20", "on-error": "#690005",
-                    "tertiary-fixed-dim": "#e7c365", "outline": "#948e9c", "surface-dim": "#141218", "secondary-container": "#4d4465",
-                    "primary-fixed": "#e9ddff", "error": "#ffb4ab", "inverse-primary": "#6750a4", "on-primary-container": "#e0d2ff",
-                    "on-primary-fixed": "#22005d", "inverse-on-surface": "#322f35", "tertiary-fixed": "#ffdf93",
-                    "surface-container": "#211f24", "on-surface-variant": "#cbc4d2", "primary-fixed-dim": "#cfbcff",
-                    "on-primary": "#381e72", "surface-container-lowest": "#0f0d13", "on-tertiary-fixed-variant": "#594400",
-                    "error-container": "#93000a", "surface-bright": "#3b383e", "secondary-fixed": "#e9ddff",
-                    "surface-container-highest": "#36343a", "on-secondary-container": "#bfb2da", "on-secondary": "#342b4b",
-                    "tertiary": "#e7c365"
-            },
-            "spacing": { "margin-desktop": "2.5rem", "margin-mobile": "1rem", "max-width": "1440px" },
-            "fontFamily": { "label-mono": ["JetBrains Mono"], "display-lg-mobile": ["Sora"], "display-lg": ["Sora"], "headline-md": ["Sora"], "body-lg": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"] }
-          }
-        }
-      }
-    </script>
 </head>
 <body>
     <div id="tinui-root">
@@ -44,7 +13,7 @@ const DefaultIndexHTML = `<!DOCTYPE html><html lang="en"><head>
     <script src="tin-runtime.js"></script>
 </body></html>`
 
-const DefaultTinRuntimeJS = `// tin-runtime.js — TinPyUI v1.5 Runtime
+const DefaultTinRuntimeJS = `// tin-runtime.js — TinPyUI v1.5.2 Runtime
 const go = new Go();
 
 function _tinResolvePaletteColor(name) {

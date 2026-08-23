@@ -11,7 +11,7 @@ if os.path.exists(readme_path):
 
 setup(
     name="tinpyui-ff",
-    version="1.5.2",
+    version="1.6.0",
     author="Barathanandh",
     description="The official Python type stubs and CLI integration for the TinUI framework.",
     long_description=long_description,
@@ -19,7 +19,7 @@ setup(
     url="https://github.com/barathanandh-coder/tinui",
     packages=find_packages(),
     package_data={
-        "tinpyui": ["__init__.pyi", "py.typed"],
+        "tinpyui": ["__init__.pyi", "py.typed", "app_icon.png"],
     },
     classifiers=[
         "Programming Language :: Python :: 3",

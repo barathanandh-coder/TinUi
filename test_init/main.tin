@@ -1,4 +1,0 @@
-component Main():
-    Section(paddingY = 64, align = "center", justify = "center", minHeight = "screen"):
-        Heading(text = "Hello from TinPyUI", color = "neon-cyan", size = "h1")
-        Text(text = "Edit main.tin to get started.", color = "muted", marginTop = 24)

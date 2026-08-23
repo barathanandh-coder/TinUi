@@ -7,69 +7,123 @@ const fs = require('fs');
 
 const command = process.argv[2];
 
-if (command === 'init') {
-    const targetDir = process.argv[3] || '.';
-    const srcPath = path.join(targetDir, 'src');
-    
-    console.log(`[Info] Initializing fresh TinPyUI v1.5.2 project architecture...`);
+if (command === 'init' || command === 'create' || command === 'new') {
+    const readline = require('readline');
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
 
-    if (!fs.existsSync(srcPath)){
-        fs.mkdirSync(srcPath, { recursive: true });
-    }
+    const ask = (query) => new Promise(resolve => rl.question(query, resolve));
 
-    const publicPath = path.join(targetDir, 'public');
-    if (!fs.existsSync(publicPath)){
-        fs.mkdirSync(publicPath, { recursive: true });
-    }
+    (async () => {
+        console.log(`\n\x1b[1;36m+==============================================================================+\x1b[0m`);
+        console.log(`\x1b[1;36m|   \x1b[1;97m[*] TinPyUI v1.6.0 Project Scaffolding Wizard\x1b[1;36m                              |\x1b[0m`);
+        console.log(`\x1b[1;36m+==============================================================================+\x1b[0m\n`);
 
-    const indexHtml = `<!DOCTYPE html>
+        let targetDirArg = process.argv[3] || '';
+        let targetDir = targetDirArg.trim();
+        if (!targetDir) {
+            targetDir = await ask('\x1b[1;36m>> Enter project name/directory \x1b[1;97m[default: my-cyber-app]\x1b[0m: \x1b[1;33m');
+            process.stdout.write('\x1b[0m');
+            targetDir = targetDir.trim() || 'my-cyber-app';
+        }
+
+        console.log(`\n\x1b[1;97mSelect target device architecture for your project:\x1b[0m`);
+        console.log(`  \x1b[1;36m[1]\x1b[0m \x1b[1;97m🌐 Universal Omni-Platform\x1b[0m  \x1b[0;36m(All Devices: Android Mobile + iOS Mobile + Tablet + Web WASM)\x1b[0m`);
+        console.log(`  \x1b[1;32m[2]\x1b[0m \x1b[1;97m💻 Native Desktop Specified\x1b[0m \x1b[0;32m(Windows / macOS / Linux C-FFI Vector Surface)\x1b[0m`);
+        console.log(`  \x1b[1;94m[3]\x1b[0m \x1b[1;97m📱 Mobile Touch Specified\x1b[0m   \x1b[0;94m(Android & iOS Touch-First with Haptics)\x1b[0m`);
+        console.log(`  \x1b[1;35m[4]\x1b[0m \x1b[1;97m📱 Tablet / iPad Specified\x1b[0m  \x1b[0;35m(Adaptive Dual-Column Split View)\x1b[0m`);
+        console.log(`  \x1b[1;33m[5]\x1b[0m \x1b[1;97m🌐 WebAssembly Specified\x1b[0m   \x1b[0;33m(Zero-DOM WebGL / WebGPU Browser App)\x1b[0m\n`);
+
+        let devChoice = await ask('\x1b[1;36m>> Select device mode \x1b[1;97m(1-5)\x1b[0m \x1b[90m[default: 1]\x1b[0m: \x1b[1;33m');
+        process.stdout.write('\x1b[0m');
+        devChoice = devChoice.trim() || '1';
+
+        const devMap = {
+            '1': { title: 'Universal (Mobile + Tablet + Web WASM)', slug: 'universal' },
+            '2': { title: 'Native Desktop Specified', slug: 'desktop' },
+            '3': { title: 'Mobile Touch Specified', slug: 'mobile' },
+            '4': { title: 'Tablet / iPad Specified', slug: 'tablet' },
+            '5': { title: 'WebAssembly Specified', slug: 'web' }
+        };
+        const selected = devMap[devChoice] || devMap['1'];
+
+        const resolvedPath = path.resolve(targetDir);
+        console.log(`\n\x1b[1;97mReady to scaffold:\x1b[0m`);
+        console.log(`  • Target Directory:  \x1b[1;36m${resolvedPath}\x1b[0m`);
+        console.log(`  • Device Target:     \x1b[1;32m${selected.title}\x1b[0m`);
+
+        const confirm = await ask('\n\x1b[1;36m>> Proceed with creating project? \x1b[1;97m(Y/n)\x1b[0m \x1b[90m[default: Y]\x1b[0m: \x1b[1;33m');
+        process.stdout.write('\x1b[0m');
+        rl.close();
+
+        if (confirm.trim() && !['y', 'yes'].includes(confirm.trim().toLowerCase())) {
+            console.log(`\n\x1b[1;33m[!] Project creation aborted by user.\x1b[0m\n`);
+            process.exit(0);
+        }
+
+        console.log(`\n\x1b[1;32m[+] Initializing fresh TinPyUI v1.6.0 project architecture in: ${targetDir}...\x1b[0m`);
+
+        const srcPath = path.join(targetDir, 'src');
+        if (!fs.existsSync(srcPath)){
+            fs.mkdirSync(srcPath, { recursive: true });
+        }
+
+        const publicPath = path.join(targetDir, 'public');
+        if (!fs.existsSync(publicPath)){
+            fs.mkdirSync(publicPath, { recursive: true });
+        }
+
+        const databasePath = path.join(targetDir, 'database');
+        if (!fs.existsSync(databasePath)){
+            fs.mkdirSync(databasePath, { recursive: true });
+        }
+
+        const backendPath = path.join(targetDir, 'backend');
+        if (!fs.existsSync(backendPath)){
+            fs.mkdirSync(backendPath, { recursive: true });
+        }
+
+        const indexHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TinPyUI App</title>
+    <title>${path.basename(resolvedPath)} — ${selected.title}</title>
     <script src="wasm_exec.js"></script>
     <script>
         const go = new Go();
-        WebAssembly.instantiateStreaming(fetch("tinui_engine.wasm"), go.importObject).then((result) => {
+        const _wasmSources = ["tinui_engine.wasm", "app.wasm", "/tinui_engine.wasm", "/app.wasm"];
+        let _wasmPromise = null;
+        for (const src of _wasmSources) {
+            if (!_wasmPromise) {
+                _wasmPromise = fetch(src).then(res => {
+                    if (!res.ok) throw new Error("Status " + res.status);
+                    return res;
+                });
+            } else {
+                _wasmPromise = _wasmPromise.catch(() => fetch(src).then(res => {
+                    if (!res.ok) throw new Error("Status " + res.status);
+                    return res;
+                }));
+            }
+        }
+
+        _wasmPromise.then(res => WebAssembly.instantiateStreaming(res, go.importObject)).then((result) => {
             go.run(result.instance);
-            
-            // Start the TinUI engine with the generated Intermediate Representation
             const bootApp = () => {
                 fetch("app.ir.json").then(res => res.text()).then(irString => {
                     try {
                         let ret = BootTinUI(irString);
-                        if (ret) {
-                            console.log(ret);
-                        }
-
-                        // Wire up global event listeners for TinUI interactivity
-                        document.addEventListener('click', (e) => {
-                            let actionElement = e.target.closest ? e.target.closest('[data-action]') : e.target;
-                            if (actionElement) {
-                                let action = actionElement.getAttribute('data-action');
-                                if (action && typeof TinUIDispatch === 'function') {
-                                    TinUIDispatch(action);
-                                }
-                            }
-                        });
-
-                        document.addEventListener('input', (e) => {
-                            let stateKey = e.target.getAttribute('data-bind');
-                            if (stateKey && typeof TinUIMutateState === 'function') {
-                                TinUIMutateState(stateKey, e.target.value);
-                            }
-                        });
+                        if (ret) console.log(ret);
                     } catch(e) {
                         console.error("TinUI Boot Error:", e);
-                        document.getElementById('tinui-root').innerHTML = "JS Error: " + e.message;
                     }
                 }).catch(e => {
                     console.error("Failed to fetch app.ir.json:", e);
-                    document.getElementById('tinui-root').innerHTML = "Failed to load app.ir.json";
                 });
             };
-
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', bootApp);
             } else {
@@ -77,14 +131,6 @@ if (command === 'init') {
             }
         }).catch((err) => {
             console.error("WASM Boot Error:", err);
-            const displayErr = () => {
-                document.getElementById('tinui-root').innerHTML = "<div style='padding: 20px; color: #ff5555;'>Failed to start WebAssembly engine: " + err.message + "<br><br><b>Note:</b> You cannot open this file directly in the browser. You MUST use a local web server (e.g. run <code>tinpyui serve</code> or start your Flask app).</div>";
-            };
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', displayErr);
-            } else {
-                displayErr();
-            }
         });
     </script>
 </head>
@@ -92,67 +138,80 @@ if (command === 'init') {
     <div id="tinui-root"></div>
 </body>
 </html>`;
-    fs.writeFileSync(path.join(publicPath, 'index.html'), indexHtml);
+        fs.writeFileSync(path.join(publicPath, 'index.html'), indexHtml);
 
-    // Copy wasm bootloader files
-    const binDir = path.join(__dirname, 'bin');
-    if (fs.existsSync(path.join(binDir, 'wasm_exec.js'))) {
-        fs.copyFileSync(path.join(binDir, 'wasm_exec.js'), path.join(publicPath, 'wasm_exec.js'));
-    }
-    if (fs.existsSync(path.join(binDir, 'tinui_engine.wasm'))) {
-        fs.copyFileSync(path.join(binDir, 'tinui_engine.wasm'), path.join(publicPath, 'tinui_engine.wasm'));
-    }
+        // Copy wasm bootloader files
+        const binDir = path.join(__dirname, 'bin');
+        if (fs.existsSync(path.join(binDir, 'wasm_exec.js'))) {
+            fs.copyFileSync(path.join(binDir, 'wasm_exec.js'), path.join(publicPath, 'wasm_exec.js'));
+        }
+        if (fs.existsSync(path.join(binDir, 'tinui_engine.wasm'))) {
+            fs.copyFileSync(path.join(binDir, 'tinui_engine.wasm'), path.join(publicPath, 'tinui_engine.wasm'));
+            fs.copyFileSync(path.join(binDir, 'tinui_engine.wasm'), path.join(publicPath, 'app.wasm'));
+        }
 
-    // Default template showcasing correct pythonic indentation configuration
-    const boilerplateTin = `component Main():
+        const boilerplateTin = `component Main():
     AnimatedBackground(effect="cyber-wave", primaryColor="neon-purple", secondaryColor="neon-cyan"):
-        
         Navbar(padding=20, blur=true):
             Row(align="center", justify="space-between", width="full"):
                 Row(align="center", gap=10):
-                    Text(text="TinPyUI NextGen", color="neon-cyan", weight="bold")
+                    Text(text="${path.basename(resolvedPath)} (${selected.title})", color="neon-cyan", weight="bold")
                 
                 Row(gap=30, color="white"):
-                    NavLink(text="Learn")
-                    NavLink(text="Reference")
+                    NavLink(text="Dashboard", href="/")
+                    NavLink(text="Documentation", href="/docs")
 
-        Section(align="center", paddingY=120, maxWidth=800, justify="center"):
-            GradientText(text="TinPyUI", size="hero")
-            Text(text="The framework for native WebAssembly user interfaces", size="large", color="white", weight="bold", marginTop=20)
+        Section(align="center", paddingY=80, maxWidth=800, justify="center"):
+            GradientText(text="${path.basename(resolvedPath)}", size="hero")
+            Text(text="Target: ${selected.title}", size="large", color="white", weight="bold", marginTop=20)
+            Text(text="Native Hardware-Accelerated Pythonic UI Engine", color="muted", marginTop=10)
 `;
+        fs.writeFileSync(path.join(srcPath, 'index.tin'), boilerplateTin);
+        fs.writeFileSync(path.join(targetDir, 'main.tin'), boilerplateTin);
+        
+        const configData = {
+            name: path.basename(resolvedPath),
+            version: "1.0.0",
+            targetDevice: selected.slug,
+            compilerSettings: { entry: "src/index.tin", output: "public/app.ir.json" }
+        };
+        fs.writeFileSync(path.join(targetDir, 'tinpyui.config.json'), JSON.stringify(configData, null, 2));
 
-    fs.writeFileSync(path.join(srcPath, 'index.tin'), boilerplateTin);
-    
-    // Create base configuration mapping schema
-    const configData = {
-        name: path.basename(path.resolve(targetDir)),
-        version: "1.0.0",
-        compilerSettings: { entry: "src/index.tin", output: "public/app.ir.json" }
-    };
-    fs.writeFileSync(path.join(targetDir, 'tinpyui.config.json'), JSON.stringify(configData, null, 2));
+        const mainPy = `import tinpyui as tin
 
-    const appPyContent = `from flask import Flask, send_from_directory
-import os
+class App(tin.App):
+    def __init__(self):
+        super().__init__(title="${path.basename(resolvedPath)} — ${selected.title}", width=1280, height=820)
+        self.count = tin.Signal(0)
 
-app = Flask(__name__, static_folder='public')
+    def build(self):
+        with tin.LayoutWindow(title="${path.basename(resolvedPath)}") as root:
+            with tin.Column(width="full", padding=24, gap=16):
+                tin.GradientText("🚀 ${path.basename(resolvedPath)}", gradient=["neon-cyan", "neon-purple"], size="hero")
+                tin.Badge("Target: ${selected.title}", variant="neon-cyan")
+                tin.Text(text=lambda: f"Reactive Counter: {self.count.value}", color="white")
+                with tin.Row(gap=12):
+                    tin.Button("Increment Counter", on_click=lambda: self.count.set(self.count.value + 1))
+                    tin.Button("📳 Haptic Pulse", on_click=lambda: tin.haptics.vibrate(60))
+        return root
 
-@app.route('/')
-def index():
-    return send_from_directory(app.static_folder, 'index.html')
-
-@app.route('/<path:path>')
-def static_files(path):
-    return send_from_directory(app.static_folder, path)
-
-if __name__ == '__main__':
-    print("[Info] Starting TinPyUI Flask Server on http://localhost:5000")
-    app.run(debug=True, port=5000)
+if __name__ == "__main__":
+    app = App()
+    app.run(prompt_target=True)
 `;
-    fs.writeFileSync(path.join(targetDir, 'app.py'), appPyContent);
+        fs.writeFileSync(path.join(targetDir, 'main.py'), mainPy);
 
+        fs.writeFileSync(path.join(databasePath, '.gitkeep'), '');
+        fs.writeFileSync(path.join(backendPath, '.gitkeep'), '');
 
-    console.log(`[Success] Project scaffold complete! Run "tinpyui compile src/index.tin" to build.`);
-    process.exit(0);
+        console.log(`\n\x1b[1;32m✔ [TinPyUI Scaffold] Successfully created project '${path.basename(resolvedPath)}'!\x1b[0m\n`);
+        console.log(`\x1b[1;97mNext steps:\x1b[0m`);
+        console.log(`  \x1b[1;36mcd ${targetDir}\x1b[0m`);
+        console.log(`  \x1b[1;36mpython main.py\x1b[0m      \x1b[90m# Run multi-device interactive launcher\x1b[0m`);
+        console.log(`  \x1b[1;36mtinpyui serve\x1b[0m       \x1b[90m# Start local web dev server\x1b[0m\n`);
+        process.exit(0);
+    })();
+    return;
 }
 
 

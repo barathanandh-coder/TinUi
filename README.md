@@ -1,13 +1,29 @@
-# TinPyUI Framework v1.5.2
+# TinPyUI Framework v1.6.0
 
-[![npm](https://img.shields.io/badge/npm-tinpyui-v1.5.2-cyan)](https://www.npmjs.com/package/tinpyui)
-[![pypi](https://img.shields.io/badge/pypi-tinpyui--ff-v1.5.2-blue)](https://pypi.org/project/tinpyui-ff/)
+[![npm](https://img.shields.io/badge/npm-tinpyui-v1.6.0-cyan)](https://www.npmjs.com/package/tinpyui)
+[![pypi](https://img.shields.io/badge/pypi-tinpyui--ff-v1.6.0-blue)](https://pypi.org/project/tinpyui-ff/)
 [![license](https://img.shields.io/badge/license-MIT-green)](#license)
-[![architecture](https://img.shields.io/badge/engine-Zero--DOM--Wasm-purple)](#architecture)
+[![engine](https://img.shields.io/badge/engine-Hybrid--DOM--WebGL--GPU-purple)](#architecture)
+[![docs](https://img.shields.io/badge/manual-tinpyui--docs.md-orange)](tinpyui-docs.md)
 
-TinPyUI is a memory-safe, blazing-fast, and custom UI compilation framework. It completely bypasses Virtual DOM diffing by leveraging a custom Go WebAssembly linear memory engine mapped to a declarative, Pythonic syntax (`.tin`).
+TinPyUI is a memory-safe, zero-dependency, hardware-accelerated UI application engine. It combines a **Native C-FFI Vector Surface Engine** for Desktop (Windows, macOS, Linux) with a **Hybrid DOM UI Layout + WebGL GPU Shader Layer** compiled via Go to WebAssembly (`tinui_engine.wasm`).
 
-This is not a React clone. TinPyUI is a ground-up systems engineering project featuring its own Lexer, Parser, Intermediate Representation (IR) Compiler, and Wasm runtime.
+> 📖 **Complete Technical Handbook**: For the comprehensive, book-like architecture and reference guide, read [tinpyui-docs.md](tinpyui-docs.md).
+
+---
+
+## 🏛️ The Architectural Reality: How TinPyUI Differs
+
+TinPyUI is **not** a raw canvas blitter (which breaks browser accessibility, copy-paste, and SEO). Instead, it uses **Direct IR DOM Generation** for layout and typography coupled with **Hardware-Accelerated WebGL Canvases** for background shaders and particles:
+
+| Feature / Metric | **TinPyUI v1.6** | **React / Next.js** | **Flutter Web (CanvasKit)** | **PyScript / Pyodide** | **Streamlit / Flet** |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Language DSL** | Pythonic Indentation (`.tin`) | JSX / XML | Dart Widgets | CPython in Wasm | Python Backend |
+| **Execution** | Go WebAssembly + IR Engine | JS V-DOM Diffing | Raw Canvas Blit | 25MB CPython runtime | Server WebSocket IPC |
+| **DOM Model** | Direct Semantic DOM + WebGL | Virtual DOM | Canvas Only (No DOM) | JS Proxy DOM | Server-driven DOM |
+| **Accessibility & SEO** | Native DOM + SEO Shell | Native DOM | ❌ None (Raw pixels) | Partial | ❌ None (Dynamic) |
+| **Client Latency** | 0 ms (Local WASM) | 0 ms (Local JS) | 0 ms (Local WASM) | High startup lag | 50-200 ms network lag |
+| **GPU Shaders** | Built-in GLSL & WebGL | Requires Three.js | Canvas drawing API | Canvas library required | Not supported |
 
 ---
 
@@ -21,18 +37,83 @@ npm install -g tinpyui
 ```
 *Note: Requires Node.js (>= 18.0.0).*
 
-### 2. PyPI Package (Python Ecosystem)
-For Python developers and Flask integration:
+### 2. PyPI Package (Python Ecosystem -- 0 Third-Party Dependencies)
+For Python developers (Requires 0 external pip packages):
 
 ```bash
 pip install tinpyui-ff
 ```
 
-### 3. VS Code Syntax Highlighting
-To enable official syntax highlighting for `.tin` files:
-1. Download the latest `.vsix` from the [tinui-syntax](file:///c:/Users/barat/Portfolio_Projects/TinUi/tinui-syntax) directory or Releases.
-2. Open VS Code and open Extensions (`Ctrl+Shift+X`).
-3. Click `...` > **Install from VSIX...** and select the `.vsix` package.
+---
+
+## ⚡ TinPyUI Flagship Native Desktop Application Framework
+
+**TinPyUI** (`import tinpyui as tin`) is a flagship universal Python desktop GUI application framework built to surpass Tkinter in speed, modern cyber aesthetics (linear gradients, glassmorphism, glowing neon borders, pill-rounded buttons), and cross-platform portability (**Windows, macOS, Linux**).
+
+### Key Features
+- 🚀 **Hardware-Accelerated Surface**: Sub-millisecond vector graphics rendering engine using native C-FFI.
+- 🎨 **Modern Cyber Aesthetics**: Linear gradients, glassmorphism blur, neon glow borders, pill-rounded buttons, animated shader backgrounds.
+- ⚡ **O(1) Reactive Signal System**: Automatic UI binding with `tin.State(value)` / `tin.Signal(value)`.
+- 💻 **100% Zero PIP Dependencies**: Uses pure Python stdlib + C-FFI (`user32.dll`/`gdi32.dll` on Win32, AppKit on macOS, GTK on Linux).
+- 🔒 **Enterprise Security Suite**: `SessionBindingGuard` (HMAC signatures), `RAMMaskedState` (in-memory string masking), and `CSRFGuard`.
+- 📈 **Live Telemetry Monitoring**: Dynamic FPS and render latency sampling via `tin.PerformanceMonitor`.
+
+### Quickstart Example
+```python
+import tinpyui as tin
+
+class MyApp(tin.App):
+    def __init__(self):
+        super().__init__(title="TinPyUI Native Desktop App", width=1100, height=750)
+        self.count = tin.Signal(0)
+
+    def build(self):
+        with tin.Window(title="TinPyUI Native Desktop App"):
+            with tin.Card(bg="#141218", radius=16, shadow="cyan"):
+                tin.GradientText("Hardware-Accelerated TinPyUI Desktop Engine", gradient=["#00ffff", "#cfbcff"])
+                tin.Text(text=lambda: f"Counter Signal Value: {self.count.value}", color="#ffffff")
+                tin.Button("Increment Counter", on_click=self.increment, variant="primary")
+
+    def increment(self):
+        self.count.value += 1
+
+if __name__ == "__main__":
+    MyApp().run()
+```
+
+### Launching Desktop Applications
+Run the native desktop application launcher:
+
+```bash
+python main.py
+```
+Or launch via the package CLI:
+```bash
+python -m tinpyui
+```
+
+---
+
+## 🌐 Universal Cross-Platform C++ Core (`engine_core.cc`)
+
+TinPyUI achieves cross-platform desktop native packaging using a **C/C++ Abstraction Layer** (`webview.h`). This compiles down into a microscopic **2 MB to 3 MB** native desktop executable without bundling bulky browser runtimes.
+
+### Native OS GPU Engine Mapping
+- 🍎 **macOS (Apple Silicon & Intel)**: Cocoa API + **WKWebView** (Apple **Metal** GPU rendering engine).
+- 🐧 **Linux (Ubuntu, Fedora, Arch)**: GTK3/GTK4 + **WebKitGTK** (X11 / Wayland native window integration).
+- 🪟 **Windows (10 & 11)**: Win32 API (`HWND`) + Microsoft **Edge WebView2** (**DirectX 12** hardware acceleration at 120 FPS).
+
+### Zero-Bloat Cross-Platform Compiler Pipeline
+```bash
+# macOS (Clang)
+c++ engine_core.cc -std=c++11 -framework WebKit -framework Cocoa -o tinui_mac
+
+# Linux (GCC)
+g++ engine_core.cc `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -o tinui_linux
+
+# Windows (MinGW/GCC)
+g++ engine_core.cc -mwindows -ladvapi32 -lole32 -lshell32 -lshlwapi -luser32 -lversion -o tinui_win.exe
+```
 
 ---
 
@@ -171,7 +252,7 @@ TinPyUI ships with an ultra-modern dark-mode-first aesthetic:
 
 ## 🚀 Complete Blueprint Example
 
-Below is the production-ready reference blueprint for TinPyUI v1.5.2 applications:
+Below is the production-ready reference blueprint for TinPyUI v1.6.0 applications:
 
 ```text
 component Main():

@@ -18,7 +18,7 @@ go build -o tinui-npm/bin/tinui-win.exe .
 echo [TinUI] Compiling WebAssembly Engine...
 set GOOS=js
 set GOARCH=wasm
-go build -o tinui_engine.wasm ./wasm_engine
+go build -ldflags="-s -w" -o tinui_engine.wasm ./wasm_engine
 
 echo [TinUI] Copying WebAssembly assets...
 for /f "delims=" %%i in ('go env GOROOT') do set "GOROOT=%%i"
@@ -36,12 +36,16 @@ if not "%WASM_EXEC_PATH%"=="" (
     copy "%WASM_EXEC_PATH%" static\ >nul
     if not exist tinui-npm\bin mkdir tinui-npm\bin
     copy "%WASM_EXEC_PATH%" tinui-npm\bin\ >nul
+    if not exist public mkdir public
+    copy "%WASM_EXEC_PATH%" public\ >nul
 ) else (
     echo [ERROR] Could not find wasm_exec.js in GOROOT
 )
 
 copy tinui_engine.wasm static\ >nul
 copy tinui_engine.wasm tinui-npm\bin\ >nul
+if not exist public mkdir public
+copy tinui_engine.wasm public\ >nul
 
 
 echo [TinUI] Build Complete! You can now run:

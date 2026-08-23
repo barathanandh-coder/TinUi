@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TinPyUI Multi-Device Engine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #08090d;
+            color: #f1f5f9;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+        #tin-device-bar {
+            width: 100%;
+            background: rgba(15, 17, 26, 0.95);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            gap: 12px;
+        }
+        .tin-brand-tag {
+            font-weight: 800;
+            font-size: 0.95rem;
+            background: linear-gradient(135deg, #00f2fe, #9b51e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tin-dev-btn-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .tin-dev-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        .tin-dev-btn:hover {
+            background: rgba(0, 242, 254, 0.15);
+            border-color: rgba(0, 242, 254, 0.5);
+            color: #00f2fe;
+        }
+        .tin-dev-btn.active {
+            background: linear-gradient(135deg, #00f2fe, #9b51e0);
+            border-color: transparent;
+            color: #0a0b10;
+            font-weight: 700;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+        }
+        #tin-viewport-wrapper {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+        }
+        .tin-device-desktop {
+            width: 100%;
+            max-width: 1360px;
+            min-height: 820px;
+            background: #0f1017;
+            border: 1px solid rgba(0, 242, 254, 0.25);
+            border-radius: 14px;
+            box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.9), 0 0 35px rgba(0, 242, 254, 0.12);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .tin-desktop-titlebar {
+            height: 38px;
+            background: rgba(18, 20, 28, 0.98);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            user-select: none;
+            z-index: 95;
+            flex-shrink: 0;
+        }
+        .tin-win-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tin-win-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .tin-win-close { background: #ff5f56; border: 1px solid #e0443e; }
+        .tin-win-min { background: #ffbd2e; border: 1px solid #dea123; }
+        .tin-win-max { background: #27c93f; border: 1px solid #1aab29; }
+        .tin-desktop-title {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #94a3b8;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tin-device-phone {
+            width: 380px;
+            height: 720px;
+            background: #0f1017;
+            border: 10px solid #1e2230;
+            border-radius: 46px;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 242, 254, 0.15);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .tin-device-tablet {
+            width: 680px;
+            height: 540px;
+            background: #0f1017;
+            border: 12px solid #232736;
+            border-radius: 32px;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 30px rgba(155, 81, 224, 0.15);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .tin-device-web {
+            width: 100%;
+            max-width: 1280px;
+            min-height: 80vh;
+            border-radius: 16px;
+            background: transparent;
+            box-shadow: none;
+            border: none;
+        }
+        .tin-notch-ios {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 110px;
+            height: 26px;
+            background: #000000;
+            border-radius: 20px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .tin-notch-android {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 14px;
+            height: 14px;
+            background: #000000;
+            border-radius: 50%;
+            z-index: 100;
+            border: 2px solid #1a1e2b;
+        }
+        .tin-status-bar {
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            font-size: 0.72rem;
+            color: #94a3b8;
+            font-weight: 600;
+            z-index: 90;
+            background: rgba(15, 16, 23, 0.95);
+            flex-shrink: 0;
+        }
+        .tin-home-bar {
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: rgba(15, 16, 23, 0.95);
+        }
+        .tin-home-pill {
+            width: 130px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.35);
+            border-radius: 9999px;
+        }
+        #tinui-root {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: #0a0b10;
+            padding: 16px;
+        }
+        .tin-card {
+            background: rgba(22, 24, 38, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .tin-btn {
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            color: #0a0b10;
+            font-weight: 700;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tin-btn:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+        }
+        .tin-btn-outline {
+            background: transparent;
+            border: 1px solid rgba(0, 242, 254, 0.4);
+            color: #00f2fe;
+            font-weight: 600;
+            padding: 9px 16px;
+            border-radius: 9999px;
+            cursor: pointer;
+        }
+        .tin-badge {
+            background: rgba(0, 242, 254, 0.15);
+            color: #00f2fe;
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        #tin-haptic-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0, 242, 254, 0.95);
+            color: #0a0b10;
+            font-weight: 700;
+            font-size: 0.82rem;
+            padding: 8px 18px;
+            border-radius: 9999px;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.6);
+            pointer-events: none;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 9999;
+        }
+        #tin-haptic-toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div id="tin-device-bar">
+        <div class="tin-brand-tag">
+            <span>⚡ TinPyUI v1.6</span>
+            <span style="font-size:0.75rem; color:#94a3b8; font-weight:normal;">Omni-Device Simulator</span>
+        </div>
+        <div class="tin-dev-btn-group">
+            <a href="?device=desktop" id="btn-desktop" class="tin-dev-btn">💻 Desktop Native (1600x1000)</a>
+            <a href="?device=tablet" id="btn-tablet" class="tin-dev-btn">📱 iPad Tablet (640x520)</a>
+            <a href="?device=android" id="btn-android" class="tin-dev-btn">🤖 Android Mobile (380x680)</a>
+            <a href="?device=ios" id="btn-ios" class="tin-dev-btn">🍎 iPhone 16 Pro (375x680)</a>
+            <a href="?device=web" id="btn-web" class="tin-dev-btn">🌐 Full Web WASM</a>
+        </div>
+    </div>
+
+    <div id="tin-viewport-wrapper">
+        <div id="tin-device-container" class="tin-device-desktop">
+            <div id="tin-desktop-titlebar" class="tin-desktop-titlebar" style="display:flex;">
+                <div class="tin-win-controls">
+                    <span class="tin-win-dot tin-win-close"></span>
+                    <span class="tin-win-dot tin-win-min"></span>
+                    <span class="tin-win-dot tin-win-max"></span>
+                </div>
+                <div class="tin-desktop-title">
+                    <span style="color:#00f2fe;">●</span> TinPyUI Desktop Surface [Native Win32 / macOS Metal Host]
+                </div>
+                <div style="font-size:0.72rem; color:#64748b; font-family:monospace;">120 FPS | 0ms IPC</div>
+            </div>
+            <div id="tin-notch"></div>
+            <div id="tin-status-bar" class="tin-status-bar" style="display:none;">
+                <span id="tin-clock">09:41</span>
+                <span>5G ● 100%</span>
+            </div>
+            <div id="tinui-root"></div>
+            <div id="tin-home-bar" class="tin-home-bar" style="display:none;">
+                <div class="tin-home-pill"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tin-haptic-toast">📳 Haptic Pulse Triggered (60ms)</div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        let currentDevice = params.get('device') || 'desktop';
+        const container = document.getElementById('tin-device-container');
+        const statusBar = document.getElementById('tin-status-bar');
+        const homeBar = document.getElementById('tin-home-bar');
+        const notch = document.getElementById('tin-notch');
+        const desktopTitlebar = document.getElementById('tin-desktop-titlebar');
+
+        function setDevice(device, pushHistory) {
+            currentDevice = device;
+            document.querySelectorAll('.tin-dev-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById('btn-' + device);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            if (device === 'android') {
+                container.className = 'tin-device-phone';
+                statusBar.style.display = 'flex';
+                homeBar.style.display = 'flex';
+                desktopTitlebar.style.display = 'none';
+                notch.className = 'tin-notch-android';
+            } else if (device === 'ios') {
+                container.className = 'tin-device-phone';
+                statusBar.style.display = 'flex';
+                homeBar.style.display = 'flex';
+                desktopTitlebar.style.display = 'none';
+                notch.className = 'tin-notch-ios';
+            } else if (device === 'tablet') {
+                container.className = 'tin-device-tablet';
+                statusBar.style.display = 'flex';
+                homeBar.style.display = 'flex';
+                desktopTitlebar.style.display = 'none';
+                notch.className = '';
+            } else if (device === 'web') {
+                container.className = 'tin-device-web';
+                statusBar.style.display = 'none';
+                homeBar.style.display = 'none';
+                desktopTitlebar.style.display = 'none';
+                notch.className = '';
+            } else {
+                container.className = 'tin-device-desktop';
+                statusBar.style.display = 'none';
+                homeBar.style.display = 'none';
+                desktopTitlebar.style.display = 'flex';
+                notch.className = '';
+            }
+
+            if (pushHistory) {
+                const url = new URL(window.location);
+                url.searchParams.set('device', device);
+                window.history.pushState({}, '', url);
+            }
+        }
+
+        // Attach click listeners to device buttons for smooth zero-reload redirection
+        document.querySelectorAll('.tin-dev-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetDev = btn.id.replace('btn-', '');
+                setDevice(targetDev, true);
+            });
+        });
+
+        // Initialize target mode
+        setDevice(currentDevice, false);
+
+        // Live Clock
+        setInterval(() => {
+            const d = new Date();
+            const timeStr = d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+            const clockEl = document.getElementById('tin-clock');
+            if (clockEl) clockEl.innerText = timeStr;
+        }, 1000);
+
+        function triggerHapticFeedback() {
+            if ('vibrate' in navigator) navigator.vibrate(60);
+            const toast = document.getElementById('tin-haptic-toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 1200);
+        }
+
+        // Fetch & Mount IR Components dynamically
+        fetch('app.ir.json').then(r => r.json()).then(data => {
+            renderIR(data);
+        }).catch(() => {});
+
+        function renderIR(ir) {
+            const root = document.getElementById('tinui-root');
+            if (!ir || !ir.root) return;
+            root.innerHTML = '';
+            
+            function buildDom(node) {
+                if (!node) return null;
+                const el = document.createElement('div');
+                const tag = node.tag;
+                const p = node.props || {};
+
+                if (tag === 'GradientText') {
+                    const span = document.createElement('span');
+                    span.innerText = p.text || 'TinPyUI';
+                    span.style.cssText = 'font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #00f2fe, #9b51e0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: block; margin-bottom: 8px;';
+                    return span;
+                } else if (tag === 'Heading') {
+                    const h = document.createElement('h3');
+                    h.innerText = p.text || '';
+                    h.style.cssText = 'font-size: 1.15rem; font-weight: 700; color: #f8fafc; margin-bottom: 6px;';
+                    return h;
+                } else if (tag === 'Text') {
+                    const t = document.createElement('p');
+                    t.innerText = p.text || '';
+                    t.style.cssText = 'font-size: 0.9rem; color: ' + (p.color === 'muted' ? '#94a3b8' : (p.color || '#cbd5e1')) + '; margin-bottom: 6px;';
+                    return t;
+                } else if (tag === 'Badge') {
+                    const b = document.createElement('span');
+                    b.className = 'tin-badge';
+                    b.innerText = p.text || '';
+                    return b;
+                } else if (tag === 'Button') {
+                    const btn = document.createElement('button');
+                    btn.className = p.variant === 'outline' ? 'tin-btn-outline' : 'tin-btn';
+                    btn.innerText = p.text || 'Action';
+                    btn.onclick = () => {
+                        triggerHapticFeedback();
+                    };
+                    return btn;
+                } else if (tag === 'Card') {
+                    el.className = 'tin-card';
+                } else if (tag === 'Row') {
+                    el.style.cssText = 'display: flex; flex-direction: row; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 8px;';
+                } else if (tag === 'Column') {
+                    el.style.cssText = 'display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; width: 100%;';
+                } else if (tag === 'VirtualStack' || tag === 'VirtualList') {
+                    const vBox = document.createElement('div');
+                    vBox.style.cssText = 'background: rgba(10, 12, 20, 0.8); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 10px; max-height: 180px; overflow-y: auto; padding: 8px; font-family: monospace; font-size: 0.78rem; color: #38bdf8;';
+                    const items = p.items || [];
+                    const count = items.length || 10;
+                    for (let i = 0; i < count; i++) {
+                        const row = document.createElement('div');
+                        row.innerText = items[i] || ('[120 FPS] Virtual Spatial Row #' + (i + 1) + ' — Frame Synced in 410 μs');
+                        row.style.cssText = 'padding: 4px 6px; border-bottom: 1px solid rgba(255,255,255,0.05);';
+                        vBox.appendChild(row);
+                    }
+                    return vBox;
+                }
+
+                if (node.children) {
+                    node.children.forEach(c => {
+                        const childEl = buildDom(c);
+                        if (childEl) el.appendChild(childEl);
+                    });
+                }
+                return el;
+            }
+
+            const dom = buildDom(ir.root);
+            if (dom) root.appendChild(dom);
+        }
+    </script>
+</body>
+</html>

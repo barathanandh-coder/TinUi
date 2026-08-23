@@ -33,13 +33,14 @@ func (g *IRGenerator) Generate(components []*Component) IRBlueprint {
 		g.components[comp.Name] = comp
 	}
 
+	// Declare state and mutations across all components
+	declaredStates := make(map[string]bool)
 	for _, comp := range components {
-		// Only traverse the main component as root
-		if comp.Name != "Main" && comp.Name != "App" {
-			continue
-		}
-
 		for _, state := range comp.States {
+			if declaredStates[state.Name] {
+				continue
+			}
+			declaredStates[state.Name] = true
 			var val any
 			var typ string
 			if v, err := strconv.Atoi(state.Initial); err == nil {
@@ -60,8 +61,22 @@ func (g *IRGenerator) Generate(components []*Component) IRBlueprint {
 		for k, v := range g.generateMutations(comp.Mutations) {
 			blueprint.Mutations[k] = v
 		}
+	}
 
-		for _, root := range comp.RootNodes {
+	// Traverse the main component as root (fallback to App or first component)
+	var rootComp *Component
+	for _, comp := range components {
+		if comp.Name == "Main" || comp.Name == "App" {
+			rootComp = comp
+			break
+		}
+	}
+	if rootComp == nil && len(components) > 0 {
+		rootComp = components[0]
+	}
+
+	if rootComp != nil {
+		for _, root := range rootComp.RootNodes {
 			g.traverse(root, 0, nil)
 		}
 	}
@@ -312,6 +327,20 @@ func (g *IRGenerator) traverse(astNode ASTNode, parentID int, props map[string]s
 			g.traverse(child, currentID, props)
 		}
 
+		// If this is a Route node with a scene or component attribute, inline that component's nodes as children
+		if n.Name == "Route" {
+			sceneName := n.Attributes["scene"]
+			if sceneName == "" {
+				sceneName = n.Attributes["component"]
+			}
+			sceneName = strings.Trim(sceneName, "\"'")
+			if sceneComp, exists := g.components[sceneName]; exists {
+				for _, sceneNode := range sceneComp.RootNodes {
+					g.traverse(sceneNode, currentID, props)
+				}
+			}
+		}
+
 	case *ConditionalNode:
 		currentID := g.nextID
 		g.nextID++
@@ -420,6 +449,9 @@ var TagMap = map[string]string{
 	"Modal":              "dialog",
 	"Tooltip":            "div",
 	"Progress":           "progress",
+	"Spacer":             "div",
+	"VirtualStack":       "div",
+	"VirtualList":        "div",
 }
 
 // ColorPalette defines the framework's internal global design variables
@@ -546,10 +578,19 @@ func CompileAttributes(componentName string, props map[string]string) map[string
 		styles = append(styles, "display: block; position: relative; overflow: hidden;")
 	case "CustomShader":
 		styles = append(styles, "display: block; width: 100%; height: 100%; pointer-events: none;")
+	case "VirtualStack", "VirtualList":
+		styles = append(styles, "display: block; position: relative; width: 100%; overflow-y: auto; box-sizing: border-box;")
+		attributes["data-virtual-stack"] = "true"
+		if ih, ok := props["itemHeight"]; ok {
+			attributes["data-item-height"] = ih
+		}
+		if tc, ok := props["totalCount"]; ok {
+			attributes["data-total-count"] = tc
+		}
 	case "Router":
-		styles = append(styles, "display: block; position: relative; width: 100%; height: 100%; overflow: hidden;")
+		styles = append(styles, "display: block; position: relative; width: 100%; min-height: calc(100vh - 80px);")
 	case "Route":
-		styles = append(styles, "display: block; position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh;")
+		styles = append(styles, "display: block; position: relative; width: 100%;")
 	case "Navbar":
 		styles = append(styles, "display: flex; position: sticky; top: 0; width: 100%; z-index: 100; box-sizing: border-box;")
 	case "Button":
@@ -649,7 +690,7 @@ func CompileAttributes(componentName string, props map[string]string) map[string
 				styles = append(styles, fmt.Sprintf("flex: %s;", val))
 			}
 		case "wrap":
-			if val == "true" {
+			if strings.ToLower(val) == "true" || val == "1" {
 				styles = append(styles, "flex-wrap: wrap;")
 			}
 		case "cols":
@@ -767,7 +808,7 @@ func CompileAttributes(componentName string, props map[string]string) map[string
 				styles = append(styles, "font-size: 0.75rem; margin: 0;")
 			}
 		case "blur":
-			if val == "true" {
+			if strings.ToLower(val) == "true" || val == "1" {
 				styles = append(styles, "backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);")
 			}
 		case "placeholder":

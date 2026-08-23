@@ -1,0 +1,18 @@
+component Dashboard():
+    Container(align="center", justify="center", width="full", padding=40):
+        GradientText(text="TinPyUI v1.6.0 Omni-Device Hub", size="hero")
+        Spacer(height=20)
+        Text(text="Universal Zero-DOM WebAssembly Engine & Native Desktop Surface", size="large", color="white", weight="bold")
+        Spacer(height=15)
+        Text(text="Multi-device reactive layout with 120 FPS Spring momentum physics and spatial VirtualStack.", color="muted")
+        Spacer(height=30)
+        Row(gap=20, align="center", justify="center"):
+            Button(text="📳 Haptic Pulse", variant="solid", glow="neon-cyan", radius="pill")
+            Button(text="⚡ Spring Physics", variant="outline", glow="neon-purple", radius="pill")
+            Button(text="🚀 Database Nodes", variant="outline", radius="pill")
+        Spacer(height=40)
+        Card(maxWidth=800, padding=20):
+            Heading(text="High-Volume Spatial VirtualStack (50,000 Items)", color="neon-cyan", size="h3")
+            Text(text="Sub-millisecond dynamic windowing over WebGPU / WebGL2 canvas.", color="muted")
+            Spacer(height=15)
+            VirtualStack(total_count=50000, item_height=40)

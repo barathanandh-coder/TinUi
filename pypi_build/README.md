@@ -1,8 +1,8 @@
 # TinPyUI (`tinpyui-ff`)
 
-> Official Python type stubs and CLI integration for **TinPyUI v1.5.2** — the Zero-DOM WebAssembly UI framework with Pythonic syntax.
+> Official Python type stubs and CLI integration for **TinPyUI v1.6.0** — the Zero-DOM WebAssembly UI framework with Pythonic syntax.
 
-[![pypi](https://img.shields.io/badge/pypi-tinpyui--ff-v1.5.2-blue)](https://pypi.org/project/tinpyui-ff/)
+[![pypi](https://img.shields.io/badge/pypi-tinpyui--ff-v1.6.0-blue)](https://pypi.org/project/tinpyui-ff/)
 [![license](https://img.shields.io/badge/license-MIT-green)](https://github.com/barathanandh-coder/tinui)
 
 ---

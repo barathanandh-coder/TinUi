@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: tinpyui-ff
-Version: 1.5.2
+Version: 1.6.0
 Summary: The official Python type stubs and CLI integration for the TinUI framework.
 Home-page: https://github.com/barathanandh-coder/tinui
 Author: Barathanandh
@@ -19,9 +19,9 @@ Dynamic: summary
 
 # TinPyUI (`tinpyui-ff`)
 
-> Official Python type stubs and CLI integration for **TinPyUI v1.5.2** — the Zero-DOM WebAssembly UI framework with Pythonic syntax.
+> Official Python type stubs and CLI integration for **TinPyUI v1.6.0** — the Zero-DOM WebAssembly UI framework with Pythonic syntax.
 
-[![pypi](https://img.shields.io/badge/pypi-tinpyui--ff-v1.5.2-blue)](https://pypi.org/project/tinpyui-ff/)
+[![pypi](https://img.shields.io/badge/pypi-tinpyui--ff-v1.6.0-blue)](https://pypi.org/project/tinpyui-ff/)
 [![license](https://img.shields.io/badge/license-MIT-green)](https://github.com/barathanandh-coder/tinui)
 
 ---

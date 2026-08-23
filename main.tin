@@ -1,0 +1,11 @@
+component Main():
+    AnimatedBackground(effect="cyber-wave", primaryColor="neon-purple", secondaryColor="neon-cyan"):
+        Navbar(padding=20, blur=True):
+            Row(align="center", justify="space-between", width="full"):
+                Row(align="center", gap=10):
+                    Text(text="TinPyUI Engine", color="neon-cyan", weight="bold")
+                Row(gap=30, color="white"):
+                    NavLink(text="Live Matrix", href="/")
+                    NavLink(text="Docs", href="/docs")
+        Router(transition="cinematic", duration="smooth"):
+            Route(path="/", scene="Dashboard", default_route="true")

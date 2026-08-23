@@ -2,6 +2,8 @@ README.md
 setup.py
 tinpyui/__init__.py
 tinpyui/__init__.pyi
+tinpyui/__main__.py
+tinpyui/app_icon.png
 tinpyui/py.typed
 tinpyui_ff.egg-info/PKG-INFO
 tinpyui_ff.egg-info/SOURCES.txt

@@ -1,3 +1,5 @@
+//go:build js && wasm
+
 package main
 
 import (
@@ -7,9 +9,11 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall/js"
 	"time"
+	"unsafe"
 )
 
 type Instruction struct {
@@ -233,6 +237,7 @@ const engineCSS = `
 `
 
 func main() {
+	InitInputBuffer()
 	js.Global().Set("BootTinUI", js.FuncOf(bootEngine))
 
 	// Error Boundary
@@ -511,17 +516,34 @@ func bootEngine(this js.Value, args []js.Value) interface{} {
 	// Setup Routing
 	var activeRoutePath string
 	activeRoutePath = window.Get("location").Get("pathname").String()
+	if activeRoutePath == "" || activeRoutePath == "/index.html" {
+		activeRoutePath = "/"
+	}
 
+	hasMatchingRoute := false
 	document.Call("querySelectorAll", "[data-route-path]").Call("forEach", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		route := args[0]
 		path := route.Call("getAttribute", "data-route-path").String()
-		if path != activeRoutePath && (path != "/" || activeRoutePath != "") {
-			route.Get("style").Set("display", "none")
+		if path == activeRoutePath {
+			hasMatchingRoute = true
+			route.Get("style").Set("display", "block")
 		} else {
-			activeRoutePath = path
+			route.Get("style").Set("display", "none")
 		}
 		return nil
 	}))
+
+	// If current URL didn't match any route, fallback to default route or first route
+	if !hasMatchingRoute {
+		firstRoute := document.Call("querySelector", "[data-default-route='true']")
+		if firstRoute.IsNull() || firstRoute.IsUndefined() {
+			firstRoute = document.Call("querySelector", "[data-route-path]")
+		}
+		if !firstRoute.IsNull() && !firstRoute.IsUndefined() {
+			firstRoute.Get("style").Set("display", "block")
+			activeRoutePath = firstRoute.Call("getAttribute", "data-route-path").String()
+		}
+	}
 
 	navigate := func(newPath string) {
 		if newPath == activeRoutePath {
@@ -1092,5 +1114,207 @@ func cleanupDOMNode(node js.Value) {
 	children := node.Get("children")
 	for i := 0; i < children.Length(); i++ {
 		cleanupDOMNode(children.Index(i))
+	}
+}
+
+
+// ============================================================================
+// CONSOLIDATED WASM ENGINE HELPERS (State, Input Buffer, Canvas, WebGL, Layout)
+// ============================================================================
+
+const EventCapacity = 256
+const SlotsPerEvent = 4
+
+type RingBuffer struct {
+	Head     int32
+	Tail     int32
+	Payloads [EventCapacity * SlotsPerEvent]int32
+}
+
+var SharedInputBuffer RingBuffer
+
+func InitInputBuffer() {
+	ptr := uintptr(unsafe.Pointer(&SharedInputBuffer))
+	js.Global().Set("getTinPyBufferPointer", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		return int(ptr)
+	}))
+}
+
+type StateEntry struct {
+	Type     string
+	IntVal   int
+	StrVal   string
+	ArrayVal []string
+}
+
+var (
+	StateRegistry = make(map[string]*StateEntry)
+	StateMutex    sync.RWMutex
+	StateIndexMap = make(map[string]int)
+	nextStateBit  = 0
+	dirtyBitmap uint64 = 0
+	Bindings = make(map[int]TextBinding)
+)
+
+type TextBinding struct {
+	Template  string
+	StateKeys []string
+	Scope     map[string]interface{}
+}
+
+func RegisterState(key, typeHint, initial string) {
+	entry := &StateEntry{Type: typeHint}
+	if typeHint == "infer" {
+		if val, err := strconv.Atoi(initial); err == nil {
+			entry.Type = "int"
+			entry.IntVal = val
+		} else {
+			entry.Type = "string"
+			entry.StrVal = initial
+		}
+	}
+	if strings.HasPrefix(initial, "[") && strings.HasSuffix(initial, "]") {
+		var arr []string
+		if err := json.Unmarshal([]byte(initial), &arr); err == nil {
+			entry.Type = "array"
+			entry.ArrayVal = arr
+		}
+	}
+	StateRegistry[key] = entry
+	StateIndexMap[key] = nextStateBit
+	nextStateBit++
+}
+
+func markDirty(key string) {
+	if bit, exists := StateIndexMap[key]; exists {
+		dirtyBitmap |= (1 << bit)
+	}
+}
+
+func isDirty(key string) bool {
+	if bit, exists := StateIndexMap[key]; exists {
+		return dirtyBitmap&(1<<bit) != 0
+	}
+	return false
+}
+
+func clearAllDirtyBits() {
+	dirtyBitmap = 0
+}
+
+func FormatTemplate(template string, keys []string, scope map[string]interface{}) string {
+	result := template
+	for _, key := range keys {
+		var valStr string
+		if scope != nil {
+			if val, exists := scope[key]; exists {
+				valStr = val.(string)
+			}
+		}
+		if valStr == "" {
+			entry := StateRegistry[key]
+			if entry != nil {
+				if entry.Type == "int" {
+					valStr = strconv.Itoa(entry.IntVal)
+				} else {
+					valStr = entry.StrVal
+				}
+			}
+		}
+		result = strings.Replace(result, "{}", valStr, 1)
+	}
+	return result
+}
+
+func evalCondition(stateKey, operator, compareValStr string) bool {
+	entry := StateRegistry[stateKey]
+	if entry == nil { return false }
+	if entry.Type == "int" {
+		compareVal, _ := strconv.Atoi(compareValStr)
+		switch operator {
+		case ">": return entry.IntVal > compareVal
+		case "<": return entry.IntVal < compareVal
+		case "==": return entry.IntVal == compareVal
+		}
+	} else if entry.Type == "string" {
+		switch operator {
+		case "==": return entry.StrVal == compareValStr
+		case "!=": return entry.StrVal != compareValStr
+		}
+	}
+	return false
+}
+
+type ConditionalBinding struct {
+	StateKey    string
+	Operator    string
+	CompareVal  string
+	TrueBranch  []Instruction
+	FalseBranch []Instruction
+	CurrentBool bool
+}
+
+var ConditionalBindings = make(map[int]*ConditionalBinding)
+
+type ListBinding struct {
+	IterableKey  string
+	IteratorName string
+	LoopTemplate []Instruction
+}
+
+var ListBindings = make(map[int]*ListBinding)
+
+
+
+type Rect struct {
+	X, Y, W, H float32
+}
+
+func (a Rect) Intersects(b Rect) bool {
+	return a.X < b.X+b.W && a.X+a.W > b.X && a.Y < b.Y+b.H && a.Y+a.H > b.Y
+}
+
+
+func initNativeCanvas(container js.Value, backgroundType string) {
+	document := js.Global().Get("document")
+	canvas := document.Call("createElement", "canvas")
+	canvas.Get("style").Set("position", "absolute")
+	canvas.Get("style").Set("top", "0")
+	canvas.Get("style").Set("left", "0")
+	canvas.Get("style").Set("width", "100%")
+	canvas.Get("style").Set("height", "100%")
+	canvas.Get("style").Set("z-index", "0")
+	canvas.Get("style").Set("pointer-events", "none")
+
+	container.Call("insertBefore", canvas, container.Get("firstChild"))
+	window := js.Global().Get("window")
+
+	resize := func() {
+		rect := container.Call("getBoundingClientRect")
+		width := rect.Get("width").Float()
+		height := rect.Get("height").Float()
+		if width == 0 { width = window.Get("innerWidth").Float() }
+		if height == 0 { height = 400 }
+		canvas.Set("width", width)
+		canvas.Set("height", height)
+	}
+	resize()
+}
+
+const defaultVertexShader = `
+attribute vec2 position;
+void main() {
+    gl_Position = vec4(position, 0.0, 1.0);
+}
+`
+
+func initWebGLShader(canvas js.Value, fragmentCode string) {
+	gl := canvas.Call("getContext", "webgl")
+	if gl.IsNull() || gl.IsUndefined() {
+		gl = canvas.Call("getContext", "experimental-webgl")
+		if gl.IsNull() || gl.IsUndefined() {
+			fmt.Println("WebGL not supported in this browser.")
+			return
+		}
 	}
 }

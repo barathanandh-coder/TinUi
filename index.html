@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TinPyUI Application</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-container": "#503d00", "surface-variant": "#36343a", "secondary-fixed-dim": "#cdc0e9",
+                    "on-error-container": "#ffdad6", "tertiary-container": "#c9a74d", "surface-tint": "#cfbcff",
+                    "primary": "#cfbcff", "outline-variant": "#494551", "secondary": "#cdc0e9", "on-surface": "#e6e0e9",
+                    "on-background": "#e6e0e9", "surface": "#141218", "on-secondary-fixed": "#1f1635", "background": "transparent",
+                    "on-tertiary-fixed": "#241a00", "on-tertiary": "#3e2e00", "on-primary-fixed-variant": "#4f378a",
+                    "surface-container-high": "#2b292f", "primary-container": "#6750a4", "inverse-surface": "#e6e0e9",
+                    "on-secondary-fixed-variant": "#4b4263", "surface-container-low": "#1d1b20", "on-error": "#690005",
+                    "tertiary-fixed-dim": "#e7c365", "outline": "#948e9c", "surface-dim": "#141218", "secondary-container": "#4d4465",
+                    "primary-fixed": "#e9ddff", "error": "#ffb4ab", "inverse-primary": "#6750a4", "on-primary-container": "#e0d2ff",
+                    "on-primary-fixed": "#22005d", "inverse-on-surface": "#322f35", "tertiary-fixed": "#ffdf93",
+                    "surface-container": "#211f24", "on-surface-variant": "#cbc4d2", "primary-fixed-dim": "#cfbcff",
+                    "on-primary": "#381e72", "surface-container-lowest": "#0f0d13", "on-tertiary-fixed-variant": "#594400",
+                    "error-container": "#93000a", "surface-bright": "#3b383e", "secondary-fixed": "#e9ddff",
+                    "surface-container-highest": "#36343a", "on-secondary-container": "#bfb2da", "on-secondary": "#342b4b",
+                    "tertiary": "#e7c365"
+            },
+            "spacing": { "margin-desktop": "2.5rem", "margin-mobile": "1rem", "max-width": "1440px" },
+            "fontFamily": { "label-mono": ["JetBrains Mono"], "display-lg-mobile": ["Sora"], "display-lg": ["Sora"], "headline-md": ["Sora"], "body-lg": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"] }
+          }
+        }
+      }
+    </script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; background: #030712; color: white; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; scroll-behavior: smooth; }
+        #tinui-root { position: relative; min-height: 100vh; }
+        .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; }
+        .cursor-trail { position: fixed; width: 20px; height: 20px; border-radius: 50%; pointer-events: none; z-index: 9999; background: radial-gradient(circle, rgba(207,188,255,0.8) 0%, transparent 70%); transition: transform 0.1s ease-out; }
+        .glass-card { background: rgba(20, 18, 24, 0.2); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .neon-border-cyan { box-shadow: 0 0 15px rgba(0, 255, 255, 0.2); border-color: rgba(0, 255, 255, 0.3); }
+        .neon-border-primary { box-shadow: 0 0 15px rgba(207,188,255,0.2); border-color: rgba(207,188,255,0.3); }
+        .reveal-section { transition: all 1s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; transform: perspective(1000px) translateZ(-100px); filter: blur(10px); }
+        .reveal-section.active { opacity: 1; transform: perspective(1000px) translateZ(0); filter: blur(0); }
+        .glitch-hover:hover { animation: glitch 0.3s cubic-bezier(.25,.46,.45,.94) both infinite; }
+        @keyframes glitch { 0% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(-2px, -2px); } 60% { transform: translate(2px, 2px); } 80% { transform: translate(2px, -2px); } 100% { transform: translate(0); } }
+        .pulse-glitch { animation: pulse-glitch 2s infinite; }
+        @keyframes pulse-glitch { 0%, 100% { opacity: 1; filter: hue-rotate(0deg); } 50% { opacity: 0.8; filter: hue-rotate(90deg) brightness(1.2); } }
+    </style>
+    <style>
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #030712 !important; color: white !important; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; scroll-behavior: smooth; }
+    #tinui-root { position: relative; min-height: 100vh; }
+    .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; }
+    .cursor-trail { position: fixed; width: 20px; height: 20px; border-radius: 50%; pointer-events: none; z-index: 9999; background: radial-gradient(circle, rgba(207,188,255,0.8) 0%, transparent 70%); transition: transform 0.1s ease-out; }
+    .glass-card { background: rgba(20, 18, 24, 0.2); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
+    .neon-border-cyan { box-shadow: 0 0 15px rgba(0, 255, 255, 0.2); border-color: rgba(0, 255, 255, 0.3); }
+    .neon-border-primary { box-shadow: 0 0 15px rgba(207,188,255,0.2); border-color: rgba(207,188,255,0.3); }
+    .reveal-section { transition: all 1s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; transform: perspective(1000px) translateZ(-100px); filter: blur(10px); }
+    .reveal-section.active { opacity: 1; transform: perspective(1000px) translateZ(0); filter: blur(0); }
+    .glitch-hover:hover { animation: glitch 0.3s cubic-bezier(.25,.46,.45,.94) both infinite; }
+    @keyframes glitch { 0% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(-2px, -2px); } 60% { transform: translate(2px, 2px); } 80% { transform: translate(2px, -2px); } 100% { transform: translate(0); } }
+    .pulse-glitch { animation: pulse-glitch 2s infinite; }
+    @keyframes pulse-glitch { 0%, 100% { opacity: 1; filter: hue-rotate(0deg); } 50% { opacity: 0.8; filter: hue-rotate(90deg) brightness(1.2); } }
+
+    </style>
+    <script src="wasm_exec.js"></script>
+    <script src="tin-runtime.js"></script>
+</head>
+<body>
+    <div id="tinui-root">
+        <div id="tin-node-1" data-bg-fixed="true" data-hero-background="quantum-vortex" data-shader-effect="quantum-vortex" data-shader-primary="neon-purple" data-shader-secondary="neon-cyan" primaryColor="neon-purple" secondaryColor="neon-cyan" style="position: relative; width: 100%; min-height: 100vh; box-sizing: border-box; z-index: 0; background: radial-gradient(circle at top right, #9b51e022, #0a0b10);">
+            <nav id="tin-node-2" style="display: flex; position: sticky; top: 0; width: 100%; z-index: 100; box-sizing: border-box; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 20px;">
+                <div id="tin-node-3" style="display: flex; flex-direction: row; box-sizing: border-box; align-items: center; justify-content: space-between; width: 100%;">
+                    <div id="tin-node-4" style="display: flex; flex-direction: row; box-sizing: border-box; align-items: center; gap: 10px;">
+                        <p id="tin-node-5" style="color: #00f2fe; font-weight: bold;">
+                            TinPyUI v1.6.0
+                        </p>
+                    </div>
+                    <div id="tin-node-6" style="display: flex; flex-direction: row; box-sizing: border-box; color: #ffffff; gap: 30px;">
+                        <a id="tin-node-7">
+                            Documentation
+                        </a>
+                        <a id="tin-node-8">
+                            GitHub
+                        </a>
+                    </div>
+                </div>
+            </nav>
+            <section id="tin-node-9" style="display: flex; flex-direction: column; box-sizing: border-box; align-items: center; justify-content: center; max-width: 800px; width: 100%; margin-left: auto; margin-right: auto; padding-top: 80px; padding-bottom: 80px;">
+                <span id="tin-node-10" gradient="[&quot;neon-cyan&quot;,&quot;neon-purple&quot;]" style="font-size: 3.5rem; font-weight: 800; margin: 0; background: linear-gradient(135deg, #00f2fe, #9b51e0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; display: inline-block;">
+                    TinPyUI Framework v1.6.0
+                </span>
+                <p id="tin-node-11" style="color: #ffffff; margin-top: 20px; font-size: 1.25rem; margin: 0; font-weight: bold;">
+                    Hybrid DOM + WebGL Hardware-Accelerated UI Engine with Pythonic Syntax
+                </p>
+                <div id="tin-node-12" style="display: flex; flex-direction: row; box-sizing: border-box; align-items: center; gap: 20px; justify-content: center; margin-top: 40px;">
+                    <button id="tin-node-13" variant="solid" glow="neon-cyan" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; border: none; transition: all 0.2s ease; border-radius: 9999px;">
+                        Get Started
+                    </button>
+                    <button id="tin-node-14" variant="outline" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; border: none; transition: all 0.2s ease; border-radius: 9999px;">
+                        Documentation
+                    </button>
+                </div>
+            </section>
+        </div>
+        <script id="tin-node-16" id="tailwind-config">
+            
+	window.tailwind = window.tailwind || {};
+	window.tailwind.config = {
+		darkMode: "class",
+		theme: {
+		  extend: {
+			"colors": {
+					"on-tertiary-container": "#503d00", "surface-variant": "#36343a", "secondary-fixed-dim": "#cdc0e9",
+					"on-error-container": "#ffdad6", "tertiary-container": "#c9a74d", "surface-tint": "#cfbcff",
+					"primary": "#cfbcff", "outline-variant": "#494551", "secondary": "#cdc0e9", "on-surface": "#e6e0e9",
+					"on-background": "#e6e0e9", "surface": "#141218", "on-secondary-fixed": "#1f1635", "background": "transparent",
+					"on-tertiary-fixed": "#241a00", "on-tertiary": "#3e2e00", "on-primary-fixed-variant": "#4f378a",
+					"surface-container-high": "#2b292f", "primary-container": "#6750a4", "inverse-surface": "#e6e0e9",
+					"on-secondary-fixed-variant": "#4b4263", "surface-container-low": "#1d1b20", "on-error": "#690005",
+					"tertiary-fixed-dim": "#e7c365", "outline": "#948e9c", "surface-dim": "#141218", "secondary-container": "#4d4465",
+					"primary-fixed": "#e9ddff", "error": "#ffb4ab", "inverse-primary": "#6750a4", "on-primary-container": "#e0d2ff",
+					"on-primary-fixed": "#22005d", "inverse-on-surface": "#322f35", "tertiary-fixed": "#ffdf93",
+					"surface-container": "#211f24", "on-surface-variant": "#cbc4d2", "primary-fixed-dim": "#cfbcff",
+					"on-primary": "#381e72", "surface-container-lowest": "#0f0d13", "on-tertiary-fixed-variant": "#594400",
+					"error-container": "#93000a", "surface-bright": "#3b383e", "secondary-fixed": "#e9ddff",
+					"surface-container-highest": "#36343a", "on-secondary-container": "#bfb2da", "on-secondary": "#342b4b",
+					"tertiary": "#e7c365"
+			},
+			"spacing": { "margin-desktop": "2.5rem", "margin-mobile": "1rem", "max-width": "1440px" },
+			"fontFamily": { "label-mono": ["JetBrains Mono"], "display-lg-mobile": ["Sora"], "display-lg": ["Sora"], "headline-md": ["Sora"], "body-lg": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"] }
+		  }
+		}
+	}
+	
+        </script>
+        <script id="tin-node-17" src="https://cdn.tailwindcss.com?plugins=forms,container-queries">
+        </script>
+        <link id="tin-node-18" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+        </link>
+        <link id="tin-node-19" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+        </link>
+    </div>
+</body>
+</html>

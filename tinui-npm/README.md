@@ -2,7 +2,7 @@
 
 > The WebAssembly UI framework that compiles **Pythonic, indentation-based syntax** into blazing-fast native DOM.
 
-[![npm](https://img.shields.io/badge/npm-tinpyui-v1.5.2-cyan)](https://www.npmjs.com/package/tinpyui)
+[![npm](https://img.shields.io/badge/npm-tinpyui-v1.6.0-cyan)](https://www.npmjs.com/package/tinpyui)
 [![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/barathanandh-coder/tinui/blob/main/LICENSE)
 
 ---

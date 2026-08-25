@@ -279,12 +279,79 @@ Via Python PyPI:
 pip install tinpyui-ff
 ```
 
-### 8.2 Common CLI Commands
-- `tinpy create <project_name>`: Scaffold a complete starter project with `main.tin`, `scenes/dashboard.tin`, and shaders.
-- `tinpy dev`: Start the live development server with Hot GLSL Reloading (HGR) and file watching on `http://localhost:8080`.
-- `tinpy compile <file.tin>`: Compile `.tin` source code to `public/app.ir.json`.
-- `tinpy compile <file.tin> --hydrate`: Compile IR and generate static SEO `index.html` hydration shell.
-- `tinpy desktop <file.tin>`: Launch the native desktop window.
+### 8.2 Cross-Platform Compilation Guide (OS-by-OS)
+
+#### 🪟 Windows (10 & 11)
+```powershell
+# Option A: Standalone Compiler Binary
+.\tinui.exe compile src/index.tin
+.\tinui.exe compile src/index.tin --hydrate   # With SEO HTML hydration
+
+# Option B: Run from Go source
+go run main.go compile src/index.tin
+go run main.go compile src/index.tin --hydrate
+
+# Option C: Global NPM CLI
+tinpyui compile src/index.tin
+tinpyui compile src/index.tin --hydrate
+
+# Dev Server (Hot GLSL Reloading on http://localhost:8080)
+.\tinui.exe dev src/index.tin
+```
+
+#### 🍎 macOS (Apple Silicon M1/M2/M3/M4 & Intel)
+```bash
+# Option A: Standalone Compiler Binary
+chmod +x ./tinui
+./tinui compile src/index.tin
+./tinui compile src/index.tin --hydrate
+
+# Option B: Run from Go source
+go run main.go compile src/index.tin
+go run main.go compile src/index.tin --hydrate
+
+# Option C: Global NPM CLI
+tinpyui compile src/index.tin
+tinpyui compile src/index.tin --hydrate
+
+# Dev Server (Hot GLSL Reloading on http://localhost:8080)
+./tinui dev src/index.tin
+```
+
+#### 🐧 Linux (Ubuntu, Debian, Fedora, Arch, Alpine)
+```bash
+# Option A: Standalone Compiler Binary
+chmod +x ./tinui
+./tinui compile src/index.tin
+./tinui compile src/index.tin --hydrate
+
+# Option B: Run from Go source
+go run main.go compile src/index.tin
+go run main.go compile src/index.tin --hydrate
+
+# Option C: Global NPM CLI
+tinpyui compile src/index.tin
+tinpyui compile src/index.tin --hydrate
+
+# Dev Server (Hot GLSL Reloading on http://localhost:8080)
+./tinui dev src/index.tin
+```
+
+#### 🌐 WebAssembly Engine Compilation (`tinui_engine.wasm`)
+```bash
+# Windows (PowerShell)
+$env:GOOS="js"; $env:GOARCH="wasm"; go build -ldflags="-s -w" -o tinui_engine.wasm ./wasm_engine
+
+# macOS / Linux (Bash / Zsh)
+GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o tinui_engine.wasm ./wasm_engine
+```
+
+### 8.3 Common CLI Commands
+- `tinpy create <project_name>` / `tinpyui init`: Scaffold a complete starter project with `main.tin`, `scenes/dashboard.tin`, and shaders.
+- `tinpy dev <file.tin>` / `tinui dev <file.tin>`: Start the live development server with Hot GLSL Reloading (HGR) on `http://localhost:8080`.
+- `tinpy compile <file.tin>` / `tinui compile <file.tin>`: Compile `.tin` source code to `public/app.ir.json`.
+- `tinpy compile <file.tin> --hydrate` / `tinui compile <file.tin> --hydrate`: Compile IR and generate static SEO `index.html` hydration shell.
+- `tinpy desktop <file.tin>` / `tinui desktop <file.tin>`: Launch the native desktop window.
 
 ---
 

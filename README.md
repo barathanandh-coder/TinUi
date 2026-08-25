@@ -37,10 +37,11 @@
 14. [🌉 Native OS Platform Channels (`PlatformBridge`)](#-native-os-platform-channels-platformbridge)
 15. [🔒 Enterprise Security & Hardware Telemetry Suite](#-enterprise-security--hardware-telemetry-suite)
 16. [🧠 Intermediate Representation (IR) Compiler & Dynamic Export (`app.export_ir`)](#-intermediate-representation-ir-compiler--dynamic-export-appexport_ir)
-17. [🛠️ CLI Workflows & Dev Server (Hot GLSL Reloading)](#-cli-workflows--dev-server-hot-glsl-reloading)
-18. [🚀 Production Deployment & Backend Integration](#-production-deployment--backend-integration)
-19. [🌟 Full-Stack Production Master Blueprint](#-full-stack-production-master-blueprint)
-20. [📄 License](#-license)
+17. [🖥️ How to Compile `.tin` Code on Every OS (Windows, macOS, Linux)](#-how-to-compile-tin-code-on-every-os-windows-macos-linux)
+18. [🛠️ CLI Workflows & Dev Server (Hot GLSL Reloading)](#-cli-workflows--dev-server-hot-glsl-reloading)
+19. [🚀 Production Deployment & Backend Integration](#-production-deployment--backend-integration)
+20. [🌟 Full-Stack Production Master Blueprint](#-full-stack-production-master-blueprint)
+21. [📄 License](#-license)
 
 ---
 
@@ -544,6 +545,182 @@ app.export_ir("public/app.ir.json")
         ]
       }
     ]
+  }
+}
+```
+
+## 🖥️ How to Compile `.tin` Code on Every OS (Windows, macOS, Linux)
+
+TinPyUI source files (`.tin`) compile into a deterministic Intermediate Representation (`.ir.json`) and optional pre-rendered static HTML hydration shells (`.html`).
+
+```
++-----------------------------------------------------------------------------------+
+|                        CROSS-PLATFORM COMPILATION PIPELINE                        |
++-----------------------------------------------------------------------------------+
+|  [ index.tin Source ]                                                             |
+|           │                                                                       |
+|           ▼                                                                       |
+|  [ TinPyUI Go / NPM Compiler ] ──(Windows / macOS / Linux)                        |
+|           │                                                                       |
+|           ├──▶ [ index.ir.json / app.ir.json ]  ──▶ Consumed by tinui_engine.wasm |
+|           └──▶ [ index.html ] (with --hydrate) ──▶ SEO Static Pre-Rendered DOM    |
++-----------------------------------------------------------------------------------+
+```
+
+---
+
+### 🪟 1. Compiling on Windows (10 & 11)
+
+Open **PowerShell**, **Command Prompt (CMD)**, or **Windows Terminal**:
+
+#### Option A: Using the Compiled Binary (`tinui.exe`)
+```powershell
+# Standard compilation -> outputs index.ir.json
+.\tinui.exe compile index.tin
+
+# Compilation with static SEO HTML hydration -> outputs index.ir.json & index.html
+.\tinui.exe compile index.tin --hydrate
+
+# Live Dev Server with Hot Reload on http://localhost:8080
+.\tinui.exe dev index.tin
+```
+
+#### Option B: Using Go Directly from Source
+```powershell
+go run main.go compile index.tin
+go run main.go compile index.tin --hydrate
+go run main.go dev index.tin
+```
+
+#### Option C: Using the Global NPM CLI
+```powershell
+npm install -g tinpyui
+tinpyui compile index.tin
+tinpyui compile index.tin --hydrate
+```
+
+#### Building the Windows Compiler Binary from Source:
+```powershell
+go build -o tinui.exe .
+```
+
+---
+
+### 🍎 2. Compiling on macOS (Apple Silicon M1/M2/M3/M4 & Intel)
+
+Open **Terminal** (Zsh or Bash):
+
+#### Option A: Using the Standalone Binary (`tinui`)
+```bash
+# Ensure execution permissions
+chmod +x ./tinui
+
+# Standard compilation -> outputs index.ir.json
+./tinui compile index.tin
+
+# Compilation with static SEO HTML hydration -> outputs index.ir.json & index.html
+./tinui compile index.tin --hydrate
+
+# Live Dev Server with Hot Reload on http://localhost:8080
+./tinui dev index.tin
+```
+
+#### Option B: Using Go Directly from Source
+```bash
+go run main.go compile index.tin
+go run main.go compile index.tin --hydrate
+go run main.go dev index.tin
+```
+
+#### Option C: Using the Global NPM CLI
+```bash
+npm install -g tinpyui
+tinpyui compile index.tin
+tinpyui compile index.tin --hydrate
+```
+
+#### Building the macOS Compiler Binary from Source:
+```bash
+go build -o tinui .
+chmod +x tinui
+```
+
+---
+
+### 🐧 3. Compiling on Linux (Ubuntu, Debian, Fedora, Arch, Alpine)
+
+Open your preferred Linux **terminal**:
+
+#### Option A: Using the Standalone Binary (`tinui`)
+```bash
+# Ensure execution permissions
+chmod +x ./tinui
+
+# Standard compilation -> outputs index.ir.json
+./tinui compile index.tin
+
+# Compilation with static SEO HTML hydration -> outputs index.ir.json & index.html
+./tinui compile index.tin --hydrate
+
+# Live Dev Server with Hot Reload on http://localhost:8080
+./tinui dev index.tin
+```
+
+#### Option B: Using Go Directly from Source
+```bash
+go run main.go compile index.tin
+go run main.go compile index.tin --hydrate
+go run main.go dev index.tin
+```
+
+#### Option C: Using the Global NPM CLI
+```bash
+npm install -g tinpyui
+tinpyui compile index.tin
+tinpyui compile index.tin --hydrate
+```
+
+#### Building the Linux Compiler Binary from Source:
+```bash
+go build -o tinui .
+chmod +x tinui
+```
+
+---
+
+### 🌐 4. Compiling the WebAssembly Engine (`tinui_engine.wasm`) on Any OS
+
+To rebuild the core WebAssembly runtime from Go source:
+
+#### On Windows (PowerShell):
+```powershell
+$env:GOOS="js"; $env:GOARCH="wasm"; go build -ldflags="-s -w" -o tinui_engine.wasm ./wasm_engine
+```
+
+#### On macOS & Linux (Bash / Zsh):
+```bash
+GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o tinui_engine.wasm ./wasm_engine
+```
+
+---
+
+### ⚙️ 5. Compiler Flags & Configuration Reference
+
+| Flag / Setting | Command Syntax | Description |
+| :--- | :--- | :--- |
+| **Standard Compile** | `tinui compile <file.tin>` | Parses `.tin` and emits deterministic `.ir.json` AST. |
+| **Static Hydration** | `tinui compile <file.tin> --hydrate` | Generates `.ir.json` plus pre-rendered static `index.html` SEO shell. |
+| **Live Dev Server** | `tinui dev <file.tin>` | Starts hot-reloading dev server on `http://localhost:8080`. |
+| **Native Desktop** | `tinui desktop <file.tin>` | Compiles and opens native desktop UI window. |
+| **Project Init** | `tinui init` | Scaffolds standard workspace with `index.tin`, config, and Wasm files. |
+
+#### Customizing Output Paths via `tinpyui.config.json`:
+```json
+{
+  "compilerSettings": {
+    "output": "public/app.ir.json",
+    "enableHydration": true,
+    "minify": true
   }
 }
 ```

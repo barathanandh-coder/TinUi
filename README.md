@@ -1,280 +1,665 @@
-# TinPyUI Framework v1.6.0
+# ⚡ TinPyUI Framework v1.6.0
+### *Hardware-Accelerated Omni-Platform UI Engine & Vector Graphics Pipeline*
 
-[![npm](https://img.shields.io/badge/npm-tinpyui-v1.6.0-cyan)](https://www.npmjs.com/package/tinpyui)
-[![pypi](https://img.shields.io/badge/pypi-tinpyui--ff-v1.6.0-blue)](https://pypi.org/project/tinpyui-ff/)
-[![license](https://img.shields.io/badge/license-MIT-green)](#license)
-[![engine](https://img.shields.io/badge/engine-Hybrid--DOM--WebGL--GPU-purple)](#architecture)
-[![docs](https://img.shields.io/badge/manual-tinpyui--docs.md-orange)](tinpyui-docs.md)
+[![npm](https://img.shields.io/badge/npm-tinpyui-v1.6.0-00f2fe?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/tinpyui)
+[![pypi](https://img.shields.io/badge/pypi-tinpyui--ff-v1.6.0-9b51e0?style=for-the-badge&logo=pypi)](https://pypi.org/project/tinpyui-ff/)
+[![license](https://img.shields.io/badge/license-MIT-00ff66?style=for-the-badge)](#-license)
+[![engine](https://img.shields.io/badge/engine-Hybrid--DOM--WebGL--WebGPU-ff007f?style=for-the-badge)](#-architectural-reality)
+[![platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux%20%7C%20Web%20%7C%20Mobile-blueviolet?style=for-the-badge)](#-universal-cross-platform-native-runtime)
 
-TinPyUI is a memory-safe, zero-dependency, hardware-accelerated UI application engine. It combines a **Native C-FFI Vector Surface Engine** for Desktop (Windows, macOS, Linux) with a **Hybrid DOM UI Layout + WebGL GPU Shader Layer** compiled via Go to WebAssembly (`tinui_engine.wasm`).
+**TinPyUI** is an ultra-high-performance, memory-safe, zero-dependency, hardware-accelerated UI application framework. It unites a **Native C-FFI Sub-Millisecond Vector Surface Engine** for Desktop (**Windows DirectX 12, macOS Apple Metal, Linux GTK4/Wayland**) and Mobile (**Android Touch Haptics, iOS Retina**) with a **Hybrid Semantic DOM + WebGL 2.0 / WebGPU Shader Layer** compiled via Go to WebAssembly (`tinui_engine.wasm`).
 
-> 📖 **Complete Technical Handbook**: For the comprehensive, book-like architecture and reference guide, read [tinpyui-docs.md](tinpyui-docs.md).
+> 📖 **Comprehensive Technical Manual**: For deep internal architecture, compiler AST specs, and memory diagrams, consult [tinpyui-docs.md](tinpyui-docs.md) and [DATABASE_AND_CONNECTIONS_GUIDE.md](DATABASE_AND_CONNECTIONS_GUIDE.md).
 
 ---
 
-## 🏛️ The Architectural Reality: How TinPyUI Differs
+## 📑 Table of Contents
 
-TinPyUI is **not** a raw canvas blitter (which breaks browser accessibility, copy-paste, and SEO). Instead, it uses **Direct IR DOM Generation** for layout and typography coupled with **Hardware-Accelerated WebGL Canvases** for background shaders and particles:
+1. [✨ Key Highlights](#-key-highlights)
+2. [🏛️ Architectural Reality](#-architectural-reality)
+3. [📊 Deep Architectural Comparison](#-deep-architectural-comparison)
+4. [📦 Installation](#-installation)
+5. [💻 Universal Cross-Platform Native Runtime](#-universal-cross-platform-native-runtime)
+6. [⚡ Pure Python Declarative UI Framework (`tinpyui`)](#-pure-python-declarative-ui-framework-tinpyui)
+7. [📖 Declarative `.tin` Indentation-Based Syntax](#-declarative-tin-indentation-based-syntax)
+8. [🧱 Complete Component API Catalog](#-complete-component-api-catalog)
+9. [⚡ Reactive State Signals & Symplectic Spring Physics (120 FPS)](#-reactive-state-signals--symplectic-spring-physics-120-fps)
+10. [📜 High-Volume Spatial Virtualization (`VirtualStack` & `VirtualList`)](#-high-volume-spatial-virtualization-virtualstack--virtuallist)
+11. [🗄️ Universal Reactive Database Suite (`tin.connect`)](#-universal-reactive-database-suite-tinconnect)
+    - [PostgreSQL Relational SQL](#1-postgresql-relational-sql)
+    - [MongoDB Document NoSQL](#2-mongodb-document-nosql)
+    - [SQLite & Ephemeral In-Memory Storage](#3-sqlite--ephemeral-in-memory-storage)
+    - [Reactive Live Queries (`LiveQuery`)](#4-reactive-live-queries-livequery)
+    - [Persistent Key-Value Store (`tin.use_store`)](#5-persistent-key-value-store-tinuse_store)
+    - [Active Record Declarative Models (`@tin.model`)](#6-active-record-declarative-models-tinmodel)
+12. [🪄 Low-Code Declarative UI Components (`LiveDataTable` & `AutoCRUD`)](#-low-code-declarative-ui-components-livedatatable--autocrud)
+13. [📡 Real-Time Streams & Sockets (`use_socket` & `use_sse`)](#-real-time-streams--sockets-use_socket--use_sse)
+14. [🌉 Native OS Platform Channels (`PlatformBridge`)](#-native-os-platform-channels-platformbridge)
+15. [🔒 Enterprise Security & Hardware Telemetry Suite](#-enterprise-security--hardware-telemetry-suite)
+16. [🧠 Intermediate Representation (IR) Compiler & Dynamic Export (`app.export_ir`)](#-intermediate-representation-ir-compiler--dynamic-export-appexport_ir)
+17. [🛠️ CLI Workflows & Dev Server (Hot GLSL Reloading)](#-cli-workflows--dev-server-hot-glsl-reloading)
+18. [🚀 Production Deployment & Backend Integration](#-production-deployment--backend-integration)
+19. [🌟 Full-Stack Production Master Blueprint](#-full-stack-production-master-blueprint)
+20. [📄 License](#-license)
 
-| Feature / Metric | **TinPyUI v1.6** | **React / Next.js** | **Flutter Web (CanvasKit)** | **PyScript / Pyodide** | **Streamlit / Flet** |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Language DSL** | Pythonic Indentation (`.tin`) | JSX / XML | Dart Widgets | CPython in Wasm | Python Backend |
-| **Execution** | Go WebAssembly + IR Engine | JS V-DOM Diffing | Raw Canvas Blit | 25MB CPython runtime | Server WebSocket IPC |
-| **DOM Model** | Direct Semantic DOM + WebGL | Virtual DOM | Canvas Only (No DOM) | JS Proxy DOM | Server-driven DOM |
-| **Accessibility & SEO** | Native DOM + SEO Shell | Native DOM | ❌ None (Raw pixels) | Partial | ❌ None (Dynamic) |
-| **Client Latency** | 0 ms (Local WASM) | 0 ms (Local JS) | 0 ms (Local WASM) | High startup lag | 50-200 ms network lag |
-| **GPU Shaders** | Built-in GLSL & WebGL | Requires Three.js | Canvas drawing API | Canvas library required | Not supported |
+---
+
+## ✨ Key Highlights
+
+- 🚀 **120 FPS Hardware Acceleration**: Sub-millisecond vector graphics rendering via native C-FFI on desktop and dedicated WebGL/WebGPU shaders in browser runtimes.
+- 🪶 **100% Zero PIP Dependencies**: Pure Python standard library implementation with native C-FFI (`user32.dll`/`gdi32.dll` on Win32, AppKit on macOS, GTK on Linux). Zero external wheels required.
+- 📦 **Microscopic ~2 MB Native Executable**: Zero-bloat C++ shell (`engine_core.cc`) eliminates 150MB+ Electron runtime bloat while retaining modern web rendering capabilities.
+- ⚡ **O(1) Reactive State Graph**: Granular signal cells (`tin.Signal`, `tin.State`) with automatic subscriber invalidation and zero virtual DOM tree diffing.
+- 🌊 **Symplectic Euler Spring Physics**: True Hooke's Law differential solver ($F = -kx - cv$) for physics-based inertia, gestures, and fluid motion.
+- 🗄️ **Universal Multi-Engine Database**: Unified connection factory (`tin.connect`) supporting **PostgreSQL**, **MongoDB**, **SQLite**, and **In-Memory RAM** with dynamic schema evolution and automatic fallback.
+- ⚡ **Low-Code Live Components**: 1-line instant full-stack components (`tin.AutoCRUD`, `tin.LiveDataTable`) auto-wired to database mutations.
+- 📜 **100,000+ Row Spatial Virtualization**: `tin.VirtualStack` and `tin.VirtualList` deliver sub-millisecond scrolling with zero garbage collection allocations.
+- 🔒 **Enterprise-Grade Security Core**: Session binding shields (HMAC), in-memory RAM string masking (`RAMMaskedState`), CSRF guards, and Honeypot decoy generators.
+- 📱 **Omni-Platform Topology**: Seamlessly adapts layouts between Desktop 3-Column, Tablet Split-View, and Mobile Single-Column Touch interfaces.
+
+---
+
+## 🏛️ Architectural Reality
+
+TinPyUI rejects the raw canvas-only approach (e.g., Flutter Web CanvasKit) which destroys browser copy-paste, breaks accessibility (a11y), and impairs search engine indexing (SEO).
+
+Instead, TinPyUI employs a **Hybrid Semantic DOM + WebGL Hardware Acceleration Architecture**:
+
+```
++-----------------------------------------------------------------------------------+
+|                        TINPYUI DUAL-ENGINE ARCHITECTURE                           |
++-----------------------------------------------------------------------------------+
+|  [ .tin Source Code ]  ──▶  [ Go AOT Compiler ]  ──▶  [ Intermediate Rep (IR) ]   |
++-----------------------------------------------------------------------------------+
+                                          │
+                                          ▼
++-----------------------------------------------------------------------------------+
+|                     WASM RUNTIME KERNEL (tinui_engine.wasm)                       |
++-----------------------------------------+-----------------------------------------+
+|          LAYER A: DOM ENGINE            |       LAYER B: HARDWARE GPU SHADER      |
+|  - Semantic HTML5 Elements              |  - WebGL 2.0 / WebGPU Surfaces          |
+|  - Flexbox & Dynamic CSS Tokens         |  - Custom GLSL Fragment Shaders         |
+|  - Reactive State & Input Bindings      |  - 120 FPS Cyber Waves & Particle Dust  |
+|  - Native A11y & SEO Hydration Shell    |  - Zero CPU Layout Interruptions        |
++-----------------------------------------+-----------------------------------------+
+```
+
+---
+
+## 📊 Deep Architectural Comparison
+
+| Feature / Metric | **TinPyUI v1.6** | **React / Next.js** | **Flutter Web (CanvasKit)** | **PyScript / Pyodide** | **Streamlit / Flet** | **Tauri / Electron** |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Language DSL** | Pythonic (`.tin`) & Pure Python | JSX / XML | Dart Widgets | Pure Python (CPython) | Python Backend | JS / TS / HTML |
+| **Execution** | Go WebAssembly + IR Engine | JS V-DOM Diffing | Skia/Impeller Canvas | 25MB CPython Wasm | Server WebSocket IPC | Native Webview / Node |
+| **DOM Strategy** | Direct Semantic DOM + WebGL | Virtual DOM Diffing | Canvas Only (No DOM) | JS Proxy DOM | Server-driven DOM | Native Webview DOM |
+| **Accessibility & SEO** | Native DOM + SEO Shell | Native DOM | ❌ None (Raw pixels) | Partial | ❌ None (Dynamic) | Native Desktop |
+| **Client Latency** | 0 ms (Local WASM) | 0 ms (Local JS) | 0 ms (Local WASM) | High startup lag | 50-200 ms network lag | 0 ms (Local IPC) |
+| **GPU Shader Engine** | Built-in GLSL & WebGL | Requires Three.js | Canvas 2D API | Canvas library | Not supported | WebGL library |
+| **Binary Size** | ~2 MB Native Shell | N/A (Web bundle) | 20 MB - 35 MB | 25 MB - 40 MB | Full Python Server | 2 MB (Tauri) / 150 MB (Electron) |
+| **PIP Dependencies** | **0 External Packages** | N/A | N/A | Requires Pyodide | Heavy pip dependencies | Heavy npm packages |
 
 ---
 
 ## 📦 Installation
 
-### 1. NPM Package (Universal CLI)
-The core TinPyUI compiler CLI is distributed globally via NPM. Install it with:
-
+### 1. NPM Global Compiler CLI
+The core ahead-of-time compiler and dev server is distributed globally via NPM:
 ```bash
 npm install -g tinpyui
 ```
-*Note: Requires Node.js (>= 18.0.0).*
+*(Requires Node.js >= 18.0.0)*
 
-### 2. PyPI Package (Python Ecosystem -- 0 Third-Party Dependencies)
-For Python developers (Requires 0 external pip packages):
-
+### 2. PyPI Python Package (Zero 3rd-Party Dependencies)
+For Python developers across Windows, macOS, and Linux:
 ```bash
 pip install tinpyui-ff
 ```
-
----
-
-## ⚡ TinPyUI Flagship Native Desktop Application Framework
-
-**TinPyUI** (`import tinpyui as tin`) is a flagship universal Python desktop GUI application framework built to surpass Tkinter in speed, modern cyber aesthetics (linear gradients, glassmorphism, glowing neon borders, pill-rounded buttons), and cross-platform portability (**Windows, macOS, Linux**).
-
-### Key Features
-- 🚀 **Hardware-Accelerated Surface**: Sub-millisecond vector graphics rendering engine using native C-FFI.
-- 🎨 **Modern Cyber Aesthetics**: Linear gradients, glassmorphism blur, neon glow borders, pill-rounded buttons, animated shader backgrounds.
-- ⚡ **O(1) Reactive Signal System**: Automatic UI binding with `tin.State(value)` / `tin.Signal(value)`.
-- 💻 **100% Zero PIP Dependencies**: Uses pure Python stdlib + C-FFI (`user32.dll`/`gdi32.dll` on Win32, AppKit on macOS, GTK on Linux).
-- 🔒 **Enterprise Security Suite**: `SessionBindingGuard` (HMAC signatures), `RAMMaskedState` (in-memory string masking), and `CSRFGuard`.
-- 📈 **Live Telemetry Monitoring**: Dynamic FPS and render latency sampling via `tin.PerformanceMonitor`.
-
-### Quickstart Example
-```python
-import tinpyui as tin
-
-class MyApp(tin.App):
-    def __init__(self):
-        super().__init__(title="TinPyUI Native Desktop App", width=1100, height=750)
-        self.count = tin.Signal(0)
-
-    def build(self):
-        with tin.Window(title="TinPyUI Native Desktop App"):
-            with tin.Card(bg="#141218", radius=16, shadow="cyan"):
-                tin.GradientText("Hardware-Accelerated TinPyUI Desktop Engine", gradient=["#00ffff", "#cfbcff"])
-                tin.Text(text=lambda: f"Counter Signal Value: {self.count.value}", color="#ffffff")
-                tin.Button("Increment Counter", on_click=self.increment, variant="primary")
-
-    def increment(self):
-        self.count.value += 1
-
-if __name__ == "__main__":
-    MyApp().run()
-```
-
-### Launching Desktop Applications
-Run the native desktop application launcher:
-
-```bash
-python main.py
-```
-Or launch via the package CLI:
+*Verification*:
 ```bash
 python -m tinpyui
 ```
 
 ---
 
-## 🌐 Universal Cross-Platform C++ Core (`engine_core.cc`)
+## 💻 Universal Cross-Platform Native Runtime
 
-TinPyUI achieves cross-platform desktop native packaging using a **C/C++ Abstraction Layer** (`webview.h`). This compiles down into a microscopic **2 MB to 3 MB** native desktop executable without bundling bulky browser runtimes.
+TinPyUI embeds lightweight C/C++ host window bindings (`engine_core.cc`) compiling down to a **~2 MB standalone native desktop binary** without bundling Chromium:
 
-### Native OS GPU Engine Mapping
-- 🍎 **macOS (Apple Silicon & Intel)**: Cocoa API + **WKWebView** (Apple **Metal** GPU rendering engine).
-- 🐧 **Linux (Ubuntu, Fedora, Arch)**: GTK3/GTK4 + **WebKitGTK** (X11 / Wayland native window integration).
-- 🪟 **Windows (10 & 11)**: Win32 API (`HWND`) + Microsoft **Edge WebView2** (**DirectX 12** hardware acceleration at 120 FPS).
+```
++-----------------------------------------------------------------------------------+
+|                         NATIVE HARDWARE OS ACCELERATION                           |
++-----------------------------------------------------------------------------------+
+|  🍎 macOS (Apple Silicon & Intel)  ──▶  Cocoa API + WKWebView (Apple Metal GPU)   |
+|  🐧 Linux (Ubuntu, Fedora, Arch)   ──▶  GTK3/GTK4 + WebKitGTK (Wayland / X11)     |
+|  🪟 Windows (10 & 11)              ──▶  Win32 HWND + Edge WebView2 (DirectX 12)   |
+|  📱 Mobile (Android & iOS)         ──▶  Touch Engine + Haptic Hardware Channels   |
++-----------------------------------------------------------------------------------+
+```
 
-### Zero-Bloat Cross-Platform Compiler Pipeline
+### Zero-Bloat Native Compilation Pipeline:
 ```bash
-# macOS (Clang)
-c++ engine_core.cc -std=c++11 -framework WebKit -framework Cocoa -o tinui_mac
+# macOS (Clang / Metal)
+c++ native/engine_core.cc -std=c++11 -framework WebKit -framework Cocoa -o tinui_mac
 
-# Linux (GCC)
-g++ engine_core.cc `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -o tinui_linux
+# Linux (GCC / GTK)
+g++ native/engine_core.cc `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -o tinui_linux
 
-# Windows (MinGW/GCC)
-g++ engine_core.cc -mwindows -ladvapi32 -lole32 -lshell32 -lshlwapi -luser32 -lversion -o tinui_win.exe
+# Windows (MinGW / DirectX)
+g++ native/engine_core.cc -mwindows -ladvapi32 -lole32 -lshell32 -lshlwapi -luser32 -lversion -o tinui_win.exe
 ```
 
 ---
 
-## 🚀 Developer Workflow
+## ⚡ Pure Python Declarative UI Framework (`tinpyui`)
 
-### Step 1: Initialize a New Workspace
-```bash
-tinpyui init my-cyber-app
-cd my-cyber-app
-```
-This scaffolds your `src/index.tin` configuration layout, `tinpyui.config.json`, static Wasm bootloader files, and an optional Flask `app.py` server.
+You can build full desktop and web applications directly in pure Python using declarative context managers:
 
-### Step 2: Write Your UI
-Edit `src/index.tin` using Pythonic indentation rules (`component Main():`), invoking components like `AnimatedBackground`, `Navbar`, `Row`, `GradientText`, and `Button`.
+```python
+import tinpyui as tin
 
-### Step 3: Compile the Layout
-```bash
-tinpyui compile src/index.tin
-```
-The internal compiler parses your `.tin` file, validates indentation and token schemas, converts component hierarchies into optimized IR, and outputs `public/app.ir.json`.
+class CyberDashboard(tin.App):
+    def __init__(self):
+        super().__init__(title="TinPyUI Cyber Hub", width=1200, height=800)
+        self.counter = tin.Signal(0)
+        self.status = tin.Signal("Hardware Online (120 FPS)")
 
-### Step 4: Launch the Dev Server
-```bash
-tinpyui serve
-```
-Or start the dev server directly with hot reloading:
-```bash
-tinpyui dev src/index.tin
-```
+    def increment(self):
+        self.counter.update(lambda c: c + 1)
+        self.status.set(f"Signal mutated to {self.counter.value}")
 
----
+    def build(self):
+        with tin.Window(title="TinPyUI Native Desktop App"):
+            with tin.Section(padding=24, align="center"):
+                tin.GradientText("Hardware-Accelerated TinPyUI Engine", gradient=["#00f2fe", "#9b51e0"], size="hero")
+                tin.Text(text=lambda: f"● {self.status.value}", color="muted")
+                tin.Spacer(height=20)
+                
+                with tin.Card(bg="#141218", radius=16, shadow="cyan", padding=24):
+                    tin.Heading("Reactive Telemetry", size="h2")
+                    tin.Text(text=lambda: f"Counter Signal: {self.counter.value}", color="#ffffff", size="large")
+                    tin.Spacer(height=12)
+                    with tin.Row(gap=12):
+                        tin.Button("⚡ Increment Signal", on_click=self.increment, variant="primary")
+                        tin.Button("📳 Haptic Pulse", on_click=lambda: tin.haptics.vibrate(50), variant="outline")
 
-## 🧠 Architecture: The Zero-DOM Wasm Engine
-
-When the TinPyUI WebAssembly runtime initializes in the browser:
-- **State Hydration**: Hydrates a `StateRegistry` tracking reactive variables in Wasm linear memory.
-- **Dirty Bitmaps**: Allocates a 64-bit Dirty Bitmap tracking modified layout nodes.
-- **Event Dispatching**: When user interactions occur (clicks, inputs), the JS bridge invokes `TinUIDispatch` or `TinUIMutateState` directly in Wasm.
-- **Microsecond Pointer Swaps**: The Wasm engine updates memory and flushes surgical patches (`flushPatches()`) in $O(1)$ time without traversing virtual DOM trees.
-
----
-
-## 📖 Detailed `.tin` Pythonic Syntax Guide
-
-TinPyUI uses an indentation-based, Pythonic grammar ending with colons (`:`). **Do not use curly braces `{}` for UI structure.**
-
-### Grammar & Syntax Rules
-1. **Root Block**: Every file **must** begin with a `component Main():` block.
-2. **Components**: Component names must strictly use PascalCase (e.g. `Section`, `GradientText`, `Button`).
-3. **Properties (Props)**: Passed inside parentheses using `key="value"` or `key=value` pairs separated by commas.
-   - **Strings**: `"Submit"`, `"neon-cyan"`
-   - **Numbers**: `20`, `600`, `120`
-   - **Booleans**: `true`, `false`
-   - **Arrays**: `["neon-cyan", "neon-purple"]`
-4. **Nesting & Indentation**: Child components are placed on new lines, indented 4 spaces under parent components that end with a colon (`:`).
-
-#### Official Syntax Blueprint:
-```text
-component Main():
-    Section(paddingY=40, align="center"):
-        Heading(text="Dashboard", color="white", size="h1")
-        Text(text="Welcome back to your workspace.", size="large")
+if __name__ == "__main__":
+    CyberDashboard().run()
 ```
 
 ---
 
-## 📐 Strict Layout Constraints (100% Width Rule)
+## 📖 Declarative `.tin` Indentation-Based Syntax
 
-By default, block-level interactive components (like `Form`, `Input`, and `Button`) aggressively consume **100% of available container width**.
+TinPyUI provides an indentation-based DSL that compiles directly to WebAssembly IR:
 
-### Layout Rules to Avoid Visual Stretching:
-- **Wrap in Containers**: Never place inputs or buttons directly under `Main()` without a wrapper.
-- **Use `Card` & `maxWidth`**: Place forms and interactive elements inside a `Card` or `Section` with an explicit `maxWidth` (e.g. `maxWidth=600`).
-- **Horizontal Grouping**: Wrap side-by-side elements inside a `Row` component.
+### Syntax Rules:
+1. **Component Root**: Every file begins with `component Main():` or custom component definitions.
+2. **Indentation**: 4 spaces following a colon (`:`). No curly braces `{}` or closing tags.
+3. **Typed Props**: Key-value pairs (`key="string"`, `number=20`, `flag=true`, `list=["a", "b"]`).
+4. **Data Binding**: Interpolate reactive variables via `{variable_name}` inside strings.
 
-#### Correct Constraint Blueprint:
-```text
-component Main():
-    Section(align="center", justify="center"):
-        Card(maxWidth=600, padding=30):
-            Form(gap=15):
-                Input(placeholder="Email Address", width="full")
-                Input(placeholder="Password", width="full")
-                Button(text="Login", width="full", variant="primary")
-```
-
----
-
-## 🧩 Component API Reference
-
-### 1. Structural Containers
-- **`Section(align: string, justify: string, paddingY: number, paddingBottom: number, maxWidth: number)`**  
-  Primary layout wrapper isolating horizontal content blocks.
-- **`Card(maxWidth: number, padding: number, background: string, border: string, radius: number, shadow: string)`**  
-  Glassmorphism / solid container for forms, features, and cards.
-- **`Row(gap: number, align: string, justify: string, width: string, marginTop: number)`**  
-  Aligns child components horizontally using flex mechanics.
-- **`Form(gap: number)`**  
-  Vertical layout stack for form inputs and action buttons.
-
-### 2. Typography
-- **`Text(text: string, size: string, color: string, weight: string, marginTop: number, marginBottom: number)`**  
-  Standard text element. Sizes: `"small"`, `"normal"`, `"large"`.
-- **`Heading(text: string, color: string, size: string)`**  
-  Heading typography. Sizes: `"h1"`, `"h2"`, `"h3"`.
-- **`GradientText(text: string, gradient: ["string", "string"], size: string)`**  
-  Displays vibrant linear gradient text for headers and hero sections.
-
-### 3. Interactive Elements
-- **`Button(text: string, variant: string, glow: string, radius: string | number, width: string, link: string)`**  
-  Variants: `"solid"`, `"outline"`, `"primary"`. Radius: number (`8`) or string (`"pill"`).
-- **`Input(value: string, placeholder: string, width: string, border: string)`**  
-  Interactive data entry field.
-- **`NavLink(text: string, target: string)`**  
-  Navigation link anchoring to target sections.
-
-### 4. Advanced Visual & Animated Components
-- **`AnimatedBackground(effect: string, primaryColor: string, secondaryColor: string, speed: string)`**  
-  Full-viewport canvas effects (`"cyber-wave"`, `"cyber-grid"`, `"particles"`).
-- **`Navbar(padding: number, blur: boolean, borderBottom: string)`**  
-  Fixed header bar supporting background blur glassmorphism (`blur=true`).
-- **`Icon(name: string, color: string)`**  
-  Renders native SVG icons directly inside the component graph.
-
----
-
-## 🎨 Cyberpunk Design System & Color Tokens
-
-TinPyUI ships with an ultra-modern dark-mode-first aesthetic:
-
-- **Backgrounds**: `"dark-core"` (`#0a0b10`), `"dark-glass"` (`rgba(18,19,28,0.7)`).
-- **Neon Accents**: `"neon-cyan"` (`#00f2fe`), `"neon-purple"` (`#9b51e0`), `"neon-pink"` (`#ff007f`).
-- **Typography Tokens**: `"white"`, `"muted"`.
-
----
-
-## 🚀 Complete Blueprint Example
-
-Below is the production-ready reference blueprint for TinPyUI v1.6.0 applications:
-
-```text
+```tin
 component Main():
     AnimatedBackground(effect="cyber-wave", primaryColor="neon-purple", secondaryColor="neon-cyan"):
         
         Navbar(padding=20, blur=true):
             Row(align="center", justify="space-between", width="full"):
-                Text(text="TinPyUI App", color="neon-cyan", weight="bold")
+                Text(text="TinPyUI Cloud Console", color="neon-cyan", weight="bold")
                 Row(gap=30, color="white"):
-                    NavLink(text="Features")
-                    NavLink(text="Docs")
+                    NavLink(text="Dashboard", route="/")
+                    NavLink(text="Telemetry", route="/telemetry")
 
-        Section(align="center", paddingY=100, maxWidth=800, justify="center"):
-            GradientText(text="The Zero-DOM Wasm Engine", gradient=["neon-cyan", "neon-purple"], size="hero")
-            Text(text="Build high-performance web applications with Pythonic DSL.", size="large", color="white", marginTop=20)
+        Section(align="center", paddingY=80, maxWidth=900, justify="center"):
+            GradientText(text="The Zero-DOM WebAssembly Engine", gradient=["neon-cyan", "neon-purple"], size="hero")
+            Text(text="Build high-performance native & web applications with pure Pythonic syntax.", size="large", color="white", marginTop=20)
             
-            Row(gap=20, align="center", justify="center", marginTop=40):
-                Button(text="Get Started", variant="solid", glow="neon-cyan", radius="pill")
-                Button(text="Documentation", variant="outline", radius="pill")
+            Spacer(height=30)
+            Row(gap=20, align="center", justify="center"):
+                Button(text="Launch Cluster", variant="solid", glow="neon-cyan", radius="pill")
+                Button(text="System Documentation", variant="outline", radius="pill")
+```
+
+---
+
+## 🧱 Complete Component API Catalog
+
+### 1. Structural & Layout Containers
+| Component | Primary Properties | Description |
+| :--- | :--- | :--- |
+| `Section` | `align`, `justify`, `padding`, `paddingY`, `maxWidth`, `minHeight`, `bg`, `radius` | Primary layout block isolating horizontal regions |
+| `Container` | `align`, `justify`, `width`, `padding`, `gap`, `animation`, `duration` | General-purpose flexbox container with animation triggers |
+| `Row` | `align`, `justify`, `gap`, `width`, `wrap`, `marginTop`, `color` | Horizontal flex row aligning children |
+| `Column` | `align`, `justify`, `gap`, `padding`, `bg`, `border`, `radius`, `minWidth`, `maxWidth` | Vertical layout column stack |
+| `Card` | `maxWidth`, `padding`, `bg`/`background`, `border`, `radius`, `shadow` | Glassmorphism or solid container card |
+| `Grid` | `cols`, `gap`, `width`, `padding` | Multi-column responsive grid layout |
+| `Spacer` | `height`, `width` | Fixed dimensional spacing element |
+| `Divider` | `color`, `margin` | Visual horizontal rule separator |
+| `Surface` | `width`, `height`, `background` | Canvas drawing / shader surface |
+
+### 2. Typography & Visual Badges
+| Component | Primary Properties | Description |
+| :--- | :--- | :--- |
+| `Heading` | `text`, `size` (`"hero"`, `"h1"`, `"h2"`, `"h3"`, `"small"`), `color`, `weight` | Semantic heading element |
+| `Text` | `text`, `size` (`"small"`, `"normal"`, `"large"`), `color`, `weight`, `align`, `dataBind` | Paragraph text with dynamic `{state}` interpolation or lambda bindings |
+| `GradientText` | `text`, `gradient` (`["#00f2fe", "#9b51e0"]`), `size` | Vibrant linear gradient typography |
+| `Badge` | `text`, `variant` (`"neon-cyan"`, `"neon-pink"`), `color` | Compact status tag or telemetry pill |
+| `Span` | `text` | Inline text span element |
+
+### 3. Interactive Controls & Forms
+| Component | Primary Properties | Description |
+| :--- | :--- | :--- |
+| `Button` | `text`, `variant` (`"solid"`, `"outline"`, `"primary"`), `glow`, `radius` (`"pill"`, `8`), `on_click`, `action` | Interactive button supporting click animations & glow states |
+| `Input` | `placeholder`, `value`, `dataBind`, `width`, `padding`, `bg`, `border`, `radius`, `color` | Two-way data-bound input field |
+| `Textarea` | `placeholder`, `value`, `dataBind`, `rows`, `width` | Multiline text entry |
+| `Form` | `gap` | Semantic form wrapper |
+| `NavLink` | `text`, `route`/`target`, `href` | Cinematic scene transition link |
+
+### 4. Advanced Hardware Shaders & Media
+| Component | Primary Properties | Description |
+| :--- | :--- | :--- |
+| `AnimatedBackground` | `effect` (`"cyber-wave"`, `"particles"`, `"quantum-vortex"`), `primaryColor`, `secondaryColor`, `speed` | Full-screen hardware WebGL canvas effect |
+| `Navbar` | `padding`, `blur` (bool), `fixed` (bool), `borderBottom` | Glassmorphic navigation header with backdrop blur |
+| `CustomShader` | `fragment_code`, `uniforms` | Raw inline GLSL fragment shader with compile-time validation |
+| `Marquee` | `direction`, `speed` | Continuous hardware-accelerated scrolling ticker |
+| `Icon` | `name`, `color` | Native vector SVG icon element |
+| `Image` | `src`, `url`, `assetPriority` | Optimized image element |
+
+---
+
+## ⚡ Reactive State Signals & Symplectic Spring Physics (120 FPS)
+
+TinPyUI features an $O(1)$ reactive state graph coupled with a **Symplectic Euler differential solver** for physics animations:
+
+```python
+import tinpyui as tin
+
+# 1. Reactive Signals (O(1) updates)
+count = tin.Signal(0)
+count.subscribe(lambda val: print(f"Counter changed: {val}"))
+count.update(lambda c: c + 1)
+
+# 2. Symplectic Euler Spring Physics (Hooke's Law: F = -kx - cv)
+spring = tin.Spring(tension=180.0, friction=20.0)
+spring.target = 250.0  # Set target displacement in pixels
+
+# Step the differential solver (e.g. inside a 120 FPS frame loop)
+current_pos = spring.step(delta_time=1.0 / 120.0)
+print(f"Spring Position: {current_pos:.2f}px | Velocity: {spring.velocity:.2f}")
+```
+
+---
+
+## 📜 High-Volume Spatial Virtualization (`VirtualStack` & `VirtualList`)
+
+TinPyUI v1.6 introduces **Spatial Index Windowing** capable of rendering **100,000+ items** with sub-millisecond scrolling latency and zero garbage collection allocations:
+
+### In `.tin` DSL:
+```tin
+component VirtualFeed():
+    Section(padding=20):
+        Heading(text="High-Volume Virtual Feed (100k Rows)", size="h2")
+        VirtualStack(itemHeight=52, totalCount=100000):
+            Card(padding=12, bg="rgba(20, 20, 30, 0.8)", border="neon-cyan"):
+                Text(text="Dynamic Virtual Row Item", color="white")
+```
+
+### In Pure Python:
+```python
+import tinpyui as tin
+
+items = [f"Server Node #{i} - Status: ACTIVE" for i in range(50000)]
+
+with tin.Window(title="Virtualized Cluster View"):
+    tin.Heading("50,000 Telemetry Nodes (120 FPS)", size="h1")
+    # Only visible nodes within the viewport rect are rendered to the hardware surface
+    tin.VirtualList(items=items, item_height=48.0)
+```
+
+---
+
+## 🗄️ Universal Reactive Database Suite (`tin.connect`)
+
+TinPyUI provides a unified multi-engine database layer that automatically binds mutations to the 120 FPS UI signal graph:
+
+```
++-----------------------------------------------------------------------------------+
+|                        TINPYUI REACTIVE DATA PIPELINE                             |
++-----------------------------------------------------------------------------------+
+|  [ Database Mutation ]  ──▶  [ Table / Collection Listener ]                      |
+|  (insert / update / delete)                 │                                     |
+|                                             ▼                                     |
+|  [ UI Render (120 FPS) ] ◀── [ LiveQuery / Reactive Signal ] ◀── [ O(1) Graph ]  |
++-----------------------------------------------------------------------------------+
+```
+
+### 1. PostgreSQL Relational SQL
+```python
+pg_db = tin.connect("postgres://admin:secret@localhost:5432/production_db")
+events = pg_db.table("analytics_events")
+
+# Single insert with auto-schema evolution (creates columns dynamically)
+row_id = events.insert(event="user_login", user_id="usr_42", duration_ms=18.5, is_active=True)
+
+# Bulk ACID transaction
+events.insert_many([
+    {"event": "page_view", "user_id": "usr_42", "duration_ms": 12.0},
+    {"event": "checkout",  "user_id": "usr_43", "duration_ms": 190.0}
+])
+
+# Fluent query building
+active_users = (events.where(user_id="usr_42")
+                      .gt("duration_ms", 10.0)
+                      .order_by("duration_ms", desc=True)
+                      .limit(10)
+                      .all())
+```
+
+### 2. MongoDB Document NoSQL
+```python
+mongo_db = tin.connect("mongodb://localhost:27017/fleet_db")
+devices = mongo_db.collection("devices")
+
+# Insert document
+devices.insert_one({
+    "name": "Edge-Gateway-01",
+    "specs": {"cpu_cores": 16, "ram_gb": 64},
+    "tags": ["edge", "gateway", "active"]
+})
+
+# Nested dot-notation and operator query
+results = devices.find({
+    "specs.ram_gb": {"$gte": 32},
+    "tags": {"$in": ["gateway"]}
+})
+```
+
+### 3. SQLite & Ephemeral In-Memory Storage
+```python
+# Disk SQLite
+sqlite_db = tin.connect("sqlite:///fleet_data.db")
+
+# Zero-disk Ephemeral RAM database (Ideal for unit tests & WASM runtime)
+ram_db = tin.connect(":memory:")
+```
+
+### 4. Reactive Live Queries (`LiveQuery`)
+Live queries re-evaluate automatically on any table mutation, updating subscribed UI widgets at 120 FPS with zero manual refresh loops:
+```python
+orders = pg_db.table("orders")
+
+# Create LiveQuery Signal
+active_orders = orders.live_query(status="pending")
+
+# Bind directly to UI
+with tin.Window(title="Live Order Queue"):
+    tin.VirtualList(items=active_orders, item_height=50.0)
+    tin.Button("Add Order", on_click=lambda: orders.insert(status="pending", item="Cyber Deck"))
+```
+
+### 5. Persistent Key-Value Store (`tin.use_store`)
+Thread-safe disk-backed key-value store with reactive signal synchronization:
+```python
+store = tin.use_store("app_config.db", table="preferences")
+store.set("theme", "cyber-dark")
+
+# Mutating the signal automatically persists value to disk!
+theme_signal = store.signal("theme", default="cyber-dark")
+theme_signal.value = "neon-matrix"
+```
+
+### 6. Active Record Declarative Models (`@tin.model`)
+```python
+@tin.model
+class DeviceNode:
+    name: str
+    platform: str
+    fps_target: int = 120
+    is_online: bool = True
+
+node = DeviceNode.create(name="MacBook-Pro-M3", platform="macOS (Metal)")
+all_online = DeviceNode.where(is_online=True).all()
+live_nodes = DeviceNode.live_query(is_online=True)
+```
+
+---
+
+## 🪄 Low-Code Declarative UI Components (`LiveDataTable` & `AutoCRUD`)
+
+Instantly generate fully functional reactive data grids and complete administrative dashboards in a single line of code:
+
+### 1. `tin.LiveDataTable`
+Auto-discovers schema headers and binds to real-time table queries:
+```python
+tin.LiveDataTable(pg_db.table("analytics_events"))
+tin.LiveDataTable(mongo_db.collection("devices"), columns=["name", "platform", "fps_target"])
+```
+
+### 2. `tin.AutoCRUD`
+Generates a complete management interface with Search, Add Form, Interactive Table, and Delete Actions:
+```python
+tin.AutoCRUD(sqlite_db.table("devices"), title="Fleet Device Management Dashboard")
+```
+
+---
+
+## 📡 Real-Time Streams & Sockets (`use_socket` & `use_sse`)
+
+```python
+import tinpyui as tin
+
+# 1. Bi-directional WebSockets with reactive status & message signals
+socket = tin.use_socket("wss://stream.telemetry.io/v1")
+
+with tin.Window(title="Real-Time Stream"):
+    tin.Text(text=lambda: f"Socket Status: {socket.status.value.upper()}")
+    tin.Text(text=lambda: f"Telemetry Packet: {socket.message.value}", color="neon-cyan")
+    tin.Button("Send Ping", on_click=lambda: socket.send("PING_HEARTBEAT"))
+
+# 2. Server-Sent Events (SSE) Stream
+stream_signal = tin.use_sse("https://events.example.com/live_feed")
+tin.Text(text=stream_signal, color="neon-pink")
+```
+
+---
+
+## 🌉 Native OS Platform Channels (`PlatformBridge`)
+
+TinPyUI provides zero-copy C-FFI channels into native host OS dialogs, clipboard, and hardware haptics:
+
+```python
+import tinpyui as tin
+
+# 1. Native File Dialogs
+selected_file = tin.PlatformBridge.open_file_dialog()
+save_destination = tin.PlatformBridge.save_file_dialog()
+
+# 2. Desktop System Toast Notifications
+tin.PlatformBridge.show_notification(title="Cluster Build", message="Compilation finished in 1.2ms")
+
+# 3. Mobile / Touch Device Haptics
+tin.PlatformBridge.vibrate(pattern_ms=60)
+tin.haptics.vibrate(60)
+
+# 4. OS Clipboard Sync
+tin.PlatformBridge.copy_clipboard("tinpyui_v16_auth_token_8892")
+
+# 5. System Theme Query
+current_theme = tin.PlatformBridge.get_system_theme() # "dark" | "light"
+```
+
+---
+
+## 🔒 Enterprise Security & Hardware Telemetry Suite
+
+TinPyUI is engineered with security-first constraints:
+
+1. **In-Memory RAM Masking**: `tin.RAMMaskedState` and `tin.EncryptedState` protect sensitive passwords and API tokens in RAM against memory scraping.
+2. **Session Binding Guard**: High-entropy HMAC-SHA256 signatures validate session authenticity against replay attacks.
+3. **Decoy Network Traffic**: `tin.HoneypotAPI.start_decoy_traffic()` generates synthetic background traffic to confound network inspection.
+4. **Hardware Fingerprinting**: `tin.Security.get_device_fingerprint()` generates unique hardware identification hashes.
+5. **Live Performance Telemetry**: `tin.PerformanceMonitor` measures 120 FPS frame latency, render bottlenecks, and memory usage.
+6. **Compile-Time GLSL Validator**: `glsl_validator.go` scans shader ASTs ahead-of-time to prevent GPU memory crashes and infinite loops.
+7. **Panic-Proof WASM Boundary**: The WebAssembly runtime wraps rendering in panic-recovery middleware, guaranteeing that runtime errors never crash the host web page.
+
+---
+
+## 🧠 Intermediate Representation (IR) Compiler & Dynamic Export (`app.export_ir`)
+
+### Dynamic Python to WebAssembly Export
+Compile pure Python UI trees directly into static Intermediate Representation JSON (`app.ir.json`) for serverless CDN hosting:
+
+```python
+import tinpyui as tin
+
+app = tin.Window(title="WASM Edge Application", width=1280, height=800)
+with app:
+    with tin.Section(padding=24):
+        tin.Heading("Compiled Edge App", size="hero")
+        tin.GradientText("Hardware-Accelerated WebAssembly", gradient=["#00f2fe", "#9b51e0"])
+        tin.Button("Launch Cluster", variant="primary")
+
+# Exports deterministic IR blueprint to public/ distribution folder
+app.export_ir("public/app.ir.json")
+```
+
+### Generated `app.ir.json` Schema:
+```json
+{
+  "title": "WASM Edge Application",
+  "width": 1280,
+  "height": 800,
+  "bg_color": "#0D0D10",
+  "root": {
+    "tag": "Window",
+    "props": {"title": "WASM Edge Application"},
+    "children": [
+      {
+        "tag": "Section",
+        "props": {"padding": 24},
+        "children": [
+          {"tag": "Heading", "props": {"text": "Compiled Edge App", "size": "hero"}, "children": []},
+          {"tag": "GradientText", "props": {"text": "Hardware-Accelerated WebAssembly"}, "children": []},
+          {"tag": "Button", "props": {"text": "Launch Cluster", "variant": "primary"}, "children": []}
+        ]
+      }
+    ]
+  }
+}
+```
+
+---
+
+## 🛠️ CLI Workflows & Dev Server (Hot GLSL Reloading)
+
+```bash
+# 1. Scaffold a new cyber application
+tinpy create my-cyber-app
+cd my-cyber-app
+
+# 2. Launch live development server with Hot GLSL Reloading (HGR) on http://localhost:8080
+tinpy dev
+
+# 3. Compile .tin source to Intermediate Representation
+tinpy compile src/index.tin
+
+# 4. Compile with static SEO HTML hydration shell
+tinpy compile src/index.tin --hydrate
+
+# 5. Launch native desktop window
+tinpy desktop src/index.tin
+
+# 6. Run security vulnerability scanner
+python cli/security_scanner.py
+```
+
+---
+
+## 🚀 Production Deployment & Backend Integration
+
+### 1. Python Flask / FastAPI Integration
+TinPyUI apps compile into static assets (`index.html`, `tin-runtime.js`, `wasm_exec.js`, `tinui_engine.wasm`, `app.ir.json`) that can be hosted on any web server:
+
+```python
+from flask import Flask, send_from_directory
+
+app = Flask(__name__, static_folder='public')
+
+@app.route('/')
+def index():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/<path:path>')
+def static_files(path):
+    return send_from_directory(app.static_folder, path)
+
+if __name__ == '__main__':
+    print("[TinPyUI] Serving on http://localhost:5000")
+    app.run(port=5000)
+```
+
+### 2. Static CDN Hosting (Vercel, Cloudflare Pages, Netlify, AWS S3)
+Deploy the `public/` directory directly to any static web host. Ensure that your web server serves `.wasm` files with the `Content-Type: application/wasm` MIME type header.
+
+---
+
+## 🌟 Full-Stack Production Master Blueprint
+
+Below is an end-to-end production script combining **PostgreSQL/MongoDB connectivity**, **WebSocket streams**, **Spring physics**, **1-Line AutoCRUD**, and **Hardware Haptics**:
+
+```python
+import tinpyui as tin
+
+# 1. Connect to Database with dynamic schema creation
+db = tin.connect("sqlite:///production_fleet.db")
+devices = db.table("devices")
+
+# 2. Real-Time Telemetry Socket
+telemetry_ws = tin.use_socket("wss://echo.websocket.events")
+
+# 3. Persistent Settings Store
+settings = tin.use_store("user_settings.db")
+theme_signal = settings.signal("theme", default="cyber-dark")
+
+# 4. Symplectic Euler Spring Solver (120 FPS)
+spring = tin.Spring(tension=180.0, friction=20.0)
+spring_pos = tin.Signal(0.0)
+
+def step_physics():
+    spring.target = 150.0 if spring.target == 0.0 else 0.0
+    spring_pos.set(round(spring.step(1.0 / 120.0), 2))
+    tin.PlatformBridge.vibrate(40)
+
+# 5. Declarative UI Window
+app = tin.Window(title="Omni-Platform Enterprise Console", width=1400, height=880)
+with app:
+    with tin.Row(padding=20, gap=20):
+        # Left Panel: Telemetry & Controls
+        with tin.Column(width=420, gap=16):
+            tin.GradientText("CYBER TELEMETRY", gradient=["neon-cyan", "neon-purple"], size="h2")
+            
+            with tin.Card(padding=16, bg="rgba(18, 22, 34, 0.8)", radius=12):
+                tin.Text(text=lambda: f"● Socket Status: {telemetry_ws.status.value.upper()}", color="neon-cyan")
+                tin.Text(text=lambda: f"Feed: {telemetry_ws.message.value or 'Awaiting stream...'}")
+                tin.Spacer(height=10)
+                tin.Button("Send Heartbeat", on_click=lambda: telemetry_ws.send("PING_TELEMETRY"))
+
+            with tin.Card(padding=16, bg="rgba(24, 20, 32, 0.8)", radius=12):
+                tin.Heading("Spring Physics Simulator (120 FPS)", size="small")
+                tin.Text(text=lambda: f"Displacement: {spring_pos.value} px", color="neon-pink")
+                tin.Spacer(height=8)
+                tin.Button("🚀 Trigger Spring Step", on_click=step_physics, variant="primary")
+
+        # Right Panel: 1-Line Reactive AutoCRUD Dashboard
+        with tin.Column(width="flex", gap=16):
+            tin.AutoCRUD(devices, title="Live Fleet Device Management")
+
+if __name__ == "__main__":
+    tin.run(app)
 ```
 
 ---
 
 ## 📄 License
-MIT License © Barathanandh
+
+MIT License © 2026 Barathanandh

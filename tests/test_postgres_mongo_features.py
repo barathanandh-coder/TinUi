@@ -33,6 +33,7 @@ class TestPostgresMongoFeatures(unittest.TestCase):
 
         crud = tin.AutoCRUD(table, title="PostgreSQL Analytics")
         self.assertEqual(crud.tag, "Card")
+        pg_db.close()
 
     def test_mongodb_engine(self):
         mongo_db = tin.connect("mongodb://localhost:27017/shop_db")
@@ -92,6 +93,7 @@ class TestPostgresMongoFeatures(unittest.TestCase):
 
         crud = tin.AutoCRUD(collection, title="MongoDB Product Catalog")
         self.assertEqual(crud.tag, "Card")
+        mongo_db.close()
 
     def test_connect_factory_dispatch(self):
         pg = tin.connect("postgres://u:p@localhost/db")
@@ -106,11 +108,18 @@ class TestPostgresMongoFeatures(unittest.TestCase):
         mg_srv = tin.connect("mongodb+srv://user:pass@cluster0.mongodb.net/db")
         self.assertIsInstance(mg_srv, tin.MongoDatabase)
 
-        sq = tin.connect("sqlite:///test.db")
+        sq = tin.connect("sqlite:///:memory:")
         self.assertIsInstance(sq, tin.Database)
 
         mem = tin.connect(":memory:")
         self.assertIsInstance(mem, tin.Database)
+
+        pg.close()
+        pg_alt.close()
+        mg.close()
+        mg_srv.close()
+        sq.close()
+        mem.close()
 
 if __name__ == "__main__":
     unittest.main()

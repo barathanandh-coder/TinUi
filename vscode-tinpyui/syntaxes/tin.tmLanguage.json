@@ -1,0 +1,61 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "TinPyUI",
+  "scopeName": "source.tin",
+  "patterns": [
+    {
+      "name": "comment.line.number-sign.tin",
+      "match": "#.*$"
+    },
+    {
+      "name": "keyword.control.tin",
+      "match": "\\b(component|mount|def|return|if|else|elif|for|in|while|pass|break|continue|import|from)\\b"
+    },
+    {
+      "name": "entity.name.function.component.tin",
+      "match": "\\b(component)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "captures": {
+        "1": { "name": "keyword.control.tin" },
+        "2": { "name": "entity.name.type.class.tin" }
+      }
+    },
+    {
+      "name": "entity.name.tag.tin",
+      "match": "\\b(Section|Row|Column|Card|Container|Grid|Surface|HeroContainer|Header|Footer|Main|Marquee|Modal|Tooltip|ShaderLayer|WebGLCanvas|ParticleField|AnimatedBackground|Navbar|NavLink|Link|Button|Input|Heading|Text|GradientText|Badge|Icon|Spacer|Divider|Avatar|Image|VirtualStack|VirtualList|Spring|DataTable|LiveDataTable|AutoCRUD|Form|DataGrid|AIChat|ColorPicker|DatePicker|Calendar|Chart|LineChart|BarChart|DonutChart|Sparkline|TreeView|TreeNode)\\b"
+    },
+    {
+      "name": "variable.parameter.attribute.tin",
+      "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?==)"
+    },
+    {
+      "name": "string.quoted.double.tin",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.tin",
+          "match": "\\\\."
+        }
+      ]
+    },
+    {
+      "name": "string.quoted.single.tin",
+      "begin": "'",
+      "end": "'",
+      "patterns": [
+        {
+          "name": "constant.character.escape.tin",
+          "match": "\\\\."
+        }
+      ]
+    },
+    {
+      "name": "constant.numeric.tin",
+      "match": "\\b[0-9]+(?:\\.[0-9]+)?\\b"
+    },
+    {
+      "name": "constant.language.boolean.tin",
+      "match": "\\b(True|False|None)\\b"
+    }
+  ]
+}

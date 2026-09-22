@@ -1,0 +1,33 @@
+name: 📚 Documentation Improvement
+description: Suggest improvements or report errors in TinPyUI documentation or examples
+title: "[DOCS]: <short summary>"
+labels: ["documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Accurate, beautiful, and complete documentation helps everyone build amazing apps with TinPyUI!
+
+  - type: textarea
+    id: doc_location
+    attributes:
+      label: Page or File with Documentation Issue
+      description: URL or file path (e.g. `README.md`, `tinpyui-docs.md`, `DATABASE_AND_CONNECTIONS_GUIDE.md`).
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem_or_suggestion
+    attributes:
+      label: Description of the Problem / Proposed Improvement
+      description: What is missing, unclear, or incorrect?
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: will_contribute
+    attributes:
+      label: Contribution
+      options:
+        - label: I am willing to submit a PR to update this documentation!
+          required: false

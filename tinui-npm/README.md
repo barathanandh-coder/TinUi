@@ -1,8 +1,8 @@
 # TinPyUI
 
-> The WebAssembly UI framework that compiles **Pythonic, indentation-based syntax** into blazing-fast native DOM.
+> The WebAssembly UI framework that compiles **Pythonic, indentation-based syntax** into blazing-fast native DOM, WebGL shaders, and multi-platform native apps.
 
-[![npm](https://img.shields.io/badge/npm-tinpyui-v1.6.0-cyan)](https://www.npmjs.com/package/tinpyui)
+[![npm](https://img.shields.io/badge/npm-tinpyui-v1.7.0-cyan)](https://www.npmjs.com/package/tinpyui)
 [![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/barathanandh-coder/tinui/blob/main/LICENSE)
 
 ---
@@ -25,13 +25,17 @@ component Main():
         NeonButton(text="Get Started", color="neon-cyan")
 ```
 
-### WebAssembly Runtime
+### WebAssembly & Native Desktop Dual-Engine
 
-A Go-compiled WASM engine executes your UI logic at near-native speed. One install gives you a compiler, dev server, and runtime — zero external dependencies.
+A Go-compiled WASM engine executes your UI logic at near-native speed. On desktop, an anonymous 4MB shared memory C-FFI pipeline talks directly to native Windows (DirectX), macOS (Metal), and Linux (GTK) window hosts with sub-millisecond latency.
 
-### 3D & Animation Ready
+### 3D, Shaders & Animation Ready
 
-Built-in components for 3D scenes, particle systems, scroll-triggered animations, and glassmorphism — no external libraries needed.
+Built-in components for 3D scenes, particle systems, GLSL fragment shaders (Bloom, Cyber Mesh, Volumetric Fog, Fluid Particles), scroll-triggered animations, and glassmorphism.
+
+### Omni-Platform Packaging
+
+Package to **Web (WASM)**, **Apple iOS (Xcode / Swift / WKWebView)**, **Android (Gradle / APK)**, and **Desktop (standalone native binary)** with 1 command.
 
 ---
 
@@ -56,149 +60,47 @@ cd my-app
 tinpyui dev src/index.tin
 ```
 
-Or manually:
-
-```bash
-tinpyui compile src/index.tin
-tinpyui serve
-```
-
-Then open [http://localhost:3000](http://localhost:3000)
-
 ---
 
-## 📝 Syntax Overview
-
-### Components
-
-```tin
-# Self-closing
-Text(text="Hello", color="white")
-
-# With children (note the colon)
-Section(align="center"):
-    Text(text="Title")
-    Text(text="Subtitle")
-```
-
-### State & Events
-
-```tin
-component Counter():
-    state:
-        count = 0
-
-    Row(gap=12, align="center"):
-        Button(text="-", onClick="decrement")
-        Text(text="Count: " + count, size="large")
-        Button(text="+", onClick="increment")
-
-    function decrement():
-        count = count - 1
-
-    function increment():
-        count = count + 1
-```
-
-### Two-Way Binding
-
-```tin
-Input(placeholder="Type here", dataBind="username")
-Text(text="Hello, " + username)
-```
-
-### Conditionals
-
-```tin
-if isLoggedIn:
-    Text(text="Welcome back!")
-else:
-    Button(text="Log In", action="login")
-```
-
-### Loops
-
-```tin
-for product in products:
-    ProductCard(key=product.id, name=product.name, price=product.price)
-```
-
-### Custom Components
-
-```tin
-component Button(text, color="neon-cyan"):
-    Text(
-        text=text,
-        color="black",
-        bg=color,
-        padding="12px 24px",
-        radius=8,
-        weight="bold"
-    )
-
-# Usage
-Button(text="Click Me", color="neon-pink")
-```
-
----
-
-## 🎨 Built-in Components
+## 🧱 Component Reference
 
 ### Layout
 | Component | Purpose |
 |-----------|---------|
-| `Section` | Content section with id, padding, alignment |
-| `Row` | Horizontal flex container |
-| `Column` | Vertical flex container |
-| `Grid` | CSS grid layout |
-| `Spacer` | Empty space |
+| `Section` | Full-width container with padding & alignment |
+| `Row` | Flexbox row with gap & alignment |
+| `Column` | Flexbox column with gap & alignment |
+| `Spacer` | Fixed vertical or horizontal space |
+| `Divider` | Styled horizontal line |
+| `Container` | Centered max-width content wrapper |
 
-### UI
+### Enterprise & Data (v1.7.0)
 | Component | Purpose |
 |-----------|---------|
-| `Text` | Typography with color, size, weight |
-| `Navbar` | Top navigation bar |
-| `NavLink` | Navigation anchor link |
-| `Footer` | Page footer |
-| `Input` | Form input with data binding |
-| `Button` | Clickable button |
+| `DataGrid` | High-volume virtualized table with search, column sorting, pagination, and CSV/JSON export |
+| `AIChat` | Streaming token LLM conversation container with Markdown and 1-click code copying |
+| `ColorPicker` | Interactive Hex/RGB/HSL picker with opacity slider and palette swatches |
+| `DatePicker` & `Calendar` | Interactive monthly calendar matrix and date selection dropdown |
+| `LineChart`, `BarChart`, `DonutChart` | Declarative responsive vector SVG charts with gradients and tooltips |
+| `TreeView` & `TreeNode` | Collapsible nested hierarchical tree view |
+| `LiveDataTable` & `AutoCRUD` | 1-line reactive tables auto-wired to database models |
 
-### Visual
+### Interactive Controls
 | Component | Purpose |
 |-----------|---------|
-| `AnimatedBackground` | Dynamic animated backgrounds |
-| `GradientText` | Gradient-colored text |
-| `NeonButton` | Glowing neon button |
-| `BlackHoleLogo` | Animated black hole with accretion disk |
-| `NeonBadge` | Glowing status badge |
-| `NeonBox` | Glowing container box |
+| `Button` | Interactive clickable button with glow states |
+| `Input` | Two-way data-bound text input |
+| `Slider` | Smooth numeric value slider |
+| `Switch` | Animated toggle switch |
+| `ProgressBar` | Progress indicator with gradient styling |
 
-### Cards
-| Component | Purpose |
-|-----------|---------|
-| `FeatureCard` | Icon + title + description card |
-| `ReviewCard` | Avatar + stars + quote card |
-| `DemoCard` | Titled demo container |
-| `GlassCard` | Glassmorphism backdrop-blur card |
-| `TiltCard` | 3D tilt-on-hover card |
-
-### Animation
-| Component | Purpose |
-|-----------|---------|
-| `ScrollTrigger` | Scroll-based animation triggers |
-| `ParallaxLayer` | Multi-layer parallax scrolling |
-| `TextReveal` | Character-by-character text reveal |
-| `InfiniteMarquee` | Infinite scrolling text |
-| `MorphShape` | SVG path morphing |
-
-### 3D
+### 3D & Shaders
 | Component | Purpose |
 |-----------|---------|
 | `Scene3D` | WebGL 3D scene container |
-| `Mesh3D` | 3D mesh objects (box, sphere, torus, etc.) |
-| `Light3D` | 3D lighting (point, directional, spot) |
+| `Mesh3D` | 3D mesh objects (box, sphere, torus) |
 | `ParticleSystem3D` | GPU particle effects |
-| `Model3D` | Load GLTF/GLB/OBJ models |
+| `AnimatedBackground` | Fullscreen WebGL shader background (Bloom, Cyber Mesh, Fog) |
 
 ---
 
@@ -207,41 +109,46 @@ Button(text="Click Me", color="neon-pink")
 | Command | Description |
 |---------|-------------|
 | `tinpyui init [dir]` | Scaffold a new project |
-| `tinpyui compile <file>` | Compile `.tin` to IR + assets |
+| `tinpyui compile <file>` | Compile `.tin` to IR + static assets |
 | `tinpyui dev <file>` | Dev server with file watching & live reload |
-| `tinpyui serve [dir]` | Start static file server on port 3000 |
-| `tinpyui --version` | Show version |
+| `tinpyui repl` | Interactive Python REPL & State Inspector |
+| `tinpyui build --web` | Compile production WebAssembly bundle |
+| `tinpyui build --ios` | Generate standalone Apple iOS Xcode project |
+| `tinpyui build --mobile` | Generate standalone Android Gradle project & APK |
+| `tinpyui build --desktop` | Build standalone native desktop executable bundle |
+| `tinpyui --version` | Show version (`v1.7.0`) |
 | `tinpyui --help` | Show help |
 
 ---
 
-## 🧩 Project Structure
+## 🗄️ Universal Reactive Database Suite
 
-```
-my-app/
-├── src/
-│   └── index.tin          # Your app source (EDIT THIS)
-├── public/                # Generated by compiler (DO NOT EDIT)
-│   ├── index.html
-│   ├── wasm_exec.js
-│   ├── tinui_engine.wasm
-│   └── app.ir.json
-├── tinpyui.config.json    # Compiler config
-└── app.py                 # Optional Flask server
-```
+Connect to any database in 1 line with automatic reactive UI updates:
+```python
+import tinpyui as tin
 
-> **Rule:** Only edit files in `src/`. Everything in `public/` is auto-generated by `tinpyui compile`.
+# PostgreSQL
+pg = tin.connect("postgres://user:pass@localhost:5432/db")
+
+# MongoDB
+mongo = tin.connect("mongodb://localhost:27017/db")
+
+# Redis (Pub/Sub signals + caching)
+redis = tin.connect("redis://localhost:6379/0")
+
+# DuckDB (Vectorized analytics)
+analytics = tin.connect("duckdb://analytics.db")
+
+# SQLite & In-Memory
+db = tin.connect("sqlite:///app.db")
+ram = tin.connect(":memory:")
+```
 
 ---
 
 ## 📦 IDE Support
 
-TinPyUI ships with a Python type stub file (`tinpyui.pyi`) for full autocomplete support in VS Code and PyCharm.
-
-```bash
-# VS Code will automatically pick up tinpyui.pyi
-# Make sure your .tin files are associated with Python syntax
-```
+TinPyUI ships with Python type stub files (`tinpyui.pyi`) for full autocomplete and diagnostics in VS Code, Cursor, and PyCharm.
 
 ---
 
@@ -250,8 +157,9 @@ TinPyUI ships with a Python type stub file (`tinpyui.pyi`) for full autocomplete
 | Resource | URL |
 |----------|-----|
 | npm Package | [https://www.npmjs.com/package/tinpyui](https://www.npmjs.com/package/tinpyui) |
+| PyPI Package | [https://pypi.org/project/tinpyui-ff/](https://pypi.org/project/tinpyui-ff/) |
 | GitHub Repo | [https://github.com/barathanandh-coder/tinui](https://github.com/barathanandh-coder/tinui) |
-| Issues | [https://github.com/barathanandh-coder/tinui/issues](https://github.com/barathanandh-coder/tinui/issues) |
+| Documentation | [https://github.com/barathanandh-coder/tinui/blob/main/tinpyui-docs.md](https://github.com/barathanandh-coder/tinui/blob/main/tinpyui-docs.md) |
 
 ---
 

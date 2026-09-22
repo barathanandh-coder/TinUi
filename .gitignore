@@ -5,6 +5,12 @@
 *.so
 *.dylib
 *.wasm
+!dist_wasm/*.wasm
+!public/*.wasm
+
+# Wasm bindgen temporary output
+pkg/
+pkg_nomodules/
 
 # Compiler & IR Intermediates
 *.ir.json
@@ -14,11 +20,17 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Python packaging & build artifacts
+# Build & packaging artifacts
 build/
 dist/
+**/build/
+**/dist/
+target/
+**/target/
 *.egg-info/
+**/*.egg-info/
 *.egg
+scratch/
 
 # Databases & temporary test files
 *.db-journal
@@ -35,3 +47,7 @@ test.db
 my-test-app/
 test-live/
 test_init/
+
+# Wasm bindgen temporary toolchains
+wasm-bindgen*/
+*.tar.gz

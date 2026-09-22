@@ -1,0 +1,64 @@
+name: 💡 Feature Request
+description: Propose a new feature, component, or enhancement for TinPyUI
+title: "[FEAT]: <short summary>"
+labels: ["enhancement", "feature-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We love new ideas and community contributions! Please describe the feature and its use case.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Target Subsystem
+      description: Which part of the framework will this feature enhance?
+      options:
+        - "Declarative UI Component Catalog (Python / .tin)"
+        - "WebGPU / WebGL Shader Surface Layer"
+        - "Go Compiler & AOT Generator"
+        - "Database Suite (New DB Connectors / ORM features)"
+        - "State Management & Physics Engine"
+        - "Native C++ OS Integration (Win32 / macOS / Linux)"
+        - "CLI Dev Tools & Scaffolding"
+        - "VS Code Extension & Syntax Highlighting"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Motivation
+      description: Is your feature request related to a problem or a new capability?
+      placeholder: I want to build audio visualization applications, but TinPyUI currently lacks an AudioWaveform component...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_solution
+    attributes:
+      label: Proposed Solution & API Design
+      description: Describe the solution, pseudo-code, or proposed Python/.tin syntax.
+      placeholder: |
+        ```python
+        with tin.Window(title="Audio App"):
+            tin.AudioWaveform(stream=audio_signal, color="neon-cyan", bars=64)
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative solutions or workarounds you've explored?
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution_willingness
+    attributes:
+      label: Contribution
+      options:
+        - label: I am willing to submit a Pull Request for this feature!
+          required: false

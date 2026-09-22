@@ -1,6 +1,6 @@
 {
   "name": "tinpyui",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "The official compiler and CLI for the TinUI framework. A WebAssembly-powered UI framework with Pythonic, indentation-based syntax.",
   "main": "index.js",
   "bin": {
@@ -14,6 +14,17 @@
   "keywords": [
     "tinui",
     "tinpyui",
+    "zero-dom",
+    "python-gui",
+    "streamlit-alternative",
+    "flet-alternative",
+    "reflex-alternative",
+    "rust-wasm",
+    "indentation-syntax-compiler",
+    "wasm-frontend-framework",
+    "webgl-animation-compiler",
+    "hardware-accelerated",
+    "aot-compiler",
     "wasm",
     "webassembly",
     "framework",

@@ -1,0 +1,107 @@
+name: 🐛 Bug Report
+description: Report a bug, crash, or unexpected behavior in TinPyUI
+title: "[BUG]: <short summary>"
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue! Please search existing issues before submitting to ensure it has not been reported already.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component / Subsystem
+      description: Which part of the framework is encountering the issue?
+      options:
+        - "Python Declarative Runtime (tinpyui.py)"
+        - "Go Compiler / Lexer / Parser (compiler/)"
+        - "WebAssembly / WebGPU Kernel (wasm_engine/)"
+        - "Native C++ Desktop Shell (native/engine_core.cc)"
+        - "CLI & Project Scaffolding (main.go / cli/)"
+        - "Database Suite (tin.connect / PostgreSQL / Mongo / SQLite / RAM)"
+        - "Reactive Signals & Spring Physics Engine"
+        - "VS Code Extension (tinui-syntax)"
+        - "NPM Distribution Package (tinui-npm)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the Bug
+      description: A clear and concise description of what the bug is.
+      placeholder: When calling tin.connect() with a custom SQLite path...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce & Minimal Code Example
+      description: Minimal, reproducible Python or .tin code snippet.
+      placeholder: |
+        ```python
+        import tinpyui as tin
+
+        app = tin.Window(title="Bug Test")
+        with app:
+            tin.Button("Click Me")
+        tin.run(app)
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: The window should launch and render without throwing an exception.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual_logs
+    attributes:
+      label: Actual Behavior & Error Logs / Traceback
+      description: Paste any error messages, traceback outputs, or browser developer console logs here.
+      placeholder: |
+        Traceback (most recent call last):
+          ...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - "Windows 11 / 10"
+        - "macOS (Apple Silicon M1/M2/M3)"
+        - "macOS (Intel x86_64)"
+        - "Linux (Ubuntu / Debian)"
+        - "Linux (Arch / Fedora / Other)"
+        - "Android / iOS"
+        - "Web Browser (Chrome / Edge / Firefox / Safari)"
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: TinPyUI Version & Runtime Details
+      description: Output of `python -c "import tinpyui; print(tinpyui.__version__)"` and `go version`.
+      placeholder: "TinPyUI v1.6.1, Python 3.11.4, Go 1.21.3"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmation
+      options:
+        - label: I have searched the existing issues to make sure this is not a duplicate.
+          required: true
+        - label: I have provided a minimal reproduction example.
+          required: true

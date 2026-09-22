@@ -1,0 +1,44 @@
+{
+  "Component Definition": {
+    "prefix": "comp",
+    "body": [
+      "component ${1:Main}():",
+      "    Container(class_=\"min-h-screen p-8\"):",
+      "        $0"
+    ],
+    "description": "Create a new TinPyUI component"
+  },
+  "Animated Background": {
+    "prefix": "anim_bg",
+    "body": [
+      "AnimatedBackground(effect=\"${1|black_hole,pillars_of_creation,supernova_nebula,cyber_mesh,aurora_flux|}\", speed=\"1.0\"):",
+      "    $0"
+    ],
+    "description": "Hardware WebGL 2.0 animated background shader"
+  },
+  "Shader Layer": {
+    "prefix": "shader",
+    "body": [
+      "ShaderLayer(effect=\"${1|black_hole,pillars_of_creation,supernova_nebula,cyber_mesh,aurora_flux,fluid_particles,volumetric_fog,bloom|}\", speed=\"1.0\")"
+    ],
+    "description": "Embed an inline WebGL shader layer"
+  },
+  "Card with Morphism": {
+    "prefix": "card_morph",
+    "body": [
+      "Card(morphism=\"${1|glass,neu,clay,holo|}\", reveal_on_scroll=True, class_=\"p-6 rounded-2xl\"):",
+      "    Heading(text=\"${2:Card Title}\")",
+      "    Text(text=\"${3:Description}\")",
+      "    $0"
+    ],
+    "description": "Card with modern UI morphism and scroll reveal"
+  },
+  "Responsive Grid": {
+    "prefix": "grid",
+    "body": [
+      "Grid(cols=\"${1:3}\", gap=${2:24}):",
+      "    $0"
+    ],
+    "description": "Responsive CSS Grid container"
+  }
+}

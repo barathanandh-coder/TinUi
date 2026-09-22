@@ -32,18 +32,25 @@ jobs:
       - name: Build TinUI CLI
         run: go build -o tinui .
 
-      - name: Compile WebAssembly Engine
+      - name: Prepare WebAssembly Engine
         run: |
           mkdir -p public
-          GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o public/tinui_engine.wasm ./wasm_engine
+          if [ -f "dist_wasm/tin_wasm_engine_bg.wasm" ]; then
+            echo "Deploying ultra-compact Rust WebAssembly core engine (213KB)..."
+            cp dist_wasm/tin_wasm_engine_bg.wasm public/tinui_engine.wasm
+            cp dist_wasm/tin_wasm_engine_bg.wasm public/tin_wasm_engine_bg.wasm
+            if [ -f "dist_wasm/tin_wasm_engine.js" ]; then cp dist_wasm/tin_wasm_engine.js public/tin_wasm_engine.js; fi
+          elif [ ! -f "public/tinui_engine.wasm" ]; then
+            GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o public/tinui_engine.wasm ./wasm_engine
+          fi
 
       - name: Compile UI Template
         run: |
           if [ -f "index.tin" ]; then
-            ./tinui compile index.tin --hydrate || true
+            ./tinui compile index.tin || true
             if [ -f "index.ir.json" ]; then cp index.ir.json public/app.ir.json; fi
           elif [ -f "main.tin" ]; then
-            ./tinui compile main.tin --hydrate || true
+            ./tinui compile main.tin || true
             if [ -f "main.ir.json" ]; then cp main.ir.json public/app.ir.json; fi
           fi
 
@@ -52,6 +59,9 @@ jobs:
           mkdir -p public
           if [ -f "tin-runtime.js" ]; then cp tin-runtime.js public/tin-runtime.js; fi
           if [ -f "assets/app_icon.png" ]; then cp assets/app_icon.png public/app_icon.png; fi
+          if [ -f "llms.txt" ]; then cp llms.txt public/llms.txt; fi
+          if [ -f "robots.txt" ]; then cp robots.txt public/robots.txt; fi
+          if [ -f "sitemap.xml" ]; then cp sitemap.xml public/sitemap.xml; fi
           if [ -f "$(go env GOROOT)/misc/wasm/wasm_exec.js" ]; then
             cp $(go env GOROOT)/misc/wasm/wasm_exec.js public/
           elif [ -f "$(go env GOROOT)/lib/wasm/wasm_exec.js" ]; then

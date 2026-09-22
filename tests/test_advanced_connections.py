@@ -34,12 +34,9 @@ class TestAdvancedConnections(unittest.TestCase):
         sse_sig = tin.use_sse("https://stream.wikimedia.org/v2/stream/recentchange")
         self.assertIsInstance(sse_sig, tin.Signal)
 
-    @patch("tkinter.filedialog.askopenfilename")
-    @patch("tkinter.filedialog.asksaveasfilename")
+    @patch.object(tin.PlatformBridge, "_native_open_dialog", return_value="/path/to/file.txt")
+    @patch.object(tin.PlatformBridge, "_native_save_dialog", return_value="/path/to/save.txt")
     def test_platform_bridge_features(self, mock_save, mock_open):
-        mock_open.return_value = "/path/to/file.txt"
-        mock_save.return_value = "/path/to/save.txt"
-
         path = tin.PlatformBridge.open_file_dialog()
         self.assertEqual(path, "/path/to/file.txt")
 
@@ -57,12 +54,14 @@ class TestAdvancedConnections(unittest.TestCase):
                 tin.Heading(text="Welcome to Dynamic IR")
                 tin.Button(text="Click Me", variant="neon-cyan")
 
-        ir_path = "test_app.ir.json"
-        app.export_ir(ir_path)
-        
-        self.assertTrue(os.path.exists(ir_path))
-        with open(ir_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmpdir:
+            ir_path = os.path.join(tmpdir, "test_app.ir.json")
+            app.export_ir(ir_path)
+            
+            self.assertTrue(os.path.exists(ir_path))
+            with open(ir_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
 
         self.assertEqual(data["title"], "Test Dynamic IR App")
         self.assertEqual(data["width"], 1280)

@@ -5,6 +5,13 @@ Verifies that all 5 target devices build and execute correctly without errors.
 
 import unittest
 import os
+import sys
+from pathlib import Path
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 import tinpyui as tin
 from database.schema import seed_database, DB_FILE
 from backend.server import telemetry_service
@@ -107,15 +114,18 @@ class TestV16SampleProject(unittest.TestCase):
         app.target_name = "Android Mobile"
         app.target_type = "mobile_android"
         app.build()
-        app._ensure_public_assets("public")
-        
-        self.assertTrue(os.path.exists("public/index.html"))
-        self.assertTrue(os.path.exists("public/app.ir.json"))
-        with open("public/index.html", "r", encoding="utf-8") as f:
-            html = f.read()
-        self.assertIn("TinPyUI Multi-Device Engine", html)
-        self.assertIn("tin-device-container", html)
-        self.assertIn("tin-device-phone", html)
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_pub = os.path.join(tmpdir, "public")
+            app._ensure_public_assets(test_pub)
+            
+            self.assertTrue(os.path.exists(os.path.join(test_pub, "index.html")))
+            self.assertTrue(os.path.exists(os.path.join(test_pub, "app.ir.json")))
+            with open(os.path.join(test_pub, "index.html"), "r", encoding="utf-8") as f:
+                html = f.read()
+            self.assertIn("TinPyUI Multi-Device Engine", html)
+            self.assertIn("tin-device-container", html)
+            self.assertIn("tin-device-phone", html)
 
 if __name__ == "__main__":
     unittest.main()

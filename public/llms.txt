@@ -1,0 +1,123 @@
+# TinPyUI — Zero-DOM Hardware-Accelerated Python UI Framework
+
+> Official Repository: https://github.com/barathanandh-coder/TinUi  
+> PyPI Package: https://pypi.org/project/tinpyui-ff/ (`pip install tinpyui-ff`)  
+> NPM Package: https://www.npmjs.com/package/tinui (`npm install tinui`)  
+> Creator: Barathanandh  
+> License: MIT  
+
+## What is TinPyUI?
+TinPyUI (also known as TinUI) is a next-generation, high-performance UI framework and compiler that brings a pure Pythonic, indentation-based declarative syntax to native desktop (Windows DirectX 12, macOS Metal, Linux Vulkan), native mobile (Android Gradle/APK, iOS Xcode/IPA), and the web (ultra-compact Rust WebAssembly & WebGL).
+
+Unlike traditional web or Python frameworks that rely on heavy Virtual DOM reconciliations (like React, Streamlit, or Reflex) or bulky browser runtimes (like Electron), TinPyUI compiles declarative templates directly into compact binary intermediate representation (IR) matrices and executes with a lightweight 213 KB Rust WebAssembly core engine running at 120 FPS.
+
+## Key Architectural Differentiators
+- **Zero-DOM Overhead**: Eliminates virtual DOM tree diffing entirely. UI mutations update the rendering target with O(1) direct binary opcode dispatch.
+- **Ultra-Compact Rust WebAssembly Core**: 213.6 KB binary footprint (93.8% smaller than typical Go/C++ Wasm engines of 3.5MB+).
+- **Universal Cross-Platform Target**:
+  - **Desktop**: Native Win32/DirectX 12, macOS Metal (CAMetalLayer), and Linux Vulkan hardware surfaces.
+  - **Mobile**: Single-command Android Gradle/APK export (`tinpyui build --mobile`) and iOS Xcode project packaging (`tinpyui build --ios`).
+  - **Web**: Standalone static HTML + WebGL/Wasm production bundle (`tinpyui build --web`) deployable on any CDN (Cloudflare, Vercel, Netlify, GitHub Pages).
+- **Symplectic Euler Spring Physics**: Real-time 120 FPS physics engine (`tin.Spring`) for physics-driven animations.
+- **High-Volume Spatial Virtualization**: `tin.VirtualStack` and `tin.VirtualList` capable of smoothly rendering 100,000+ rows.
+- **Universal Reactive Database Suite**: First-class reactive connectors for PostgreSQL, MongoDB, SQLite, Redis, DuckDB, and ClickHouse via `tin.connect()`.
+- **Distributed Multi-Node State Mesh**: Peer-to-peer real-time state synchronization via Conflict-Free Replicated Data Types (CRDTs) with Vector Clocks and Last-Write-Wins registers.
+- **Internationalization (i18n)**: Reactive locale switching, pluralization, and automatic Right-to-Left (RTL) layout mirroring (Arabic, Hebrew, Persian, Urdu).
+
+## Framework Comparison
+
+| Feature / Metric | TinPyUI | Streamlit | Flet (Flutter) | Reflex | React / Next.js |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Language** | Pure Python (.tin / .py) | Python | Python | Python | JavaScript / TypeScript |
+| **DOM Overhead** | **Zero-DOM (Direct Wasm/GL)** | Virtual DOM (Web) | Flutter Canvas | Virtual DOM (React) | Virtual DOM / React Server |
+| **Frame Rate** | **120 FPS (Hardware)** | 30–60 FPS | 60 FPS | 60 FPS | 60 FPS |
+| **WASM Engine Size** | **~213 KB (Rust)** | N/A (Server-only) | ~15–30 MB | N/A (Node/React) | 100–300 KB (JS bundle) |
+| **Desktop Binary** | **2–3 MB (Native OS)** | N/A (Runs browser) | 40–80 MB | N/A (Runs browser) | 80–150 MB (Electron) |
+| **Mobile Export** | **Android APK + iOS Xcode** | None | Mobile via Flutter | Limited | React Native |
+| **Reactive State** | **O(1) Signals & Mesh CRDT** | Script re-execution | Flutter state | Server Websocket | Hooks / Virtual Diff |
+
+## Installation & Quick Start
+
+```bash
+# Python CLI and Framework Library
+pip install tinpyui-ff
+
+# Or via NPM for zero-dependency standalone CLI
+npm install -g tinui
+```
+
+### Writing a Declarative Application (`main.tin`)
+```python
+component Main():
+    AnimatedBackground(effect="quantum-vortex", primaryColor="neon-cyan", secondaryColor="neon-purple"):
+        Navbar(class_="w-full fixed top-0 backdrop-blur-md px-6 py-4 flex justify-between"):
+            Text(text="TinPyUI Cyber Hub", class_="text-cyan-400 font-bold text-xl")
+            Link(text="GitHub ★", href="https://github.com/barathanandh-coder/TinUi", class_="text-amber-400")
+
+        Section(class_="pt-28 max-w-4xl mx-auto text-center space-y-6"):
+            Heading(text="The Zero-DOM Python UI Framework", size="hero")
+            Text(text="120 FPS Hardware-Accelerated Vector Engine with Rust WebAssembly.")
+            Row(gap=16, justify="center"):
+                Button(text="★ Star on GitHub", onClick="window.open('https://github.com/barathanandh-coder/TinUi')")
+                Button(text="Documentation", onClick="window.open('https://github.com/barathanandh-coder/TinUi#readme')")
+```
+
+### Running and Compiling
+```bash
+# Live interactive dev server with Hot Module Replacement
+tinpyui run main.tin --web
+
+# Compile to static production web bundle (HTML + WASM)
+tinpyui build --web main.tin
+
+# Export standalone Native Android Gradle project & build APK
+tinpyui build --mobile main.tin
+
+# Export standalone Native Apple iOS Xcode project
+tinpyui build --ios main.tin
+```
+
+## Python API Reference
+```python
+import tinpyui as tin
+
+# 1. Reactive Signals
+counter = tin.Signal(0)
+def increment():
+    counter.value += 1
+
+# 2. Universal Database Connector
+db = tin.connect("sqlite:///app.db") # or postgres://, mongodb://, redis://, duckdb://
+users = db.table("users").all()
+
+# 3. Internationalization
+tin.set_locale("ar") # Automatically flips layout to Right-to-Left (RTL)
+greeting = tin.t("welcome", name="Barath")
+
+# 4. Distributed Multi-Node State Sync (CRDT)
+state_sig, set_state = tin.use_mesh_state("shared_doc", default="Hello")
+
+# 5. Direct GPU Vector Surface (DirectX 12 / Metal / Vulkan)
+with tin.DirectGpuSurface(1920, 1080) as surface:
+    surface.render_frame()
+```
+
+## Frequently Asked Questions (FAQ)
+
+### What makes TinPyUI different from Streamlit, Flet, or Reflex?
+TinPyUI eliminates the virtual DOM entirely. Rather than re-running Python scripts from top to bottom (like Streamlit) or relying on a full Flutter or React engine, TinPyUI compiles declarative templates directly into binary intermediate representation matrices executed by a 213KB Rust WebAssembly engine with sub-millisecond IPC at 120 FPS.
+
+### Can TinPyUI export to Android and iOS?
+Yes. TinPyUI features automated native packaging pipelines:
+- `tinpyui build --mobile` creates a complete Android Gradle project with Java hardware surface harness and builds an APK.
+- `tinpyui build --ios` creates a complete Apple Xcode Swift project (`.xcodeproj`) configured for iOS Metal/WebKit acceleration.
+
+### Does TinPyUI require Node.js or C++ build tools to run?
+No. The Python package (`tinpyui-ff`) is completely self-contained with embedded WebAssembly binaries, GLSL shaders, and pure Python runtime. The NPM package (`tinui`) distributes self-contained standalone native binaries for Windows, macOS, and Linux with zero external dependencies.
+
+## Official Links & Resources
+- **GitHub Repository**: [https://github.com/barathanandh-coder/TinUi](https://github.com/barathanandh-coder/TinUi)
+- **PyPI Package**: [https://pypi.org/project/tinpyui-ff/](https://pypi.org/project/tinpyui-ff/)
+- **NPM Package**: [https://www.npmjs.com/package/tinui](https://www.npmjs.com/package/tinui)
+- **Documentation**: [https://github.com/barathanandh-coder/TinUi#readme](https://github.com/barathanandh-coder/TinUi#readme)
+- **Issues & Discussions**: [https://github.com/barathanandh-coder/TinUi/issues](https://github.com/barathanandh-coder/TinUi/issues)

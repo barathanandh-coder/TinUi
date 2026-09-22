@@ -279,6 +279,11 @@ func main() {
 	js.Global().Set("TinUISnapshot", js.FuncOf(takeSnapshot))
 	js.Global().Set("TinUIRestore", js.FuncOf(restoreSnapshot))
 
+	// Dynamic Shader Hot-Reload & Diagnostics API
+	js.Global().Set("reloadShader", js.FuncOf(jsReloadShader))
+	js.Global().Set("TinUIReloadShader", js.FuncOf(jsReloadShader))
+	js.Global().Set("TinUICompileShader", js.FuncOf(jsCompileShaderTest))
+
 	<-make(chan struct{})
 }
 
@@ -400,7 +405,13 @@ func bootEngine(this js.Value, args []js.Value) interface{} {
 		return nil
 	}))
 
-	domRefs[0] = document.Call("getElementById", "tinui-root")
+	rootEl := document.Call("getElementById", "tinui-root")
+	if !rootEl.IsNull() && !rootEl.IsUndefined() {
+		rootEl.Set("innerHTML", "")
+		domRefs[0] = rootEl
+	} else {
+		domRefs[0] = document.Get("body")
+	}
 
 	for _, inst := range blueprint.Nodes {
 		executeInstruction(inst, document, nil)
@@ -679,13 +690,8 @@ func executeInstruction(inst Instruction, document js.Value, scope map[string]in
 	switch inst.Op {
 	case "CREATE_NODE":
 		var el js.Value
-		existing := document.Call("getElementById", fmt.Sprintf("tin-node-%d", inst.ID))
-		if !existing.IsNull() && !existing.IsUndefined() {
-			el = existing
-		} else {
-			el = document.Call("createElement", inst.Tag)
-			el.Call("setAttribute", "id", fmt.Sprintf("tin-node-%d", inst.ID))
-		}
+		el = document.Call("createElement", inst.Tag)
+		el.Call("setAttribute", "id", fmt.Sprintf("tin-node-%d", inst.ID))
 		if inst.IsHidden {
 			el.Get("style").Set("display", "none")
 		}
@@ -707,35 +713,51 @@ func executeInstruction(inst Instruction, document js.Value, scope map[string]in
 		domRefs[inst.ID].Set("innerText", initialText)
 
 	case "SET_TEXT":
-		domRefs[inst.ID].Set("innerText", inst.Value)
+		if el, ok := domRefs[inst.ID]; ok && !el.IsNull() && !el.IsUndefined() {
+			tag := el.Get("tagName").String()
+			if tag == "BUTTON" || tag == "P" || tag == "SPAN" || tag == "A" || tag == "H1" || tag == "H2" || tag == "H3" || tag == "H4" || tag == "H5" || tag == "H6" {
+				el.Set("textContent", inst.Value)
+			} else {
+				el.Set("innerText", inst.Value)
+			}
+		}
 
 	case "SET_ATTRIBUTE":
-		domRefs[inst.ID].Call("setAttribute", inst.Key, inst.Value)
-		if inst.Key == "data-shader-code" {
-			initWebGLShader(domRefs[inst.ID], inst.Value)
-		}
-		if inst.Key == "data-scroll-reveal" {
-			offsetAttr := domRefs[inst.ID].Call("getAttribute", "data-reveal-offset")
-			offset := "center"
-			if !offsetAttr.IsNull() && !offsetAttr.IsUndefined() {
-				offset = offsetAttr.String()
+		if el, ok := domRefs[inst.ID]; ok && !el.IsNull() && !el.IsUndefined() {
+			el.Call("setAttribute", inst.Key, inst.Value)
+			if inst.Key == "style" {
+				el.Get("style").Set("cssText", inst.Value)
 			}
-			if offset == "early" {
-				earlyObserver.Call("observe", domRefs[inst.ID])
-			} else if offset == "late" {
-				lateObserver.Call("observe", domRefs[inst.ID])
-			} else {
-				centerObserver.Call("observe", domRefs[inst.ID])
+			if inst.Key == "data-shader-code" {
+				initWebGLShader(el, inst.Value)
 			}
-		}
-		if inst.Key == "data-parallax-speed" {
-			if speed, err := strconv.ParseFloat(inst.Value, 64); err == nil {
-				ParallaxNodes = append(ParallaxNodes, ParallaxNode{ID: inst.ID, Speed: speed})
+			if inst.Key == "data-scroll-reveal" {
+				offsetAttr := el.Call("getAttribute", "data-reveal-offset")
+				offset := "center"
+				if !offsetAttr.IsNull() && !offsetAttr.IsUndefined() {
+					offset = offsetAttr.String()
+				}
+				if offset == "early" {
+					earlyObserver.Call("observe", el)
+				} else if offset == "late" {
+					lateObserver.Call("observe", el)
+				} else {
+					centerObserver.Call("observe", el)
+				}
+			}
+			if inst.Key == "data-parallax-speed" {
+				if speed, err := strconv.ParseFloat(inst.Value, 64); err == nil {
+					ParallaxNodes = append(ParallaxNodes, ParallaxNode{ID: inst.ID, Speed: speed})
+				}
 			}
 		}
 
 	case "APPEND_CHILD":
-		domRefs[inst.Parent].Call("appendChild", domRefs[inst.Child])
+		parentEl := domRefs[inst.Parent]
+		childEl := domRefs[inst.Child]
+		if !parentEl.IsNull() && !parentEl.IsUndefined() && !childEl.IsNull() && !childEl.IsUndefined() {
+			parentEl.Call("appendChild", childEl)
+		}
 
 	case "ADD_EVENT":
 		el := domRefs[inst.ID]
@@ -1308,13 +1330,538 @@ void main() {
 }
 `
 
+const defaultSDFBoxFragmentShader = `
+precision highp float;
+uniform vec2 u_resolution;
+uniform vec2 u_box_size;
+uniform float u_radius;
+uniform float u_border_width;
+uniform float u_shadow_softness;
+uniform vec2 u_shadow_offset;
+uniform vec4 u_bg_color;
+uniform vec4 u_border_color;
+uniform vec4 u_shadow_color;
+
+float sdRoundRect(vec2 p, vec2 b, float r) {
+    vec2 d = abs(p) - b + vec2(r);
+    return min(max(d.x, d.y), 0.0) + length(max(d, 0.0)) - r;
+}
+
+void main() {
+    vec2 uv = gl_FragCoord.xy - (u_resolution.xy * 0.5);
+    vec2 half_size = u_box_size * 0.5;
+    float box_dist = sdRoundRect(uv, half_size, u_radius);
+    float shadow_dist = sdRoundRect(uv - u_shadow_offset, half_size, u_radius);
+    float aa = 1.0;
+    float shadow_alpha = exp(-max(shadow_dist, 0.0) / max(u_shadow_softness, 0.001)) * u_shadow_color.a;
+    vec4 shadow = vec4(u_shadow_color.rgb, shadow_alpha);
+    float border_mask = 1.0 - smoothstep(0.0, aa, abs(box_dist + u_border_width * 0.5) - u_border_width * 0.5);
+    float box_mask = 1.0 - smoothstep(0.0, aa, box_dist);
+    vec4 final_color = mix(vec4(0.0), shadow, shadow.a);
+    final_color = mix(final_color, u_bg_color, box_mask * u_bg_color.a);
+    final_color = mix(final_color, u_border_color, border_mask * u_border_color.a);
+    gl_FragColor = final_color;
+}
+`
+
+const defaultUberVertexShader = `
+attribute vec2 position;
+attribute vec2 a_uv;
+attribute float a_type;
+
+uniform vec2 u_resolution;
+
+varying float v_type;
+varying vec2 v_uv;
+varying vec2 v_pos;
+
+void main() {
+    v_type = a_type;
+    v_uv = a_uv;
+    v_pos = position;
+    vec2 zeroToOne = position / u_resolution;
+    vec2 clipSpace = (zeroToOne * 2.0) - 1.0;
+    gl_Position = vec4(clipSpace.x, -clipSpace.y, 0.0, 1.0);
+}
+`
+
+const defaultUberFragmentShader = `
+#ifdef GL_OES_standard_derivatives
+#extension GL_OES_standard_derivatives : enable
+#endif
+
+precision highp float;
+
+varying float v_type;
+varying vec2 v_uv;
+varying vec2 v_pos;
+
+uniform sampler2D u_font_atlas;
+uniform vec4 u_color;
+uniform vec2 u_resolution;
+uniform vec2 u_box_size;
+uniform float u_radius;
+uniform float u_border_width;
+uniform vec4 u_border_color;
+uniform float u_shadow_softness;
+uniform vec2 u_shadow_offset;
+uniform vec4 u_shadow_color;
+
+float median(float r, float g, float b) {
+    return max(min(r, g), min(max(r, g), b));
+}
+
+float sdRoundRect(vec2 p, vec2 b, float r) {
+    vec2 d = abs(p) - b + vec2(r);
+    return min(max(d.x, d.y), 0.0) + length(max(d, 0.0)) - r;
+}
+
+void main() {
+    if (v_type < 0.5) {
+        vec2 half_size = u_box_size * 0.5;
+        float box_dist = sdRoundRect(v_pos, half_size, u_radius);
+        float shadow_dist = sdRoundRect(v_pos - u_shadow_offset, half_size, u_radius);
+        float aa = 1.0;
+        float shadow_alpha = exp(-max(shadow_dist, 0.0) / max(u_shadow_softness, 0.001)) * u_shadow_color.a;
+        vec4 shadow = vec4(u_shadow_color.rgb, shadow_alpha);
+        float border_mask = 1.0 - smoothstep(0.0, aa, abs(box_dist + u_border_width * 0.5) - u_border_width * 0.5);
+        float box_mask = 1.0 - smoothstep(0.0, aa, box_dist);
+        vec4 final_color = mix(vec4(0.0), shadow, shadow.a);
+        final_color = mix(final_color, u_color, box_mask * u_color.a);
+        final_color = mix(final_color, u_border_color, border_mask * u_border_color.a);
+        gl_FragColor = final_color;
+    } else {
+        vec3 msd = texture2D(u_font_atlas, v_uv).rgb;
+        float dist = median(msd.r, msd.g, msd.b) - 0.5;
+        #ifdef GL_OES_standard_derivatives
+        float fw = fwidth(dist);
+        #else
+        float fw = 0.05;
+        #endif
+        float opacity = clamp(dist / max(fw, 0.0001) + 0.5, 0.0, 1.0);
+        gl_FragColor = vec4(u_color.rgb, u_color.a * opacity);
+    }
+}
+`
+
+// compileShader interrogates the GPU immediately after compilation
+// and fires any syntax errors directly to the crash overlay.
+func compileShader(gl js.Value, shaderType js.Value, sourceCode string) (js.Value, error) {
+	// 1. Create and compile the shader
+	shader := gl.Call("createShader", shaderType)
+	gl.Call("shaderSource", shader, sourceCode)
+	gl.Call("compileShader", shader)
+
+	// 2. Interrogate the GPU: Did compilation succeed?
+	success := gl.Call("getShaderParameter", shader, gl.Get("COMPILE_STATUS")).Bool()
+
+	if !success {
+		// 3. Extract the exact GLSL syntax error from the GPU memory
+		gpuLog := gl.Call("getShaderInfoLog", shader).String()
+
+		// 4. Clean up the broken shader to prevent memory leaks
+		gl.Call("deleteShader", shader)
+
+		// 5. Fire this back to the HTML Error Overlay
+		if crashFn := js.Global().Get("crash"); !crashFn.IsUndefined() && !crashFn.IsNull() {
+			js.Global().Call("crash", "GLSL Compile Error:\n"+gpuLog)
+		} else {
+			fmt.Printf("[GPU PANIC] GLSL Syntax Error:\n%s\n", gpuLog)
+		}
+
+		return js.Null(), fmt.Errorf("shader compile failed: %s", gpuLog)
+	}
+
+	return shader, nil
+}
+
+// linkProgram validates program linking and logs diagnostics
+func linkProgram(gl js.Value, vertexShader js.Value, fragmentShader js.Value) (js.Value, error) {
+	shaderProgram := gl.Call("createProgram")
+	gl.Call("attachShader", shaderProgram, vertexShader)
+	gl.Call("attachShader", shaderProgram, fragmentShader)
+	gl.Call("linkProgram", shaderProgram)
+
+	linkSuccess := gl.Call("getProgramParameter", shaderProgram, gl.Get("LINK_STATUS")).Bool()
+	if !linkSuccess {
+		gpuLog := gl.Call("getProgramInfoLog", shaderProgram).String()
+		gl.Call("deleteProgram", shaderProgram)
+		if crashFn := js.Global().Get("crash"); !crashFn.IsUndefined() && !crashFn.IsNull() {
+			js.Global().Call("crash", "Shader Linking Failed:\n"+gpuLog)
+		} else {
+			fmt.Printf("[GPU PANIC] Shader Linking Failed:\n%s\n", gpuLog)
+		}
+		return js.Null(), fmt.Errorf("shader link failed: %s", gpuLog)
+	}
+
+	return shaderProgram, nil
+}
+
+type WebGLShaderInstance struct {
+	Canvas          js.Value
+	GL              js.Value
+	Program         js.Value
+	VertexShader    js.Value
+	FragShader      js.Value
+	QuadBuffer      js.Value
+	PositionLoc     js.Value
+	TimeLoc         js.Value
+	ResLoc          js.Value
+	MouseLoc        js.Value
+	BoxSizeLoc      js.Value
+	RadiusLoc       js.Value
+	BorderWidthLoc  js.Value
+	BorderColorLoc  js.Value
+	ShadowSoftLoc   js.Value
+	ShadowOffsetLoc js.Value
+	ShadowColorLoc  js.Value
+	BgColorLoc      js.Value
+	ColorLoc        js.Value
+	AnimFrameFunc   js.Func
+	AnimFrameId     js.Value
+	StartTime       float64
+	MouseX          float32
+	MouseY          float32
+	IsRunning       bool
+}
+
+var activeShaderInstances = make(map[string]*WebGLShaderInstance)
+
+func clearCrashOverlay() {
+	document := js.Global().Get("document")
+	if document.IsUndefined() || document.IsNull() {
+		return
+	}
+	overlay := document.Call("getElementById", "error-overlay")
+	if !overlay.IsNull() && !overlay.IsUndefined() {
+		overlay.Get("style").Set("display", "none")
+	}
+	canvas := document.Call("getElementById", "tin-canvas")
+	if !canvas.IsNull() && !canvas.IsUndefined() {
+		canvas.Get("style").Set("display", "block")
+	}
+	root := document.Call("getElementById", "tinui-root")
+	if !root.IsNull() && !root.IsUndefined() {
+		root.Get("style").Set("display", "block")
+	}
+}
+
+func createQuadBuffer(gl js.Value) js.Value {
+	buffer := gl.Call("createBuffer")
+	gl.Call("bindBuffer", gl.Get("ARRAY_BUFFER"), buffer)
+	quad := []float32{
+		-1.0, -1.0,
+		 1.0, -1.0,
+		-1.0,  1.0,
+		-1.0,  1.0,
+		 1.0, -1.0,
+		 1.0,  1.0,
+	}
+	arr := js.Global().Get("Float32Array").New(len(quad))
+	for i, v := range quad {
+		arr.SetIndex(i, v)
+	}
+	gl.Call("bufferData", gl.Get("ARRAY_BUFFER"), arr, gl.Get("STATIC_DRAW"))
+	return buffer
+}
+
+func ensurePrecision(fragmentCode string) string {
+	if !strings.Contains(fragmentCode, "precision") {
+		return "precision mediump float;\n" + fragmentCode
+	}
+	return fragmentCode
+}
+
+// reloadWebGLShader dynamically hot-reloads a fragment shader without tearing down canvas context
+func reloadWebGLShader(canvas js.Value, fragmentCode string) bool {
+	canvasId := ""
+	if idVal := canvas.Get("id"); !idVal.IsUndefined() && idVal.String() != "" {
+		canvasId = idVal.String()
+	}
+
+	inst, exists := activeShaderInstances[canvasId]
+	if !exists || inst == nil {
+		initWebGLShader(canvas, fragmentCode)
+		return true
+	}
+
+	gl := inst.GL
+	preparedCode := ensurePrecision(fragmentCode)
+	newFragShader, err := compileShader(gl, gl.Get("FRAGMENT_SHADER"), preparedCode)
+	if err != nil {
+		fmt.Printf("[GPU PANIC] Dynamic reload rejected fragment shader: %v\n", err)
+		return false
+	}
+
+	newProgram, err := linkProgram(gl, inst.VertexShader, newFragShader)
+	if err != nil {
+		gl.Call("deleteShader", newFragShader)
+		fmt.Printf("[GPU PANIC] Dynamic reload rejected program link: %v\n", err)
+		return false
+	}
+
+	// Hot swap active program atomically
+	oldProg := inst.Program
+	oldFrag := inst.FragShader
+
+	inst.Program = newProgram
+	inst.FragShader = newFragShader
+
+	inst.PositionLoc = gl.Call("getAttribLocation", newProgram, "position")
+	inst.TimeLoc = gl.Call("getUniformLocation", newProgram, "u_time")
+	inst.ResLoc = gl.Call("getUniformLocation", newProgram, "u_resolution")
+	inst.MouseLoc = gl.Call("getUniformLocation", newProgram, "u_mouse")
+
+	if !oldProg.IsNull() && !oldProg.IsUndefined() {
+		gl.Call("deleteProgram", oldProg)
+	}
+	if !oldFrag.IsNull() && !oldFrag.IsUndefined() {
+		gl.Call("deleteShader", oldFrag)
+	}
+
+	clearCrashOverlay()
+	fmt.Printf("[GPU HOT-RELOAD] Fragment shader reloaded cleanly on canvas: %s\n", canvasId)
+	return true
+}
+
 func initWebGLShader(canvas js.Value, fragmentCode string) {
+	if canvas.IsNull() || canvas.IsUndefined() {
+		return
+	}
+
+	canvasId := ""
+	if idVal := canvas.Get("id"); !idVal.IsUndefined() && idVal.String() != "" {
+		canvasId = idVal.String()
+	} else {
+		canvasId = fmt.Sprintf("tin_canvas_%d", time.Now().UnixNano())
+		canvas.Set("id", canvasId)
+	}
+
+	if _, exists := activeShaderInstances[canvasId]; exists {
+		reloadWebGLShader(canvas, fragmentCode)
+		return
+	}
+
+	gl := canvas.Call("getContext", "webgl2")
+	if gl.IsNull() || gl.IsUndefined() {
+		gl = canvas.Call("getContext", "webgl")
+		if gl.IsNull() || gl.IsUndefined() {
+			gl = canvas.Call("getContext", "experimental-webgl")
+			if gl.IsNull() || gl.IsUndefined() {
+				fmt.Println("WebGL not supported in this browser.")
+				return
+			}
+		}
+	}
+
+	// 1. Compile Vertex Shader
+	vertShader, err := compileShader(gl, gl.Get("VERTEX_SHADER"), defaultVertexShader)
+	if err != nil {
+		fmt.Printf("[GPU PANIC] Vertex Shader compilation failed: %v\n", err)
+		return
+	}
+
+	// 2. Compile Fragment Shader
+	preparedFrag := ensurePrecision(fragmentCode)
+	fragShader, err := compileShader(gl, gl.Get("FRAGMENT_SHADER"), preparedFrag)
+	if err != nil {
+		gl.Call("deleteShader", vertShader)
+		fmt.Printf("[GPU PANIC] Fragment Shader compilation failed: %v\n", err)
+		return
+	}
+
+	// 3. Link Program
+	program, err := linkProgram(gl, vertShader, fragShader)
+	if err != nil {
+		gl.Call("deleteShader", vertShader)
+		gl.Call("deleteShader", fragShader)
+		fmt.Printf("[GPU PANIC] Program linking failed: %v\n", err)
+		return
+	}
+
+	quadBuffer := createQuadBuffer(gl)
+	posLoc := gl.Call("getAttribLocation", program, "position")
+	timeLoc := gl.Call("getUniformLocation", program, "u_time")
+	resLoc := gl.Call("getUniformLocation", program, "u_resolution")
+	mouseLoc := gl.Call("getUniformLocation", program, "u_mouse")
+
+	boxSizeLoc := gl.Call("getUniformLocation", program, "u_box_size")
+	radiusLoc := gl.Call("getUniformLocation", program, "u_radius")
+	borderWidthLoc := gl.Call("getUniformLocation", program, "u_border_width")
+	borderColorLoc := gl.Call("getUniformLocation", program, "u_border_color")
+	shadowSoftLoc := gl.Call("getUniformLocation", program, "u_shadow_softness")
+	shadowOffsetLoc := gl.Call("getUniformLocation", program, "u_shadow_offset")
+	shadowColorLoc := gl.Call("getUniformLocation", program, "u_shadow_color")
+	bgColorLoc := gl.Call("getUniformLocation", program, "u_bg_color")
+	colorLoc := gl.Call("getUniformLocation", program, "u_color")
+
+	inst := &WebGLShaderInstance{
+		Canvas:          canvas,
+		GL:              gl,
+		Program:         program,
+		VertexShader:    vertShader,
+		FragShader:      fragShader,
+		QuadBuffer:      quadBuffer,
+		PositionLoc:     posLoc,
+		TimeLoc:         timeLoc,
+		ResLoc:          resLoc,
+		MouseLoc:        mouseLoc,
+		BoxSizeLoc:      boxSizeLoc,
+		RadiusLoc:       radiusLoc,
+		BorderWidthLoc:  borderWidthLoc,
+		BorderColorLoc:  borderColorLoc,
+		ShadowSoftLoc:   shadowSoftLoc,
+		ShadowOffsetLoc: shadowOffsetLoc,
+		ShadowColorLoc:  shadowColorLoc,
+		BgColorLoc:      bgColorLoc,
+		ColorLoc:        colorLoc,
+		StartTime:       float64(time.Now().UnixNano()) / 1e9,
+		IsRunning:       true,
+	}
+
+	mouseCb := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		if len(args) > 0 {
+			evt := args[0]
+			inst.MouseX = float32(evt.Get("clientX").Float())
+			inst.MouseY = float32(evt.Get("clientY").Float())
+		}
+		return nil
+	})
+	canvas.Call("addEventListener", "mousemove", mouseCb)
+
+	window := js.Global().Get("window")
+	var renderFrame js.Func
+	renderFrame = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		if !inst.IsRunning {
+			return nil
+		}
+
+		cWidth := canvas.Get("clientWidth").Float()
+		cHeight := canvas.Get("clientHeight").Float()
+		if cWidth > 0 && cHeight > 0 {
+			if canvas.Get("width").Float() != cWidth || canvas.Get("height").Float() != cHeight {
+				canvas.Set("width", cWidth)
+				canvas.Set("height", cHeight)
+			}
+		}
+
+		w := canvas.Get("width").Float()
+		h := canvas.Get("height").Float()
+		if w <= 0 {
+			w = 300
+		}
+		if h <= 0 {
+			h = 150
+		}
+
+		gl.Call("viewport", 0, 0, w, h)
+		gl.Call("useProgram", inst.Program)
+
+		if !inst.TimeLoc.IsNull() && !inst.TimeLoc.IsUndefined() {
+			currentTime := float64(time.Now().UnixNano())/1e9 - inst.StartTime
+			gl.Call("uniform1f", inst.TimeLoc, currentTime)
+		}
+		if !inst.ResLoc.IsNull() && !inst.ResLoc.IsUndefined() {
+			gl.Call("uniform2f", inst.ResLoc, w, h)
+		}
+		if !inst.MouseLoc.IsNull() && !inst.MouseLoc.IsUndefined() {
+			gl.Call("uniform2f", inst.MouseLoc, inst.MouseX, inst.MouseY)
+		}
+
+		// Mathematical SDF Box Uniforms
+		if !inst.BoxSizeLoc.IsNull() && !inst.BoxSizeLoc.IsUndefined() {
+			gl.Call("uniform2f", inst.BoxSizeLoc, w*0.8, h*0.6)
+		}
+		if !inst.RadiusLoc.IsNull() && !inst.RadiusLoc.IsUndefined() {
+			gl.Call("uniform1f", inst.RadiusLoc, 24.0)
+		}
+		if !inst.BorderWidthLoc.IsNull() && !inst.BorderWidthLoc.IsUndefined() {
+			gl.Call("uniform1f", inst.BorderWidthLoc, 2.0)
+		}
+		if !inst.BorderColorLoc.IsNull() && !inst.BorderColorLoc.IsUndefined() {
+			gl.Call("uniform4f", inst.BorderColorLoc, 0.0, 0.95, 1.0, 0.8)
+		}
+		if !inst.ShadowSoftLoc.IsNull() && !inst.ShadowSoftLoc.IsUndefined() {
+			gl.Call("uniform1f", inst.ShadowSoftLoc, 16.0)
+		}
+		if !inst.ShadowOffsetLoc.IsNull() && !inst.ShadowOffsetLoc.IsUndefined() {
+			gl.Call("uniform2f", inst.ShadowOffsetLoc, 0.0, 8.0)
+		}
+		if !inst.ShadowColorLoc.IsNull() && !inst.ShadowColorLoc.IsUndefined() {
+			gl.Call("uniform4f", inst.ShadowColorLoc, 0.0, 0.95, 1.0, 0.35)
+		}
+		if !inst.BgColorLoc.IsNull() && !inst.BgColorLoc.IsUndefined() {
+			gl.Call("uniform4f", inst.BgColorLoc, 0.08, 0.09, 0.14, 0.95)
+		}
+		if !inst.ColorLoc.IsNull() && !inst.ColorLoc.IsUndefined() {
+			gl.Call("uniform4f", inst.ColorLoc, 0.08, 0.09, 0.14, 0.95)
+		}
+
+		gl.Call("bindBuffer", gl.Get("ARRAY_BUFFER"), inst.QuadBuffer)
+		if !inst.PositionLoc.IsNull() && !inst.PositionLoc.IsUndefined() && inst.PositionLoc.Int() >= 0 {
+			gl.Call("enableVertexAttribArray", inst.PositionLoc)
+			gl.Call("vertexAttribPointer", inst.PositionLoc, 2, gl.Get("FLOAT"), false, 0, 0)
+		}
+
+		gl.Call("drawArrays", gl.Get("TRIANGLES"), 0, 6)
+
+		inst.AnimFrameId = window.Call("requestAnimationFrame", renderFrame)
+		return nil
+	})
+
+	inst.AnimFrameFunc = renderFrame
+	activeShaderInstances[canvasId] = inst
+
+	window.Call("requestAnimationFrame", renderFrame)
+}
+
+func jsReloadShader(this js.Value, args []js.Value) interface{} {
+	if len(args) < 2 {
+		fmt.Println("[GPU HOT-RELOAD] Usage: reloadShader(targetCanvasOrId, fragmentCode)")
+		return false
+	}
+
+	target := args[0]
+	code := args[1].String()
+
+	document := js.Global().Get("document")
+	var canvas js.Value
+	if target.Type() == js.TypeString {
+		targetStr := target.String()
+		canvas = document.Call("getElementById", targetStr)
+		if canvas.IsNull() || canvas.IsUndefined() {
+			canvas = document.Call("querySelector", targetStr)
+		}
+	} else {
+		canvas = target
+	}
+
+	if canvas.IsNull() || canvas.IsUndefined() {
+		fmt.Println("[GPU HOT-RELOAD] Target canvas not found.")
+		return false
+	}
+
+	return reloadWebGLShader(canvas, code)
+}
+
+func jsCompileShaderTest(this js.Value, args []js.Value) interface{} {
+	if len(args) < 1 {
+		return false
+	}
+	code := args[0].String()
+	document := js.Global().Get("document")
+	canvas := document.Call("createElement", "canvas")
 	gl := canvas.Call("getContext", "webgl")
 	if gl.IsNull() || gl.IsUndefined() {
 		gl = canvas.Call("getContext", "experimental-webgl")
-		if gl.IsNull() || gl.IsUndefined() {
-			fmt.Println("WebGL not supported in this browser.")
-			return
-		}
 	}
+	if gl.IsNull() || gl.IsUndefined() {
+		return false
+	}
+	shader, err := compileShader(gl, gl.Get("FRAGMENT_SHADER"), ensurePrecision(code))
+	if err != nil {
+		return false
+	}
+	gl.Call("deleteShader", shader)
+	return true
 }

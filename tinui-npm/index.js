@@ -18,7 +18,7 @@ if (command === 'init' || command === 'create' || command === 'new') {
 
     (async () => {
         console.log(`\n\x1b[1;36m+==============================================================================+\x1b[0m`);
-        console.log(`\x1b[1;36m|   \x1b[1;97m[*] TinPyUI v1.6.0 Project Scaffolding Wizard\x1b[1;36m                              |\x1b[0m`);
+        console.log(`\x1b[1;36m|   \x1b[1;97m[*] TinPyUI v1.6.1 Project Scaffolding Wizard\x1b[1;36m                              |\x1b[0m`);
         console.log(`\x1b[1;36m+==============================================================================+\x1b[0m\n`);
 
         let targetDirArg = process.argv[3] || '';
@@ -63,7 +63,7 @@ if (command === 'init' || command === 'create' || command === 'new') {
             process.exit(0);
         }
 
-        console.log(`\n\x1b[1;32m[+] Initializing fresh TinPyUI v1.6.0 project architecture in: ${targetDir}...\x1b[0m`);
+        console.log(`\n\x1b[1;32m[+] Initializing fresh TinPyUI v1.6.1 project architecture in: ${targetDir}...\x1b[0m`);
 
         const srcPath = path.join(targetDir, 'src');
         if (!fs.existsSync(srcPath)){

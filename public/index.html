@@ -4,6 +4,85 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TinPyUI Multi-Device Engine</title>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://github.com/barathanandh-coder/TinUi#engine",
+          "name": "TinPyUI Multi-Device Engine",
+          "alternateName": ["TinUI Preview Engine", "TinPyUI"],
+          "applicationCategory": "DeveloperApplication",
+          "operatingSystem": "Any, Web, Linux, Windows, macOS",
+          "description": "Multi-device responsive preview engine and WebGL/Wasm compiler for TinPyUI indentation-syntax layouts.",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "keywords": "tinpyui, tinui, indentation-syntax-compiler, wasm-frontend-framework, webgl-animation-compiler, zero-dom, hot-module-replacement"
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://github.com/barathanandh-coder/TinUi#organization",
+          "name": "TinPyUI Open Source Project",
+          "url": "https://github.com/barathanandh-coder/TinUi",
+          "sameAs": [
+            "https://pypi.org/project/tinpyui-ff/",
+            "https://www.npmjs.com/package/tinui",
+            "https://github.com/barathanandh-coder/TinUi"
+          ]
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://github.com/barathanandh-coder/TinUi#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is TinPyUI and what is it used for?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "TinPyUI (TinUI) is a high-performance, zero-DOM Python GUI and web framework. It compiles clean, indentation-based declarative Python syntax into ultra-fast 120 FPS WebGPU/WebGL instructions and a compact 213KB Rust WebAssembly core engine for desktop (Windows DirectX 12, macOS Metal, Linux Vulkan), mobile (Android Gradle/APK, Apple iOS), and static web CDN deployment."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How does TinPyUI achieve zero-DOM performance?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "TinPyUI eliminates virtual DOM tree recalculations, diffing overhead, and browser DOM garbage collection. Declarative Python templates are compiled Ahead-of-Time into binary opcode matrices executed directly by an optimized 213KB Rust WebAssembly engine with O(1) direct binary dispatch."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How does TinPyUI compare to Streamlit, Flet, or Reflex?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Unlike Streamlit which re-runs entire Python scripts on every state change, and unlike Flet or Reflex which require heavy Flutter engines or virtual DOM reconciliation, TinPyUI operates with a 213KB Rust WebAssembly engine running at 120 FPS, native symplectic spring physics, reactive CRDT multi-node state sync, and sub-millisecond IPC."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How do I install TinPyUI?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Install the official Python framework via pip with 'pip install tinpyui-ff', or install the standalone zero-dependency CLI compiler via npm with 'npm install -g tinui'."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can TinPyUI build native Android and iOS mobile apps?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. TinPyUI features automated mobile export pipelines: 'tinpyui build --mobile' generates a native Android Gradle project and compiles an APK, and 'tinpyui build --ios' generates an Apple Xcode Swift project with hardware-accelerated WKWebView/Metal bridges."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -293,8 +372,10 @@
 <body>
     <div id="tin-device-bar">
         <div class="tin-brand-tag">
-            <span>⚡ TinPyUI v1.6</span>
-            <span style="font-size:0.75rem; color:#94a3b8; font-weight:normal;">Omni-Device Simulator</span>
+            <a href="https://github.com/barathanandh-coder/TinUi" target="_blank" rel="noopener noreferrer" style="text-decoration:none; display:flex; align-items:center; gap:6px;">
+                <span style="background:linear-gradient(135deg, #00f2fe, #9b51e0); -webkit-background-clip:text; -webkit-text-fill-color:transparent; font-weight:800;">⚡ TinPyUI v1.7.0</span>
+                <span style="font-size:0.75rem; color:#94a3b8; font-weight:normal;">Omni-Device Simulator</span>
+            </a>
         </div>
         <div class="tin-dev-btn-group">
             <a href="?device=desktop" id="btn-desktop" class="tin-dev-btn">💻 Desktop Native (1600x1000)</a>
@@ -302,6 +383,10 @@
             <a href="?device=android" id="btn-android" class="tin-dev-btn">🤖 Android Mobile (380x680)</a>
             <a href="?device=ios" id="btn-ios" class="tin-dev-btn">🍎 iPhone 16 Pro (375x680)</a>
             <a href="?device=web" id="btn-web" class="tin-dev-btn">🌐 Full Web WASM</a>
+            <span style="display:inline-block; width:1px; height:18px; background:rgba(255,255,255,0.15); margin:0 4px;"></span>
+            <a href="https://github.com/barathanandh-coder/TinUi" target="_blank" rel="noopener noreferrer" class="tin-dev-btn" style="background:linear-gradient(135deg, rgba(0,242,254,0.2), rgba(155,81,224,0.2)); border-color:rgba(0,242,254,0.5); color:#00f2fe; font-weight:700;">★ Star on GitHub</a>
+            <a href="https://pypi.org/project/tinpyui-ff/" target="_blank" rel="noopener noreferrer" class="tin-dev-btn">🐍 PyPI</a>
+            <a href="https://www.npmjs.com/package/tinui" target="_blank" rel="noopener noreferrer" class="tin-dev-btn">📦 NPM</a>
         </div>
     </div>
 
@@ -413,82 +498,8 @@
             setTimeout(() => toast.classList.remove('show'), 1200);
         }
 
-        // Fetch & Mount IR Components dynamically
-        fetch('app.ir.json').then(r => r.json()).then(data => {
-            renderIR(data);
-        }).catch(() => {});
-
-        function renderIR(ir) {
-            const root = document.getElementById('tinui-root');
-            if (!ir || !ir.root) return;
-            root.innerHTML = '';
-            
-            function buildDom(node) {
-                if (!node) return null;
-                const el = document.createElement('div');
-                const tag = node.tag;
-                const p = node.props || {};
-
-                if (tag === 'GradientText') {
-                    const span = document.createElement('span');
-                    span.innerText = p.text || 'TinPyUI';
-                    span.style.cssText = 'font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #00f2fe, #9b51e0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: block; margin-bottom: 8px;';
-                    return span;
-                } else if (tag === 'Heading') {
-                    const h = document.createElement('h3');
-                    h.innerText = p.text || '';
-                    h.style.cssText = 'font-size: 1.15rem; font-weight: 700; color: #f8fafc; margin-bottom: 6px;';
-                    return h;
-                } else if (tag === 'Text') {
-                    const t = document.createElement('p');
-                    t.innerText = p.text || '';
-                    t.style.cssText = 'font-size: 0.9rem; color: ' + (p.color === 'muted' ? '#94a3b8' : (p.color || '#cbd5e1')) + '; margin-bottom: 6px;';
-                    return t;
-                } else if (tag === 'Badge') {
-                    const b = document.createElement('span');
-                    b.className = 'tin-badge';
-                    b.innerText = p.text || '';
-                    return b;
-                } else if (tag === 'Button') {
-                    const btn = document.createElement('button');
-                    btn.className = p.variant === 'outline' ? 'tin-btn-outline' : 'tin-btn';
-                    btn.innerText = p.text || 'Action';
-                    btn.onclick = () => {
-                        triggerHapticFeedback();
-                    };
-                    return btn;
-                } else if (tag === 'Card') {
-                    el.className = 'tin-card';
-                } else if (tag === 'Row') {
-                    el.style.cssText = 'display: flex; flex-direction: row; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 8px;';
-                } else if (tag === 'Column') {
-                    el.style.cssText = 'display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; width: 100%;';
-                } else if (tag === 'VirtualStack' || tag === 'VirtualList') {
-                    const vBox = document.createElement('div');
-                    vBox.style.cssText = 'background: rgba(10, 12, 20, 0.8); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 10px; max-height: 180px; overflow-y: auto; padding: 8px; font-family: monospace; font-size: 0.78rem; color: #38bdf8;';
-                    const items = p.items || [];
-                    const count = items.length || 10;
-                    for (let i = 0; i < count; i++) {
-                        const row = document.createElement('div');
-                        row.innerText = items[i] || ('[120 FPS] Virtual Spatial Row #' + (i + 1) + ' — Frame Synced in 410 μs');
-                        row.style.cssText = 'padding: 4px 6px; border-bottom: 1px solid rgba(255,255,255,0.05);';
-                        vBox.appendChild(row);
-                    }
-                    return vBox;
-                }
-
-                if (node.children) {
-                    node.children.forEach(c => {
-                        const childEl = buildDom(c);
-                        if (childEl) el.appendChild(childEl);
-                    });
-                }
-                return el;
-            }
-
-            const dom = buildDom(ir.root);
-            if (dom) root.appendChild(dom);
-        }
     </script>
+    <script src="wasm_exec.js"></script>
+    <script src="tin-runtime.js"></script>
 </body>
 </html>

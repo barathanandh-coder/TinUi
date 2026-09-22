@@ -96,6 +96,7 @@ class TestDatabaseFeatures(unittest.TestCase):
         # Updating signal updates store
         theme_sig.value = "light"
         self.assertEqual(store.get("theme"), "light")
+        store.close()
 
     def test_declarative_model(self):
         @tin.model

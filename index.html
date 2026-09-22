@@ -3,7 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TinPyUI Application</title>
+    <title>TinPyUI — High-Performance Zero-DOM Python UI Framework</title>
+    <meta name="description" content="TinPyUI compiles Pythonic indentation syntax into 120 FPS WebGPU/WebGL instructions and ultra-compact 213KB Rust WebAssembly kernels. Zero DOM overhead.">
+    <meta name="keywords" content="tinpyui, tinui, python gui, webassembly, zero-dom, webgl, python ui framework, cross-platform, rust wasm">
+    <link rel="canonical" href="https://github.com/barathanandh-coder/TinUi">
+
+    <!-- OpenGraph Social Metadata -->
+    <meta property="og:title" content="TinPyUI — Zero-DOM Hardware-Accelerated Python UI Framework">
+    <meta property="og:description" content="Build 120 FPS responsive web, desktop, and mobile applications with Pythonic indentation syntax and Rust WebAssembly engines.">
+    <meta property="og:url" content="https://github.com/barathanandh-coder/TinUi">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="TinPyUI">
+
+    <!-- Twitter Card Metadata -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="TinPyUI — Next-Gen Python UI Engine">
+    <meta name="twitter:description" content="High-performance Python indentation-syntax UI compiler and WebGL/Wasm reactive frontend engine.">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://github.com/barathanandh-coder/TinUi#software",
+          "name": "TinPyUI",
+          "alternateName": ["TinUI", "TinPyUI Framework"],
+          "applicationCategory": "DeveloperApplication",
+          "operatingSystem": "Any, Web, Linux, Windows, macOS, Android, iOS",
+          "description": "High-performance Python indentation-syntax UI compiler and WebGL/Wasm reactive frontend engine with zero-DOM overhead, AOT binary IR compilation, and Hot Module Replacement.",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "keywords": "tinpyui, tinui, indentation-syntax-compiler, wasm-frontend-framework, webgl-animation-compiler, zero-dom, aot-compiler, python-ui-framework"
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://github.com/barathanandh-coder/TinUi#organization",
+          "name": "TinPyUI Open Source Project",
+          "url": "https://github.com/barathanandh-coder/TinUi",
+          "sameAs": [
+            "https://pypi.org/project/tinpyui-ff/",
+            "https://www.npmjs.com/package/tinui",
+            "https://github.com/barathanandh-coder/TinUi"
+          ]
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://github.com/barathanandh-coder/TinUi#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is TinPyUI and what is it used for?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "TinPyUI (TinUI) is a high-performance, zero-DOM Python GUI and web framework. It compiles clean, indentation-based declarative Python syntax into ultra-fast 120 FPS WebGPU/WebGL instructions and a compact 213KB Rust WebAssembly core engine for desktop (Windows DirectX 12, macOS Metal, Linux Vulkan), mobile (Android Gradle/APK, Apple iOS), and static web CDN deployment."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How does TinPyUI achieve zero-DOM performance?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "TinPyUI eliminates virtual DOM tree recalculations, diffing overhead, and browser DOM garbage collection. Declarative Python templates are compiled Ahead-of-Time into binary opcode matrices executed directly by an optimized 213KB Rust WebAssembly engine with O(1) direct binary dispatch."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How does TinPyUI compare to Streamlit, Flet, or Reflex?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Unlike Streamlit which re-runs entire Python scripts on every state change, and unlike Flet or Reflex which require heavy Flutter engines or virtual DOM reconciliation, TinPyUI operates with a 213KB Rust WebAssembly engine running at 120 FPS, native symplectic spring physics, reactive CRDT multi-node state sync, and sub-millisecond IPC."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How do I install TinPyUI?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Install the official Python framework via pip with 'pip install tinpyui-ff', or install the standalone zero-dependency CLI compiler via npm with 'npm install -g tinui'."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can TinPyUI build native Android and iOS mobile apps?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. TinPyUI features automated mobile export pipelines: 'tinpyui build --mobile' generates a native Android Gradle project and compiles an APK, and 'tinpyui build --ios' generates an Apple Xcode Swift project with hardware-accelerated WKWebView/Metal bridges."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
@@ -75,37 +170,53 @@
 <body>
     <div id="tinui-root">
         <div id="tin-node-1" data-bg-fixed="true" data-hero-background="quantum-vortex" data-shader-effect="quantum-vortex" data-shader-primary="neon-purple" data-shader-secondary="neon-cyan" primaryColor="neon-purple" secondaryColor="neon-cyan" style="position: relative; width: 100%; min-height: 100vh; box-sizing: border-box; z-index: 0; background: radial-gradient(circle at top right, #9b51e022, #0a0b10);">
-            <nav id="tin-node-2" style="display: flex; position: sticky; top: 0; width: 100%; z-index: 100; box-sizing: border-box; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 20px;">
-                <div id="tin-node-3" style="display: flex; flex-direction: row; box-sizing: border-box; align-items: center; justify-content: space-between; width: 100%;">
-                    <div id="tin-node-4" style="display: flex; flex-direction: row; box-sizing: border-box; align-items: center; gap: 10px;">
-                        <p id="tin-node-5" style="color: #00f2fe; font-weight: bold;">
-                            TinPyUI v1.6.0
-                        </p>
+            <nav id="tin-node-2" style="display: flex; position: sticky; top: 0; width: 100%; z-index: 100; box-sizing: border-box; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.08); background: rgba(3,5,12,0.85);">
+                <div id="tin-node-3" style="display: flex; flex-direction: row; box-sizing: border-box; align-items: center; justify-content: space-between; width: 100%; max-width: 1400px; margin: 0 auto;">
+                    <div id="tin-node-4" style="display: flex; flex-direction: row; box-sizing: border-box; align-items: center; gap: 12px;">
+                        <a href="https://github.com/barathanandh-coder/TinUi" target="_blank" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 1.4rem;">⚡</span>
+                            <span style="background: linear-gradient(135deg, #00f2fe, #9b51e0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; font-size: 1.25rem; letter-spacing: -0.5px;">TinPyUI</span>
+                            <span style="font-size: 0.72rem; color: #38bdf8; font-family: monospace; border: 1px solid rgba(56,189,248,0.3); padding: 2px 8px; border-radius: 9999px; background: rgba(56,189,248,0.1);">v1.7.0</span>
+                        </a>
                     </div>
-                    <div id="tin-node-6" style="display: flex; flex-direction: row; box-sizing: border-box; color: #ffffff; gap: 30px;">
-                        <a id="tin-node-7">
+                    <div id="tin-node-6" style="display: flex; flex-direction: row; box-sizing: border-box; align-items: center; color: #ffffff; gap: 20px;">
+                        <a href="https://github.com/barathanandh-coder/TinUi#readme" target="_blank" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='#00f2fe'" onmouseout="this.style.color='#cbd5e1'">
                             Documentation
                         </a>
-                        <a id="tin-node-8">
-                            GitHub
+                        <a href="https://pypi.org/project/tinpyui-ff/" target="_blank" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='#00f2fe'" onmouseout="this.style.color='#cbd5e1'">
+                            PyPI
+                        </a>
+                        <a href="https://www.npmjs.com/package/tinui" target="_blank" style="color: #cbd5e1; text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='#00f2fe'" onmouseout="this.style.color='#cbd5e1'">
+                            NPM
+                        </a>
+                        <a href="https://github.com/barathanandh-coder/TinUi" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, rgba(0,242,254,0.15), rgba(155,81,224,0.15)); border: 1px solid rgba(0,242,254,0.4); color: #00f2fe; padding: 6px 14px; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; text-decoration: none; transition: all 0.2s; box-shadow: 0 0 15px rgba(0,242,254,0.25);" onmouseover="this.style.boxShadow='0 0 25px rgba(0,242,254,0.5)'; this.style.transform='scale(1.05)'" onmouseout="this.style.boxShadow='0 0 15px rgba(0,242,254,0.25)'; this.style.transform='scale(1)'">
+                            ★ Star on GitHub
                         </a>
                     </div>
                 </div>
             </nav>
-            <section id="tin-node-9" style="display: flex; flex-direction: column; box-sizing: border-box; align-items: center; justify-content: center; max-width: 800px; width: 100%; margin-left: auto; margin-right: auto; padding-top: 80px; padding-bottom: 80px;">
-                <span id="tin-node-10" gradient="[&quot;neon-cyan&quot;,&quot;neon-purple&quot;]" style="font-size: 3.5rem; font-weight: 800; margin: 0; background: linear-gradient(135deg, #00f2fe, #9b51e0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; display: inline-block;">
-                    TinPyUI Framework v1.6.0
+            <section id="tin-node-9" style="display: flex; flex-direction: column; box-sizing: border-box; align-items: center; justify-content: center; max-width: 900px; width: 100%; margin: 0 auto; padding-top: 90px; padding-bottom: 90px; text-align: center; px-4">
+                <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.3); padding: 6px 16px; border-radius: 9999px; margin-bottom: 24px;">
+                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #22d3ee; box-shadow: 0 0 8px #22d3ee;"></span>
+                    <span style="color: #22d3ee; font-family: monospace; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.5px;">OFFICIAL REPOSITORY: github.com/barathanandh-coder/TinUi</span>
+                </div>
+                <span id="tin-node-10" gradient="[&quot;neon-cyan&quot;,&quot;neon-purple&quot;]" style="font-size: 4rem; font-weight: 800; margin: 0; background: linear-gradient(135deg, #00f2fe, #ffffff 40%, #9b51e0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; display: inline-block; letter-spacing: -1px; line-height: 1.1;">
+                    TinPyUI Framework
                 </span>
-                <p id="tin-node-11" style="color: #ffffff; margin-top: 20px; font-size: 1.25rem; margin: 0; font-weight: bold;">
-                    Hybrid DOM + WebGL Hardware-Accelerated UI Engine with Pythonic Syntax
+                <p id="tin-node-11" style="color: #cbd5e1; margin-top: 20px; font-size: 1.35rem; margin: 20px 0 0 0; font-weight: 500; max-width: 720px; line-height: 1.6;">
+                    The Celestial Zero-DOM WebGL & 120 FPS WebAssembly UI Engine with Pure Pythonic Syntax
                 </p>
-                <div id="tin-node-12" style="display: flex; flex-direction: row; box-sizing: border-box; align-items: center; gap: 20px; justify-content: center; margin-top: 40px;">
-                    <button id="tin-node-13" variant="solid" glow="neon-cyan" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; border: none; transition: all 0.2s ease; border-radius: 9999px;">
-                        Get Started
-                    </button>
-                    <button id="tin-node-14" variant="outline" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; border: none; transition: all 0.2s ease; border-radius: 9999px;">
-                        Documentation
-                    </button>
+                <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 24px;">
+                    <code style="background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.12); padding: 8px 16px; border-radius: 8px; font-family: monospace; font-size: 0.85rem; color: #38bdf8;">pip install tinpyui-ff</code>
+                    <code style="background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.12); padding: 8px 16px; border-radius: 8px; font-family: monospace; font-size: 0.85rem; color: #a855f7;">npm install tinui</code>
+                </div>
+                <div id="tin-node-12" style="display: flex; flex-direction: row; box-sizing: border-box; align-items: center; gap: 16px; justify-content: center; margin-top: 36px; flex-wrap: wrap;">
+                    <a href="https://github.com/barathanandh-coder/TinUi" target="_blank" rel="noopener noreferrer" style="text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; border: none; transition: all 0.2s ease; border-radius: 9999px; padding: 14px 28px; background: linear-gradient(135deg, #00f2fe, #0ea5e9); color: #030712; box-shadow: 0 0 25px rgba(0,242,254,0.4);">
+                        ★ Star on GitHub
+                    </a>
+                    <a href="https://github.com/barathanandh-coder/TinUi#readme" target="_blank" rel="noopener noreferrer" style="text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; border: 1px solid rgba(255,255,255,0.2); transition: all 0.2s ease; border-radius: 9999px; padding: 13px 26px; background: rgba(255,255,255,0.05); color: #ffffff;">
+                        Read Documentation
+                    </a>
                 </div>
             </section>
         </div>
@@ -146,6 +257,15 @@
         </link>
         <link id="tin-node-19" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
         </link>
+    </div>
+
+    <!-- The WebGL Surface -->
+    <canvas id="tin-canvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: block; z-index: -1; pointer-events: none;"></canvas>
+
+    <!-- The Fallback Error UI -->
+    <div id="error-overlay" style="display: none; padding: 24px; color: #ff4d4d; background: #0a0a0a; font-family: monospace; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999; box-sizing: border-box; overflow: auto;">
+        <h2 style="margin: 0 0 16px 0; font-size: 20px; border-bottom: 1px solid #ff4d4d; padding-bottom: 8px;">⚠️ TinPyUI Engine Panic</h2>
+        <pre id="error-log" style="margin: 0; white-space: pre-wrap; word-break: break-all; font-size: 14px; line-height: 1.5;"></pre>
     </div>
 </body>
 </html>

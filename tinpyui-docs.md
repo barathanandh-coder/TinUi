@@ -1,4 +1,4 @@
-# The TinPyUI Architecture & Developer Manual (v1.6.0)
+# The TinPyUI Architecture & Developer Manual (v1.7.0)
 *The Definitive Guide to Building Hardware-Accelerated WebAssembly Applications with Pythonic Syntax*
 
 ---
@@ -11,7 +11,7 @@
 5. [Chapter 5: Multi-Scene Routing & State Management](#chapter-5-multi-scene-routing--state-management)
 6. [Chapter 6: The Hardware Layer: WebGL GPU Shaders & Particles](#chapter-6-the-hardware-layer-webgl-gpu-shaders--particles)
 7. [Chapter 7: Complete Component API Catalog](#chapter-7-complete-component-api-catalog)
-8. [Chapter 8: CLI, Development Workflows & Dev Server](#chapter-8-cli-development-workflows--dev-server)
+8. [Chapter 8: The Complete Developer Workflow (Install, Edit, Compile, Run & View)](#chapter-8-the-complete-developer-workflow-install-edit-compile-run--view)
 9. [Chapter 9: Native Desktop Shells & Cross-Platform Packaging](#chapter-9-native-desktop-shells--cross-platform-packaging)
 10. [Chapter 10: Security Architecture & Memory Safety](#chapter-10-security-architecture--memory-safety)
 11. [Chapter 11: Production Deployment & Backend Integration](#chapter-11-production-deployment--backend-integration)
@@ -19,10 +19,12 @@
 13. [Chapter 13: Universal Reactive Database & Low-Code Suite](#chapter-13-universal-reactive-database--low-code-suite)
 14. [Chapter 14: Real-Time Sockets, Native OS Dialogs & Dynamic IR Export](#chapter-14-real-time-sockets-native-os-dialogs--dynamic-ir-export)
 15. [Chapter 15: Full-Stack Architecture & Production Recipes](#chapter-15-full-stack-architecture--production-recipes)
+16. [Chapter 16: v1.7.0 Next-Gen Extensions & Omni-Platform Architecture](#chapter-16-v170-next-gen-extensions--omni-platform-architecture)
 
 ---
 
 ## Chapter 1: The Architectural Reality & Core Philosophy
+
 
 ### 1.1 Dispelling the "Zero-DOM" Myth: What TinPyUI Actually Is
 In modern web development, "Zero-DOM" is frequently used as a buzzword. To be technically precise and honest: **TinPyUI is NOT a raw Canvas-only blitter (like Flutter Web CanvasKit) that discards the browser DOM completely.** 
@@ -267,91 +269,247 @@ The Go compiler automatically validates GLSL shaders at compile time (`glsl_vali
 
 ---
 
-## Chapter 8: CLI, Development Workflows & Dev Server
+## Chapter 8: The Complete Developer Workflow (Install, Edit, Compile, Run & View)
 
-### 8.1 Global CLI Installation
-Via NPM:
+TinPyUI offers an integrated, ultra-fast 5-phase developer lifecycle across all major operating systems (Windows, macOS, Linux, and Web).
+
+```
+ +-----------------------------------------------------------------------------------+
+ |                       THE 5-PHASE TINPYUI DEVELOPER LIFECYCLE                     |
+ +-----------------------------------------------------------------------------------+
+ |  [ 1. INSTALL ] ──▶  [ 2. EDIT ] ──▶  [ 3. COMPILE ] ──▶  [ 4. RUN ] ──▶  [ 5. VIEW ]
+ |    pip / npm /       .tin DSL or       IR JSON / SEO        Live Dev        Browser /
+ |    Go / VSCode       Pure Python       HTML / WASM         or Desktop      Desktop / Mobile
+ +-----------------------------------------------------------------------------------+
+```
+
+---
+
+### 8.1 Phase 1: 📥 INSTALL (Setting Up Your Environment)
+
+Choose the installation method best suited for your stack:
+
+#### Option A: Pure Python Package (Zero-PIP Philosophy)
+For Python developers across Windows, macOS, and Linux:
+```bash
+# Install from PyPI
+pip install tinpyui-ff
+
+# Verify installation
+python -c "import tinpyui; print(f'TinPyUI v{tinpyui.__version__} ready!')"
+```
+> **Zero-Install Alternative**: `tinpyui.py` has **0 required third-party dependencies**. You can simply copy `tinpyui.py` directly into your project repository.
+
+#### Option B: Standalone TinUI CLI (Go Engine)
+For fast compilation, scaffolding, and hot-reloading dev server:
+```bash
+# Install globally via Go
+go install github.com/tinui/tinui@latest
+
+# Or build from source in the cloned repository:
+# On Windows:
+.\dev.bat build     # Generates tinui.exe
+# On Linux / macOS:
+make build          # Generates ./tinui
+```
+
+#### Option C: Global NPM CLI (Node.js Ecosystem)
 ```bash
 npm install -g tinpyui
+# Or run on-demand without global install:
+npx tinpyui init my-app
 ```
-Via Python PyPI:
+
+#### Option D: VS Code Syntax & Autocomplete Extension
+For syntax highlighting and IntelliSense on `.tin` files:
+1. Open VS Code.
+2. Link or copy the `tinui-syntax` folder into `~/.vscode/extensions/tinui-syntax`.
+3. Reload VS Code to enable `.tin` syntax recognition, bracket matching, and color tokens.
+
+---
+
+### 8.2 Phase 2: ✍️ EDIT (Authoring Applications)
+
+#### 1. Scaffold a New Project
+Use the built-in wizard to scaffold a complete project with recommended directories:
 ```bash
-pip install tinpyui-ff
+tinui init my-cyber-app
+cd my-cyber-app
 ```
 
-### 8.2 Cross-Platform Compilation Guide (OS-by-OS)
-
-#### 🪟 Windows (10 & 11)
-```powershell
-# Option A: Standalone Compiler Binary
-.\tinui.exe compile src/index.tin
-.\tinui.exe compile src/index.tin --hydrate   # With SEO HTML hydration
-
-# Option B: Run from Go source
-go run main.go compile src/index.tin
-go run main.go compile src/index.tin --hydrate
-
-# Option C: Global NPM CLI
-tinpyui compile src/index.tin
-tinpyui compile src/index.tin --hydrate
-
-# Dev Server (Hot GLSL Reloading on http://localhost:8080)
-.\tinui.exe dev src/index.tin
+Standard Project Layout:
+```
+my-cyber-app/
+├── index.tin             # Main UI declarative entrypoint
+├── index.html            # Static HTML hydration shell
+├── tin-runtime.js        # WebAssembly runtime bootstrap
+├── assets/               # Images, fonts, and icons
+├── database/             # SQLite / Fleet schema files
+├── backend/              # Optional real-time socket server
+└── scenes/               # Additional modular scenes
+    └── dashboard.tin
 ```
 
-#### 🍎 macOS (Apple Silicon M1/M2/M3/M4 & Intel)
+#### 2. Writing Declarative `.tin` Code
+Create or edit `index.tin`:
+```tin
+component Main():
+    AnimatedBackground(effect="cyber-wave", primaryColor="neon-purple", secondaryColor="neon-cyan"):
+        Navbar(padding=20, blur=true):
+            Row(align="center", justify="space-between", width="full"):
+                Row(align="center", gap=10):
+                    Text(text="TinPyUI Engine", color="neon-cyan", weight="bold")
+                Row(gap=20, color="white"):
+                    NavLink(text="Dashboard", href="/")
+                    NavLink(text="Documentation", href="/docs")
+
+        Section(align="center", paddingY=60, justify="center"):
+            GradientText(text="CYBER COMMAND CENTER", gradient=["neon-cyan", "neon-purple"], size="hero")
+            Text(text="Hardware-Accelerated WebGL/WebGPU UI Engine", size="large", color="white", weight="bold")
+            
+            Row(gap=20, align="center", justify="center", marginTop=30):
+                Button(text="🚀 Get Started", variant="solid", glow="neon-cyan", radius="pill")
+                Button(text="📖 Documentation", variant="outline", radius="pill")
+```
+
+#### 3. Writing Pure Python Code (`app.py`)
+Alternatively, author applications directly in Python using `tinpyui`:
+```python
+import tinpyui as tin
+
+# 1. Reactive Signals
+counter = tin.Signal(0)
+status = tin.Signal("Online (120 FPS)")
+
+def increment():
+    counter.update(lambda c: c + 1)
+    status.set(f"Signal mutated to {counter.value}")
+
+# 2. Declarative Context UI
+app = tin.Window(title="TinPyUI Python App", width=1200, height=800)
+with app:
+    with tin.Row(padding=20, gap=20):
+        with tin.Column(width=380, gap=16):
+            tin.GradientText("CYBER CONSOLE", gradient=["#00f2fe", "#9b51e0"], size="h2")
+            with tin.Card(padding=16, bg="rgba(18,22,34,0.85)", radius=12):
+                tin.Text(text=lambda: f"Status: {status.value}", color="neon-cyan")
+                tin.Text(text=lambda: f"Counter: {counter.value}", color="neon-pink")
+                tin.Spacer(height=12)
+                tin.Button("🚀 Trigger Mutation", on_click=increment, variant="primary")
+
+if __name__ == "__main__":
+    tin.run(app)
+```
+
+---
+
+### 8.3 Phase 3: ⚙️ COMPILE (Ahead-of-Time & Bundle Generation)
+
+#### 1. Fast Intermediate Representation (IR) Compilation
+Compiles `.tin` source code into deterministic JSON AST instructions:
 ```bash
-# Option A: Standalone Compiler Binary
-chmod +x ./tinui
-./tinui compile src/index.tin
-./tinui compile src/index.tin --hydrate
+# Windows
+.\tinui.exe compile index.tin
 
-# Option B: Run from Go source
-go run main.go compile src/index.tin
-go run main.go compile src/index.tin --hydrate
-
-# Option C: Global NPM CLI
-tinpyui compile src/index.tin
-tinpyui compile src/index.tin --hydrate
-
-# Dev Server (Hot GLSL Reloading on http://localhost:8080)
-./tinui dev src/index.tin
+# macOS / Linux
+./tinui compile index.tin
 ```
+*Output*: Generates `index.ir.json` (or `public/app.ir.json`).
 
-#### 🐧 Linux (Ubuntu, Debian, Fedora, Arch, Alpine)
+#### 2. SEO HTML Hydration Compilation
+Generates both IR instructions and a static SEO HTML hydration shell for instant first-paint:
 ```bash
-# Option A: Standalone Compiler Binary
-chmod +x ./tinui
-./tinui compile src/index.tin
-./tinui compile src/index.tin --hydrate
-
-# Option B: Run from Go source
-go run main.go compile src/index.tin
-go run main.go compile src/index.tin --hydrate
-
-# Option C: Global NPM CLI
-tinpyui compile src/index.tin
-tinpyui compile src/index.tin --hydrate
-
-# Dev Server (Hot GLSL Reloading on http://localhost:8080)
-./tinui dev src/index.tin
+tinui compile index.tin --hydrate
 ```
+*Output*: Generates `index.ir.json` and static semantic `index.html`.
 
-#### 🌐 WebAssembly Engine Compilation (`tinui_engine.wasm`)
+#### 3. Standalone Production Web Bundle Packaging
+Packages all web assets, WebAssembly kernel, runtime scripts, and IR into a self-contained `dist/` directory ready for static hosting (GitHub Pages, Vercel, Netlify, Cloudflare Pages, S3):
 ```bash
-# Windows (PowerShell)
-$env:GOOS="js"; $env:GOARCH="wasm"; go build -ldflags="-s -w" -o tinui_engine.wasm ./wasm_engine
+tinui build index.tin
+```
+*Output*: Standalone `dist/` folder containing `index.html`, `tinui_engine.wasm`, `tin-runtime.js`, `wasm_exec.js`, and `app.ir.json`.
 
-# macOS / Linux (Bash / Zsh)
-GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o tinui_engine.wasm ./wasm_engine
+#### 4. Python Dynamic IR Export
+Export IR directly from Python:
+```python
+app.export_ir("public/app.ir.json")
 ```
 
-### 8.3 Common CLI Commands
-- `tinpy create <project_name>` / `tinpyui init`: Scaffold a complete starter project with `main.tin`, `scenes/dashboard.tin`, and shaders.
-- `tinpy dev <file.tin>` / `tinui dev <file.tin>`: Start the live development server with Hot GLSL Reloading (HGR) on `http://localhost:8080`.
-- `tinpy compile <file.tin>` / `tinui compile <file.tin>`: Compile `.tin` source code to `public/app.ir.json`.
-- `tinpy compile <file.tin> --hydrate` / `tinui compile <file.tin> --hydrate`: Compile IR and generate static SEO `index.html` hydration shell.
-- `tinpy desktop <file.tin>` / `tinui desktop <file.tin>`: Launch the native desktop window.
+#### 5. Compiling the Go WebAssembly Engine Kernel
+To rebuild the core `tinui_engine.wasm` binary from `wasm_engine/`:
+```bash
+# On Windows (PowerShell or dev.bat):
+.\dev.bat wasm
+# or:
+$env:GOOS="js"; $env:GOARCH="wasm"; go build -ldflags="-s -w" -o public/tinui_engine.wasm ./wasm_engine
+
+# On Linux / macOS (Make or Bash):
+make wasm
+# or:
+GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o public/tinui_engine.wasm ./wasm_engine
+```
+
+---
+
+### 8.4 Phase 4: 🚀 RUN (Execution Modes)
+
+#### Mode 1: Instant 1-Step Live Dev Server (Hot GLSL Reloading)
+Runs your application with an automatic file watcher, live AST recompilation, and Hot GLSL Shader Reloading (HGR):
+```bash
+# Instant 1-Step execution:
+tinui index.tin
+
+# Or explicit dev command:
+tinui dev index.tin
+```
+*Output*: Live dev server starts at `http://localhost:8080` (or `http://localhost:3000`). Any change to `.tin` files or GLSL shaders reflects instantly in the browser without full-page reloads.
+
+#### Mode 2: Native Desktop Window Application
+Launch your application as a standalone desktop window:
+```bash
+# Via TinUI CLI:
+tinui desktop index.tin
+
+# Via Pure Python:
+python app.py
+```
+*Output*: Launches a native OS hardware-accelerated window (DirectX 12 on Windows, Apple Metal on macOS, GTK4/Wayland on Linux) with zero Chromium overhead.
+
+#### Mode 3: Real-Time Telemetry & Socket Server
+Start the backend WebSocket & SSE service for real-time live data:
+```bash
+python backend/server.py
+```
+
+---
+
+### 8.5 Phase 5: 👁️ VIEW (Inspecting & Testing Output)
+
+#### 1. Web Browser View
+Open your browser to:
+- **`http://localhost:8080`** (or `http://localhost:3000`)
+- Features:
+  - Hardware-accelerated WebGL 2.0 / WebGPU canvas background (120 FPS cyber waves / particle fields).
+  - Accessible Semantic HTML5 DOM overlay with selectable text, copy-paste, and keyboard navigation.
+  - Granular $O(1)$ signal reactivity with zero virtual DOM tree diffing lag.
+
+#### 2. Native Desktop Window View
+- Ultra-low memory footprint (~2 MB native shell).
+- Integrated OS dark title bar, smooth resize event dispatch, and hardware-accelerated vector rendering.
+
+#### 3. Multi-Device Viewport Simulator Modes
+TinPyUI includes responsive layout targets that you can test and toggle:
+
+| Mode | Resolution | Target Audience / Optimization |
+| :--- | :--- | :--- |
+| **🖥️ Desktop** | `1600 x 1000 px` | 3-Column Enterprise Console, high-density charts, sidebar navigation |
+| **📱 Android** | `380 x 680 px` | Single-column touch interface, touch fling physics, native haptic feedback |
+| **🍏 iOS** | `375 x 680 px` | Retina Safe-Area margins, dynamic status bar padding, Apple Metal shaders |
+| **📟 Tablet** | `640 x 520 px` | Adaptive 2-Column Split-View, master-detail list layouts |
+| **🌐 Web WASM** | `1024 x 600 px` | Responsive browser canvas with dynamic viewport auto-scaling |
+
+---
 
 ---
 
@@ -881,4 +1039,111 @@ if __name__ == "__main__":
 ```
 
 ---
-*(End of Official Manual — TinPyUI Engine v1.6.0)*
+
+## Chapter 16: v1.7.0 Next-Gen Extensions & Omni-Platform Architecture
+
+TinPyUI v1.7.0 expands the runtime ecosystem into enterprise analytical dashboards, AI streaming interfaces, Apple iOS mobile workflows, and enhanced GPU shader surfaces.
+
+### 16.1 Enterprise Reactive Database Suite (Redis & DuckDB)
+- **Redis (`tin.connect("redis://...")`)**:
+  - `db.pubsub_signal(channel)`: Direct reactive push stream from Redis pub/sub channels to UI components without polling.
+  - `db.signal(key)`: Reactive state cell automatically synced to key updates.
+  - In-memory thread-safe mock fallback if `redis-py` is not installed.
+- **DuckDB & ClickHouse (`tin.connect("duckdb://...")`, `tin.connect("clickhouse://...")`)**:
+  - Vectorized analytical SQL execution with automated dictionary mapping.
+  - Interval-based background live queries (`db.live_query(sql, interval)`).
+
+### 16.2 Modern UI Component Catalog
+- **`tin.DataGrid`**:
+  - High-volume data table with column-level sorting (ascending/descending), dynamic text search filtering, pagination controls, and CSV/JSON export.
+- **`tin.AIChat`**:
+  - Real-time LLM token streaming container (`start_stream`, `stream_token`, `end_stream`) with Markdown parsing and code copy buttons.
+- **`tin.ColorPicker`**:
+  - Hex/RGB/HSL picker with opacity/alpha slider and preset swatches.
+- **`tin.DatePicker` & `tin.Calendar`**:
+  - Interactive monthly calendar matrix with previous/next month navigation and date selection callbacks.
+- **`tin.Chart` Suite**:
+  - Declarative SVG chart renderers: `tin.LineChart`, `tin.BarChart`, `tin.DonutChart`, and `tin.Sparkline` with responsive viewBox scaling.
+- **`tin.TreeView` & `tin.TreeNode`**:
+  - Hierarchical collapsible tree node component with expand/collapse states and icons.
+
+### 16.3 Apple iOS Native Xcode Packaging Pipeline
+Generate a complete Apple iOS Xcode project structure (`.xcodeproj`, `AppDelegate.swift`, `SceneDelegate.swift`, `ViewController.swift`, `Info.plist`, and embedded WebAssembly engine):
+```bash
+# Via CLI:
+tinpyui build --ios --app-name "CyberApp" --bundle-id "com.corp.cyberapp"
+
+# Or in Python:
+tin.export_ios(app_name="CyberApp", bundle_id="com.corp.cyberapp")
+```
+
+### 16.4 Multi-Touch Gesture Recognizers
+The runtime (`tin-runtime.js`) intercepts hardware touch events and dispatches custom DOM events:
+- **`tin:pinch`**: Fires on 2-finger pinch with `{scale, centerX, centerY}`.
+- **`tin:swipe`**: Fires on directional swipe with `{direction, deltaX, deltaY, velocity}`.
+- **`tin:pullrefresh`**: Rubber-band pull threshold indicator with haptic pulse.
+
+### 16.5 Interactive REPL & Live-Reload Dev Tooling
+```bash
+# Interactive debug shell:
+tinpyui repl
+
+# Live dev server with SSE file watching & hot GLSL reload:
+tinpyui run --web
+
+# Standalone native desktop packaging:
+tinpyui build --desktop
+```
+
+### 16.6 Extended Hardware GLSL / WebGPU Shader Library
+Located in `shaders/`:
+- `bloom.frag`: High-dynamic-range luminance threshold isolation and multi-pass additive bloom.
+- `cyber_mesh.frag`: Cyberpunk perspective grid, depth fog, and scanlines.
+- `volumetric_fog.frag`: Raymarched procedural volumetric atmospheric fog.
+- `fluid_particles.frag`: Real-time liquid metaball simulation with specular highlights.
+
+---
+
+## Chapter 17: Next-Generation Optimizations, AOT Binary Compilation & VS Code LSP Suite
+
+### 17.1 Ahead-of-Time (AOT) Static Compilation Pipeline
+The AOT compiler eliminates runtime parsing overhead by pre-compiling `.tin` templates down to binary opcode matrices:
+```bash
+tinpyui build app.tin --dist ./dist --target webgl
+```
+- **Binary IR Matrix (`TINB`)**: Encodes the AST into a compact binary format with a deduplicated string table and opcode stream. Yields **> 55% smaller payloads** compared to JSON.
+- **Static Bundle Generation**: Creates a zero-server distribution folder containing `index.html` (with JSON-LD `SoftwareApplication` schema), `app.ir.bin`, `tin-runtime.js`, `tinui_engine.wasm`, and compiled GLSL shaders.
+- Deployable to static CDNs (Cloudflare Pages, Vercel, Netlify, GitHub Pages) without any Python backend requirement.
+
+### 17.2 Sub-Millisecond Indentation Hot Module Replacement (HMR)
+Developing WebGL scenes with live state preservation:
+- `HMRTracker` (`tinpyui/core/hmr.py`) performs incremental AST diffing on source file changes.
+- Broadcasts granular Server-Sent Events (SSE):
+  - `reload_shader`: Hot-swaps shader uniforms and GLSL programs in-place.
+  - `patch_node`: Updates specific text or attribute values on targeted DOM nodes.
+  - `reload_ir`: Structural updates when line count or hierarchy topology changes.
+- **WebGL canvas contexts and running simulations remain mounted without resets**.
+
+### 17.3 Zero-Copy WebAssembly Linear Memory Bridge
+Eliminates JSON serialization between WebAssembly, Python, and the WebGL render loop:
+```
+0x0000 - 0x0FFF: Control Block (Magic 'TINW', frame counter, active nodes, dirty mask)
+0x1000 - 0x3FFF: 12-Float Transform & Uniform Stride (48 bytes per node slot)
+                 [X, Y, Z, RotX, RotY, RotZ, ScaleX, ScaleY, ScaleZ, Speed, Intensity, Opacity]
+0x4000 - 0x7FFF: Bidirectional Ring Buffer Event Queue
+```
+In `tin-runtime.js`, a `Float32Array` view directly maps to this memory offset, enabling vertex shaders to pull transforms with zero garbage collection.
+
+### 17.4 Official VS Code Extension & Language Server Protocol (LSP)
+Located in `vscode-tinpyui/`:
+- **Syntax Highlighting**: Comprehensive TextMate grammar (`syntaxes/tin.tmLanguage.json`) for component tags, morphisms, strings, and shader uniforms.
+- **Indentation Diagnostics**: Real-time validation detecting odd-spaced indentation (e.g. 3 spaces) and unclosed block colons (`:`).
+- **Intelligent Autocomplete**: Context-aware completions for `Section`, `Row`, `Card`, `ShaderLayer`, `WebGLCanvas`, `ParticleField`, and modern morphisms (`glass`, `neu`, `clay`, `holo`).
+
+### 17.5 Dynamic Resolution Scaling (DRS) & Frustum Occlusion Culling
+- **Dynamic Resolution Scaling**: Continuously profiles frametime delta. If frametimes exceed 32ms under heavy GPU load, canvas resolution scale steps down dynamically (down to `0.20x`) to guarantee responsive interaction, recovering automatically when GPU load clears.
+- **Frustum Occlusion Observer**: Shaders scrolled out of the viewport immediately halt their `requestAnimationFrame` render loops, saving 100% of background GPU cycles and mobile battery.
+
+---
+*(End of Official Manual — TinPyUI Engine v1.7.0)*
+

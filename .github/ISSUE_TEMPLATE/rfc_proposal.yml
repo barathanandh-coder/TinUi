@@ -1,0 +1,49 @@
+name: 🏛️ RFC (Request for Comments)
+description: Propose a major architectural change, wire protocol update, or new platform target
+title: "[RFC]: <Proposal Title>"
+labels: ["rfc", "architecture"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        RFCs are used for substantial design changes to TinPyUI (such as compiler modifications, runtime protocols, or new backend architectures). See [GOVERNANCE.md](https://github.com/barathanandh-coder/TinUi/blob/main/GOVERNANCE.md) for RFC lifecycle details.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: 1-2 paragraph executive summary of the proposal.
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation & Goals
+      description: Why are we doing this? What use cases does it support? What is the expected outcome?
+    validations:
+      required: true
+
+  - type: textarea
+    id: detailed_design
+    attributes:
+      label: Detailed Technical Design
+      description: In-depth technical architecture, data structures, compiler changes, and APIs.
+    validations:
+      required: true
+
+  - type: textarea
+    id: drawbacks_breaking
+    attributes:
+      label: Drawbacks & Breaking Changes
+      description: Does this introduce breaking changes? What are the migration paths?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives_considered
+    attributes:
+      label: Prior Art & Alternatives
+      description: What other designs were considered and why were they rejected?
+    validations:
+      required: false

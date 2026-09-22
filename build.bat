@@ -1,24 +1,22 @@
 @echo off
-echo [TinUI] Building CLI Compiler for local testing...
-go build -o tinui.exe .
-
-echo [TinUI] Building NPM CLI Binaries...
-set GOOS=linux
-set GOARCH=amd64
-go build -o tinui-npm/bin/tinui-linux .
-
-set GOOS=darwin
-set GOARCH=amd64
-go build -o tinui-npm/bin/tinui-macos .
-
-set GOOS=windows
-set GOARCH=amd64
-go build -o tinui-npm/bin/tinui-win.exe .
-
 echo [TinUI] Compiling WebAssembly Engine...
 set GOOS=js
 set GOARCH=wasm
-go build -ldflags="-s -w" -o tinui_engine.wasm ./wasm_engine
+
+if exist "dist_wasm\tin_wasm_engine_bg.wasm" if not "%1"=="--go-wasm" (
+    echo [TinUI] Using ultra-compact Rust WebAssembly Core Engine ~213KB...
+    copy dist_wasm\tin_wasm_engine_bg.wasm tinui_engine.wasm >nul
+    copy dist_wasm\tin_wasm_engine.js tin_wasm_engine.js >nul
+) else (
+    where tinygo >nul 2>nul
+    if "%1"=="--tinygo" (
+        echo [TinUI] Building ultra-compact WebAssembly using TinyGo ~350KB...
+        tinygo build -o tinui_engine.wasm -target=wasm -no-debug ./wasm_engine
+    ) else (
+        echo [TinUI] Building WebAssembly using standard Go toolchain...
+        go build -ldflags="-s -w" -o tinui_engine.wasm ./wasm_engine
+    )
+)
 
 echo [TinUI] Copying WebAssembly assets...
 for /f "delims=" %%i in ('go env GOROOT') do set "GOROOT=%%i"
@@ -38,15 +36,39 @@ if not "%WASM_EXEC_PATH%"=="" (
     copy "%WASM_EXEC_PATH%" tinui-npm\bin\ >nul
     if not exist public mkdir public
     copy "%WASM_EXEC_PATH%" public\ >nul
-) else (
-    echo [ERROR] Could not find wasm_exec.js in GOROOT
+    if not exist pypi_build\tinpyui mkdir pypi_build\tinpyui
+    copy "%WASM_EXEC_PATH%" pypi_build\tinpyui\ >nul
 )
 
 copy tinui_engine.wasm static\ >nul
 copy tinui_engine.wasm tinui-npm\bin\ >nul
 if not exist public mkdir public
 copy tinui_engine.wasm public\ >nul
+if not exist pypi_build\tinpyui mkdir pypi_build\tinpyui
+copy tinui_engine.wasm pypi_build\tinpyui\ >nul
+copy tin-runtime.js pypi_build\tinpyui\ >nul
+copy index.tin pypi_build\tinpyui\ >nul
+if exist dist_wasm\tin_wasm_engine_bg.wasm (
+    copy dist_wasm\tin_wasm_engine_bg.wasm tinpyui\ >nul
+    copy dist_wasm\tin_wasm_engine_bg.wasm pypi_build\tinpyui\ >nul
+    copy dist_wasm\tin_wasm_engine.js tinpyui\ >nul
+    copy dist_wasm\tin_wasm_engine.js pypi_build\tinpyui\ >nul
+    copy dist_wasm\tin_wasm_engine.js public\ >nul
+)
 
+echo [TinUI] Building Embedded CLI Compiler (Single Standalone Binary)...
+set GOOS=windows
+set GOARCH=amd64
+go build -ldflags="-s -w" -o tinui.exe .
+go build -ldflags="-s -w" -o tinui-npm/bin/tinui-win.exe .
 
-echo [TinUI] Build Complete! You can now run:
-echo .\tinui.exe compile app.tin
+echo [TinUI] Building Cross-Platform Embedded Binaries...
+set GOOS=linux
+go build -ldflags="-s -w" -o tinui-npm/bin/tinui-linux .
+
+set GOOS=darwin
+go build -ldflags="-s -w" -o tinui-npm/bin/tinui-macos .
+
+echo [TinUI] Build Complete! Everything is embedded. You can now run:
+echo • CLI: .\tinui.exe index.tin
+

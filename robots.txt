@@ -1,0 +1,55 @@
+# TinPyUI Robots Configuration — Optimized for Web Search & AI Answer Engines
+# https://github.com/barathanandh-coder/TinUi
+
+# 1. Allow all standard search engines
+User-agent: *
+Allow: /
+Crawl-delay: 0
+
+# 2. OpenAI Crawlers (ChatGPT Search, GPT-4, SearchGPT)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+# 3. Perplexity AI Crawler
+User-agent: PerplexityBot
+Allow: /
+
+# 4. Anthropic Claude Crawlers
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+# 5. Google AI & Extended Crawlers (Gemini, Google AI Overviews)
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+# 6. Microsoft Bing & Copilot Crawlers
+User-agent: Bingbot
+Allow: /
+
+# 7. Apple AI Intelligence Crawlers
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# 8. Meta AI & Other LLM Agents
+User-agent: Meta-ExternalAgent
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+# Sitemap & LLM Knowledge Specification
+Sitemap: https://github.com/barathanandh-coder/TinUi/sitemap.xml
+# LLM Knowledge Endpoint for AI crawlers:
+# https://github.com/barathanandh-coder/TinUi/blob/main/llms.txt

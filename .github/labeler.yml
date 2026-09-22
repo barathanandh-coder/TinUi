@@ -1,0 +1,37 @@
+# Subsystem Labels
+"subsystem:python":
+  - changed-files:
+      - any-glob-to-any-file: ["tinpyui.py", "tinpyui.pyi", "tests/**", "pypi_build/**"]
+
+"subsystem:compiler":
+  - changed-files:
+      - any-glob-to-any-file: ["compiler/**", "main.go", "cli/**"]
+
+"subsystem:wasm":
+  - changed-files:
+      - any-glob-to-any-file: ["wasm_engine/**", "public/**", "tin-runtime.js"]
+
+"subsystem:native":
+  - changed-files:
+      - any-glob-to-any-file: ["native/**"]
+
+"subsystem:database":
+  - changed-files:
+      - any-glob-to-any-file: ["database/**", "DATABASE_AND_CONNECTIONS_GUIDE.md"]
+
+"subsystem:npm":
+  - changed-files:
+      - any-glob-to-any-file: ["tinui-npm/**"]
+
+"subsystem:vscode":
+  - changed-files:
+      - any-glob-to-any-file: ["tinui-syntax/**"]
+
+# Meta Labels
+"documentation":
+  - changed-files:
+      - any-glob-to-any-file: ["*.md", "docs/**"]
+
+"ci/cd":
+  - changed-files:
+      - any-glob-to-any-file: [".github/**", "Makefile", "dev.bat"]

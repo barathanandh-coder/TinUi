@@ -1,0 +1,82 @@
+name: TinPyUI CI / Continuous Integration
+
+on:
+  push:
+    branches: ["main", "v*"]
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # -------------------------------------------------------------
+  # Python Test Matrix (Linux, Windows, macOS)
+  # -------------------------------------------------------------
+  python-tests:
+    name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Verify Zero-PIP Import
+        run: |
+          python -c "import tinpyui; print(f'TinPyUI loaded successfully on {tinpyui.sys.platform}')"
+
+      - name: Run Unit & Security Test Suite
+        run: |
+          python -m unittest discover tests -v
+
+  # -------------------------------------------------------------
+  # Go Test & WASM Compilation Matrix
+  # -------------------------------------------------------------
+  go-tests:
+    name: Go ${{ matrix.go-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        go-version: ["1.21", "1.22", "1.23"]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Go Format & Vet Checks
+        run: |
+          go vet ./...
+
+      - name: Run Go Unit Tests
+        run: |
+          go test -v ./...
+
+      - name: Build TinUI CLI Binary
+        run: |
+          go build -v -o tinui-bin .
+
+      - name: Test WebAssembly Engine Compilation
+        env:
+          GOOS: js
+          GOARCH: wasm
+        run: |
+          mkdir -p public
+          go build -ldflags="-s -w" -o public/tinui_engine.wasm ./wasm_engine

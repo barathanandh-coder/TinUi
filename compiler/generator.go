@@ -594,9 +594,24 @@ func CompileAttributes(componentName string, props map[string]string) map[string
 	case "Navbar":
 		styles = append(styles, "display: flex; position: sticky; top: 0; width: 100%; z-index: 100; box-sizing: border-box;")
 	case "Button":
-		styles = append(styles, "cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; border: none; transition: all 0.2s ease;")
+		styles = append(styles, "cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; border: none; transition: all 0.2s ease; padding: 12px 28px; border-radius: 8px; font-size: 15px; font-family: inherit;")
+		variant := props["variant"]
+		if variant == "outline" {
+			styles = append(styles, "background: transparent; border: 1px solid #00f2fe; color: #00f2fe;")
+		} else {
+			styles = append(styles, "background: #00f2fe; color: #0a0b10;")
+		}
+		if glow, ok := props["glow"]; ok {
+			if hex, exists := ColorPalette[glow]; exists {
+				styles = append(styles, fmt.Sprintf("box-shadow: 0 0 20px %s88;", hex))
+			} else {
+				styles = append(styles, fmt.Sprintf("box-shadow: 0 0 20px %s;", glow))
+			}
+		}
+	case "Text":
+		styles = append(styles, "margin: 0; color: #ffffff;")
 	case "Input", "Textarea":
-		styles = append(styles, "outline: none; box-sizing: border-box; background: rgba(0,0,0,0.2); color: #ffffff;")
+		styles = append(styles, "outline: none; box-sizing: border-box; background: rgba(0,0,0,0.2); color: #ffffff; padding: 10px 16px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);")
 	case "Preload":
 		styles = append(styles, "display: none;")
 	case "Divider":

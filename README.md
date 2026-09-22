@@ -1,13 +1,15 @@
-# ⚡ TinPyUI Framework v1.6.0
+# ⚡ TinPyUI Framework v1.7.0
 ### *Hardware-Accelerated Omni-Platform UI Engine & Vector Graphics Pipeline*
 
-[![npm](https://img.shields.io/badge/npm-tinpyui-v1.6.0-00f2fe?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/tinpyui)
-[![pypi](https://img.shields.io/badge/pypi-tinpyui--ff-v1.6.0-9b51e0?style=for-the-badge&logo=pypi)](https://pypi.org/project/tinpyui-ff/)
-[![license](https://img.shields.io/badge/license-MIT-00ff66?style=for-the-badge)](#-license)
-[![engine](https://img.shields.io/badge/engine-Hybrid--DOM--WebGL--WebGPU-ff007f?style=for-the-badge)](#-architectural-reality)
-[![platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux%20%7C%20Web%20%7C%20Mobile-blueviolet?style=for-the-badge)](#-universal-cross-platform-native-runtime)
+[![CI](https://github.com/barathanandh-coder/TinUi/actions/workflows/ci.yml/badge.svg)](https://github.com/barathanandh-coder/TinUi/actions/workflows/ci.yml)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](CONTRIBUTING.md)
+[![Good First Issues](https://img.shields.io/github/issues/barathanandh-coder/TinUi/good%20first%20issue?color=7057ff&label=Good%20First%20Issues&style=flat-square)](https://github.com/barathanandh-coder/TinUi/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![Code of Conduct](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=flat-square)](CODE_OF_CONDUCT.md)
+[![npm](https://img.shields.io/badge/npm-tinpyui-v1.7.0-00f2fe?style=flat-square&logo=npm)](https://www.npmjs.com/package/tinpyui)
+[![pypi](https://img.shields.io/badge/pypi-tinpyui--ff-v1.7.0-9b51e0?style=flat-square&logo=pypi)](https://pypi.org/project/tinpyui-ff/)
 
-**TinPyUI** is an ultra-high-performance, memory-safe, zero-dependency, hardware-accelerated UI application framework. It unites a **Native C-FFI Sub-Millisecond Vector Surface Engine** for Desktop (**Windows DirectX 12, macOS Apple Metal, Linux GTK4/Wayland**) and Mobile (**Android Touch Haptics, iOS Retina**) with a **Hybrid Semantic DOM + WebGL 2.0 / WebGPU Shader Layer** compiled via Go to WebAssembly (`tinui_engine.wasm`).
+**TinPyUI** is an ultra-high-performance, memory-safe, zero-dependency, hardware-accelerated UI application framework. It unites a **Native C-FFI Sub-Millisecond Vector Surface Engine** for Desktop (**Windows DirectX 12, macOS Apple Metal, Linux GTK4/Wayland**) and Mobile (**Android Touch Haptics, Apple iOS Retina**) with a **Hybrid Semantic DOM + WebGL 2.0 / WebGPU Shader Layer** compiled via Go to WebAssembly (`tinui_engine.wasm`).
 
 > 📖 **Comprehensive Technical Manual**: For deep internal architecture, compiler AST specs, and memory diagrams, consult [tinpyui-docs.md](tinpyui-docs.md) and [DATABASE_AND_CONNECTIONS_GUIDE.md](DATABASE_AND_CONNECTIONS_GUIDE.md).
 
@@ -15,48 +17,53 @@
 
 ## 📑 Table of Contents
 
-1. [✨ Key Highlights](#-key-highlights)
+1. [✨ Genuine Technical Facts & Highlights](#-genuine-technical-facts--highlights)
 2. [🏛️ Architectural Reality](#-architectural-reality)
 3. [📊 Deep Architectural Comparison](#-deep-architectural-comparison)
-4. [📦 Installation](#-installation)
+4. [🚀 Quickstart: 3 Clean Commands](#-quickstart-3-clean-commands)
 5. [💻 Universal Cross-Platform Native Runtime](#-universal-cross-platform-native-runtime)
 6. [⚡ Pure Python Declarative UI Framework (`tinpyui`)](#-pure-python-declarative-ui-framework-tinpyui)
 7. [📖 Declarative `.tin` Indentation-Based Syntax](#-declarative-tin-indentation-based-syntax)
-8. [🧱 Complete Component API Catalog](#-complete-component-api-catalog)
+8. [🧱 Complete Component API Catalog & Enterprise Suite](#-complete-component-api-catalog--enterprise-suite)
 9. [⚡ Reactive State Signals & Symplectic Spring Physics (120 FPS)](#-reactive-state-signals--symplectic-spring-physics-120-fps)
 10. [📜 High-Volume Spatial Virtualization (`VirtualStack` & `VirtualList`)](#-high-volume-spatial-virtualization-virtualstack--virtuallist)
 11. [🗄️ Universal Reactive Database Suite (`tin.connect`)](#-universal-reactive-database-suite-tinconnect)
     - [PostgreSQL Relational SQL](#1-postgresql-relational-sql)
     - [MongoDB Document NoSQL](#2-mongodb-document-nosql)
     - [SQLite & Ephemeral In-Memory Storage](#3-sqlite--ephemeral-in-memory-storage)
-    - [Reactive Live Queries (`LiveQuery`)](#4-reactive-live-queries-livequery)
-    - [Persistent Key-Value Store (`tin.use_store`)](#5-persistent-key-value-store-tinuse_store)
-    - [Active Record Declarative Models (`@tin.model`)](#6-active-record-declarative-models-tinmodel)
-12. [🪄 Low-Code Declarative UI Components (`LiveDataTable` & `AutoCRUD`)](#-low-code-declarative-ui-components-livedatatable--autocrud)
-13. [📡 Real-Time Streams & Sockets (`use_socket` & `use_sse`)](#-real-time-streams--sockets-use_socket--use_sse)
-14. [🌉 Native OS Platform Channels (`PlatformBridge`)](#-native-os-platform-channels-platformbridge)
-15. [🔒 Enterprise Security & Hardware Telemetry Suite](#-enterprise-security--hardware-telemetry-suite)
-16. [🧠 Intermediate Representation (IR) Compiler & Dynamic Export (`app.export_ir`)](#-intermediate-representation-ir-compiler--dynamic-export-appexport_ir)
-17. [🖥️ How to Compile `.tin` Code on Every OS (Windows, macOS, Linux)](#-how-to-compile-tin-code-on-every-os-windows-macos-linux)
-18. [🛠️ CLI Workflows & Dev Server (Hot GLSL Reloading)](#-cli-workflows--dev-server-hot-glsl-reloading)
-19. [🚀 Production Deployment & Backend Integration](#-production-deployment--backend-integration)
-20. [🌟 Full-Stack Production Master Blueprint](#-full-stack-production-master-blueprint)
-21. [📄 License](#-license)
+    - [Redis Key-Value & Reactive Pub/Sub Signals](#4-redis-key-value--reactive-pubsub-signals)
+    - [DuckDB & ClickHouse Vectorized Analytics](#5-duckdb--clickhouse-vectorized-analytics)
+    - [Reactive Live Queries (`LiveQuery`)](#6-reactive-live-queries-livequery)
+    - [Persistent Key-Value Store (`tin.use_store`)](#7-persistent-key-value-store-tinuse_store)
+    - [Active Record Declarative Models (`@tin.model`)](#8-active-record-declarative-models-tinmodel)
+12. [🪄 Enterprise UI & Low-Code Declarative Suite (`DataGrid`, `AIChat`, `LiveDataTable` & `AutoCRUD`)](#-enterprise-ui--low-code-declarative-suite-datagrid-aichat-livedatatable--autocrud)
+13. [🎨 Extended Hardware GPU Shader Library](#-extended-hardware-gpu-shader-library)
+14. [📡 Real-Time Streams & Sockets (`use_socket` & `use_sse`)](#-real-time-streams--sockets-use_socket--use_sse)
+15. [📱 Omni-Platform Packaging & Touch Gestures (Android, iOS, Desktop)](#-omni-platform-packaging--touch-gestures-android-ios-desktop)
+16. [🔒 Enterprise Security & Hardware Telemetry Suite](#-enterprise-security--hardware-telemetry-suite)
+17. [🧠 Intermediate Representation (IR) Compiler & Dynamic Export (`app.export_ir`)](#-intermediate-representation-ir-compiler--dynamic-export-appexport_ir)
+18. [🖥️ How to Compile `.tin` Code on Every OS (Windows, macOS, Linux)](#-how-to-compile-tin-code-on-every-os-windows-macos-linux)
+19. [🛠️ CLI Workflows, Interactive REPL & Live Reload](#-cli-workflows-interactive-repl--live-reload)
+20. [🚀 Production Deployment & Backend Integration](#-production-deployment--backend-integration)
+21. [🌟 Full-Stack Production Master Blueprint](#-full-stack-production-master-blueprint)
+22. [🤝 Contributing to TinPyUI](#-contributing-to-tinpyui)
+23. [📄 License](#-license)
 
 ---
 
-## ✨ Key Highlights
+## ✨ Genuine Technical Facts & Highlights
 
-- 🚀 **120 FPS Hardware Acceleration**: Sub-millisecond vector graphics rendering via native C-FFI on desktop and dedicated WebGL/WebGPU shaders in browser runtimes.
-- 🪶 **100% Zero PIP Dependencies**: Pure Python standard library implementation with native C-FFI (`user32.dll`/`gdi32.dll` on Win32, AppKit on macOS, GTK on Linux). Zero external wheels required.
-- 📦 **Microscopic ~2 MB Native Executable**: Zero-bloat C++ shell (`engine_core.cc`) eliminates 150MB+ Electron runtime bloat while retaining modern web rendering capabilities.
-- ⚡ **O(1) Reactive State Graph**: Granular signal cells (`tin.Signal`, `tin.State`) with automatic subscriber invalidation and zero virtual DOM tree diffing.
-- 🌊 **Symplectic Euler Spring Physics**: True Hooke's Law differential solver ($F = -kx - cv$) for physics-based inertia, gestures, and fluid motion.
-- 🗄️ **Universal Multi-Engine Database**: Unified connection factory (`tin.connect`) supporting **PostgreSQL**, **MongoDB**, **SQLite**, and **In-Memory RAM** with dynamic schema evolution and automatic fallback.
-- ⚡ **Low-Code Live Components**: 1-line instant full-stack components (`tin.AutoCRUD`, `tin.LiveDataTable`) auto-wired to database mutations.
-- 📜 **100,000+ Row Spatial Virtualization**: `tin.VirtualStack` and `tin.VirtualList` deliver sub-millisecond scrolling with zero garbage collection allocations.
-- 🔒 **Enterprise-Grade Security Core**: Session binding shields (HMAC), in-memory RAM string masking (`RAMMaskedState`), CSRF guards, and Honeypot decoy generators.
-- 📱 **Omni-Platform Topology**: Seamlessly adapts layouts between Desktop 3-Column, Tablet Split-View, and Mobile Single-Column Touch interfaces.
+- 🪶 **100% Zero External PIP Dependencies**: The entire Python core (`tinpyui-ff`) runs on Python 3.7+ standard library modules (`ctypes`, `mmap`, `json`, `threading`, `socketserver`, `http.server`). No external wheels or heavy runtime installs required.
+- ⚡ **Zero-Copy Shared RAM IPC**: Uses an anonymous 4MB operating system memory map (`mmap`) to exchange 16-byte packed C-structs directly between Python and the native C++ window host, completely bypassing JSON serialization latency.
+- 🚀 **Ahead-of-Time (AOT) Static Compilation**: `tinpyui build app.tin --dist ./dist --target webgl` compiles indentation layouts down to compact binary bytecode matrices (`TINB`) and static web deployment bundles with zero runtime parsing overhead.
+- ⚡ **Zero-Copy WebAssembly Linear Memory Bridge**: Maps node transforms and shader uniforms into a fixed 48-byte linear memory stride directly readable by WebGL vertex attributes.
+- 🔥 **Sub-Millisecond Indentation HMR**: Incremental AST diffing updates uniforms and node parameters live without remounting the WebGL canvas.
+- 🧩 **Official VS Code Extension & LSP**: Includes TextMate syntax grammar, real-time indentation diagnostics, and tag autocompletion (`vscode-tinpyui/`).
+- 📦 **Compact ~2.8 MB Standalone Native Executable**: Built upon lightweight native webview hosts (`webview2` on Windows DirectX 12, `WKWebView` on macOS Metal, `WebKitGTK` on Linux) instead of bundling 150MB+ Chromium binaries.
+- 🛡️ **Defeats the "Black Screen of Death"**: Explicitly interrogates the GPU after compilation and linking (`glGetShaderiv` / `getShaderParameter` checking `COMPILE_STATUS` & `LINK_STATUS`). Syntax errors immediately trigger an interactive diagnostic crash overlay with exact line numbers.
+- 🏛️ **Hybrid Semantic DOM + WebGL GPU Engine**: Renders standard HTML elements for crystal-clear typography, accessibility (a11y), and selection, while offloading visual effects to an isolated 60/120 FPS WebGL shader canvas.
+- ⚡ **Granular Reactive State Signals**: O(1) state cells (`tin.Signal`) trigger direct node updates with zero Virtual DOM tree diffing overhead.
+- 🚀 **Unified 3-Command Toolchain**: One single CLI (`tinpyui`, aliased to `tinui`) with only 3 clean commands: `new`, `run`, and `build`.
 
 ---
 
@@ -100,26 +107,102 @@ Instead, TinPyUI employs a **Hybrid Semantic DOM + WebGL Hardware Acceleration A
 | **Binary Size** | ~2 MB Native Shell | N/A (Web bundle) | 20 MB - 35 MB | 25 MB - 40 MB | Full Python Server | 2 MB (Tauri) / 150 MB (Electron) |
 | **PIP Dependencies** | **0 External Packages** | N/A | N/A | Requires Pyodide | Heavy pip dependencies | Heavy npm packages |
 
+
 ---
 
-## 📦 Installation
+## 🚀 Quickstart: 3 Clean Commands
 
-### 1. NPM Global Compiler CLI
-The core ahead-of-time compiler and dev server is distributed globally via NPM:
-```bash
-npm install -g tinpyui
+TinPyUI simplifies application development down to **3 simple, unified commands**:
+
 ```
-*(Requires Node.js >= 18.0.0)*
+ ┌──────────────┐     ┌──────────────┐     ┌────────────────┐
+ │ 1. CREATE    │ ──▶ │ 2. RUN       │ ──▶ │ 3. BUILD       │
+ │ tinpyui new  │     │ tinpyui run  │     │ tinpyui build  │
+ └──────────────┘     └──────────────┘     └────────────────┘
+```
 
-### 2. PyPI Python Package (Zero 3rd-Party Dependencies)
-For Python developers across Windows, macOS, and Linux:
+
+### 1. 📥 Install
 ```bash
 pip install tinpyui-ff
 ```
-*Verification*:
+> **Genuine Fact**: Zero external Python packages required. Runs on pure Python 3.7+ standard library (`ctypes`, `mmap`, `json`, `threading`, `http.server`).
+
+---
+
+### 2. 📁 Create Your Project
 ```bash
-python -m tinpyui
+tinpyui new my_app
+cd my_app
 ```
+Scaffolds a beginner-friendly project structure:
+- `main.tin` — Your main screen layout and reactive logic
+- `scenes/` — Multi-page scenes and views
+- `shaders/background.frag` — Hardware GPU shader effects
+- `public/` — Web browser assets (`index.html`, `tin-runtime.js`, `tinui_engine.wasm`)
+- `tinpy.toml` — App title and window settings
+
+---
+
+### 3. ⚡ Run & Develop
+Choose how you want to run and develop your application:
+
+- **Desktop Window (Sub-Millisecond Shared RAM)**:
+  ```bash
+  tinpyui run main.tin
+  # Or shorthand:
+  tinpyui main.tin
+  ```
+  *(Maps 4MB shared memory, hands Thread 0 to native OS engine, and boots instantly)*
+
+- **Browser Live Dev Server (with Hot GLSL Reloading)**:
+  ```bash
+  tinpyui run main.tin --web
+  # Or alias:
+  tinpyui dev
+  ```
+  *(Starts dev server on `http://localhost:8080` with auto-reload and GPU error overlay)*
+
+
+- **Interactive Debug Shell & REPL**:
+  ```bash
+  tinpyui repl
+  # Or alias:
+  tinpyui shell
+  ```
+  *(Boots interactive Python shell with `tin`, `db`, and reactive `Signal` preloaded for live experimentation)*
+
+---
+
+### 4. 📦 Build & Deploy
+- **Static Web Bundle (Ready for CDNs)**:
+  ```bash
+  tinpyui build --web
+  ```
+  *(Packages static assets into `dist/` ready to host on Cloudflare Pages, Netlify, Vercel, or AWS S3)*
+
+- **Standalone Native Desktop Executable**:
+  ```bash
+  tinpyui build --desktop
+  ```
+  *(Compiles a compact ~2.8 MB standalone `.exe` / native binary into `build/desktop/`)*
+
+- **Standalone Apple iOS Native Xcode Project**:
+  ```bash
+  tinpyui build --ios --app-name "CyberApp" --bundle-id "com.corp.cyberapp"
+  ```
+  *(Generates production-ready Xcode project in `build/mobile/ios/` with `WKWebView`, Swift haptic bridge, and Retina scaling)*
+
+- **Standalone Native Android Package (APK / Gradle)**:
+  ```bash
+  tinpyui build --mobile --app-name "CyberApp" --package "com.corp.cyberapp" --apk
+  # Or explicit syntax:
+  tinui export mobile main.tin
+  ```
+  *(Generates standalone Android Gradle project in `build/mobile/android/` with hardware-accelerated WebGL + Touch Haptics & auto-compiles APK if Gradle is present)*
+
+---
+
 
 ---
 
@@ -223,7 +306,7 @@ component Main():
 
 ---
 
-## 🧱 Complete Component API Catalog
+## 🧱 Complete Component API Catalog & Enterprise Suite
 
 ### 1. Structural & Layout Containers
 | Component | Primary Properties | Description |
@@ -266,9 +349,25 @@ component Main():
 | `Icon` | `name`, `color` | Native vector SVG icon element |
 | `Image` | `src`, `url`, `assetPriority` | Optimized image element |
 
+### 5. v1.7.0 Enterprise Components, Charts & AI Tools
+| Component | Primary Properties | Description |
+| :--- | :--- | :--- |
+| `DataGrid` | `columns`, `data`, `page_size`, `searchable`, `sortable`, `selectable`, `exportable` | Enterprise virtualized grid with column sorting, live query search filtering, pagination, and 1-click CSV/JSON export |
+| `AIChat` | `messages`, `model_name`, `avatar`, `user_avatar`, `placeholder`, `on_send` | Streaming token LLM conversation UI with markdown code blocks, syntax styling, and copy buttons |
+| `ColorPicker` | `value`, `presets`, `show_alpha`, `on_change` | Interactive Hex/RGB/HSL picker with opacity slider and palette swatches |
+| `DatePicker` | `value`, `placeholder`, `date_format`, `min_date`, `max_date`, `on_change` | Input field with animated Calendar popup and date format validation |
+| `Calendar` | `year`, `month`, `selected_date`, `on_select` | Interactive monthly calendar matrix with month/year navigation controls |
+| `LineChart` | `data`, `labels`, `width`, `height`, `colors` | Vector SVG smooth curve chart with gradients and reactive Signal bindings |
+| `BarChart` | `data`, `labels`, `width`, `height`, `colors` | Vector SVG column bar chart with dynamic scaling |
+| `DonutChart` | `data`, `labels`, `width`, `height`, `colors` | Vector SVG circular proportion chart with stroke offsets |
+| `Sparkline` | `data`, `colors`, `height` | Compact micro-trend visualization for financial and telemetry feeds |
+| `TreeView` | `nodes`, `selected_id`, `on_select` | Hierarchical collapsible tree node viewer for file structures and categories |
+| `TreeNode` | `id`, `label`, `icon`, `children`, `expanded`, `data` | TreeView node element supporting recursive nesting |
+
 ---
 
 ## ⚡ Reactive State Signals & Symplectic Spring Physics (120 FPS)
+
 
 TinPyUI features an $O(1)$ reactive state graph coupled with a **Symplectic Euler differential solver** for physics animations:
 
@@ -384,7 +483,41 @@ sqlite_db = tin.connect("sqlite:///fleet_data.db")
 ram_db = tin.connect(":memory:")
 ```
 
-### 4. Reactive Live Queries (`LiveQuery`)
+### 4. Redis Key-Value & Reactive Pub/Sub Signals
+```python
+redis = tin.connect("redis://localhost:6379/0")
+
+# Key-Value caching with TTL (seconds)
+redis.set("user:session", {"id": 101, "role": "admin"}, ex=3600)
+session = redis.get("user:session")
+
+# Atomic counters & hash maps
+redis.incr("page:views", 1)
+redis.hset("device:cfg", "firmware", "v1.7.0")
+
+# Reactive Signals: UI updates automatically on key or channel changes
+theme_signal = redis.signal("user:theme", default="cyberpunk")
+telemetry_stream = redis.pubsub_signal("telemetry:stream")
+
+# Publish messages from anywhere
+redis.publish("telemetry:stream", {"status": "ACTIVE", "fps": 120})
+```
+
+### 5. DuckDB & ClickHouse Vectorized Analytics
+```python
+# High-performance analytical columnar store
+analytics = tin.connect("duckdb://metrics.db")
+
+# Run vectorized SQL & insert metrics
+analytics.execute("CREATE TABLE IF NOT EXISTS telemetry (timestamp TIMESTAMP, cpu REAL, ram REAL)")
+analytics.table("telemetry").insert(cpu=88.4, ram=64.0)
+
+# Reactive background live query (refreshes every 1.0s)
+live_metrics = analytics.live_query("SELECT AVG(cpu) as avg_cpu FROM telemetry", interval=1.0)
+```
+
+### 6. Reactive Live Queries (`LiveQuery`)
+
 Live queries re-evaluate automatically on any table mutation, updating subscribed UI widgets at 120 FPS with zero manual refresh loops:
 ```python
 orders = pg_db.table("orders")
@@ -398,7 +531,7 @@ with tin.Window(title="Live Order Queue"):
     tin.Button("Add Order", on_click=lambda: orders.insert(status="pending", item="Cyber Deck"))
 ```
 
-### 5. Persistent Key-Value Store (`tin.use_store`)
+### 7. Persistent Key-Value Store (`tin.use_store`)
 Thread-safe disk-backed key-value store with reactive signal synchronization:
 ```python
 store = tin.use_store("app_config.db", table="preferences")
@@ -409,7 +542,7 @@ theme_signal = store.signal("theme", default="cyber-dark")
 theme_signal.value = "neon-matrix"
 ```
 
-### 6. Active Record Declarative Models (`@tin.model`)
+### 8. Active Record Declarative Models (`@tin.model`)
 ```python
 @tin.model
 class DeviceNode:
@@ -425,21 +558,171 @@ live_nodes = DeviceNode.live_query(is_online=True)
 
 ---
 
-## 🪄 Low-Code Declarative UI Components (`LiveDataTable` & `AutoCRUD`)
+## 🪄 Enterprise UI & Low-Code Declarative Suite (`DataGrid`, `AIChat`, `LiveDataTable` & `AutoCRUD`)
 
-Instantly generate fully functional reactive data grids and complete administrative dashboards in a single line of code:
+TinPyUI v1.7.0 brings a production-grade enterprise component suite to build mission-critical dashboards, AI applications, and data analytics tools in pure Python with zero external JavaScript dependencies.
 
-### 1. `tin.LiveDataTable`
-Auto-discovers schema headers and binds to real-time table queries:
+### 1. Enterprise `DataGrid` (Virtualization, Sorting, Search & Export)
+High-performance virtualized tabular grid with column sorting, real-time live search filtering, pagination, row selection, and 1-click CSV/JSON export:
 ```python
-tin.LiveDataTable(pg_db.table("analytics_events"))
-tin.LiveDataTable(mongo_db.collection("devices"), columns=["name", "platform", "fps_target"])
+import tinpyui as tin
+
+devices = [
+    {"id": "SRV-01", "name": "Compute Node Alpha", "region": "us-east-1", "load": 42.1, "status": "ONLINE"},
+    {"id": "SRV-02", "name": "Storage Gateway Beta", "region": "eu-central-1", "load": 88.5, "status": "WARN"},
+    {"id": "SRV-03", "name": "Inference Pod Gamma", "region": "ap-northeast-1", "load": 15.0, "status": "ONLINE"},
+    {"id": "SRV-04", "name": "Edge Relay Delta", "region": "us-west-2", "load": 95.2, "status": "CRITICAL"},
+]
+
+with tin.Window(title="Cluster Fleet Manager"):
+    tin.Heading("Fleet Infrastructure Grid", size="h2")
+    tin.DataGrid(
+        columns=["id", "name", "region", "load", "status"],
+        data=devices,
+        page_size=10,
+        searchable=True,
+        sortable=True,
+        selectable=True,
+        exportable=True
+    )
 ```
 
-### 2. `tin.AutoCRUD`
-Generates a complete management interface with Search, Add Form, Interactive Table, and Delete Actions:
+### 2. Streaming `AIChat` LLM Interface
+Complete conversational AI interface with streaming token rendering, Markdown syntax highlighting, and copy buttons:
 ```python
+import tinpyui as tin
+
+chat_history = [
+    {"role": "assistant", "content": "Welcome to **TinPyUI Engine**! How can I assist with your shaders today?"}
+]
+
+def on_user_prompt(user_text):
+    # Process user query and stream LLM response
+    chat_history.append({"role": "user", "content": user_text})
+    chat_history.append({"role": "assistant", "content": f"Analyzing: `{user_text}`...\n```python\n# 120 FPS Native Canvas\ntin.run()\n```"})
+
+with tin.Window(title="AI Assistant"):
+    tin.AIChat(
+        messages=chat_history,
+        model_name="Tin-LLM v1.7",
+        placeholder="Type a prompt or code question...",
+        on_send=on_user_prompt
+    )
+```
+
+### 3. Interactive `ColorPicker`, `DatePicker` & `Calendar`
+Rich input widgets with reactive signal bindings:
+```python
+import tinpyui as tin
+
+active_color = tin.Signal("#00f2fe")
+active_date = tin.Signal("2026-09-16")
+
+with tin.Window(title="Settings & Date Controls"):
+    with tin.Row(gap=24):
+        with tin.Column(gap=12):
+            tin.Heading("Color Theme Picker", size="small")
+            tin.ColorPicker(
+                value=active_color,
+                presets=["#00f2fe", "#9b51e0", "#ff007f", "#00ff88", "#121218"],
+                show_alpha=True,
+                on_change=lambda c: active_color.set(c)
+            )
+
+        with tin.Column(gap=12):
+            tin.Heading("Event Date Selection", size="small")
+            tin.DatePicker(
+                value=active_date,
+                placeholder="YYYY-MM-DD",
+                date_format="YYYY-MM-DD",
+                on_change=lambda d: active_date.set(d)
+            )
+            tin.Calendar(
+                year=2026,
+                month=9,
+                selected_date="2026-09-16",
+                on_select=lambda d: active_date.set(d)
+            )
+```
+
+### 4. Declarative Vector `Chart` Suite (`LineChart`, `BarChart`, `DonutChart`, `Sparkline`)
+Hardware-rendered vector SVG charts with vibrant gradients, reactive data bindings, and tooltips:
+```python
+import tinpyui as tin
+
+# Telemetry data feeds
+fps_feed = [118, 120, 119, 120, 117, 120, 120, 121]
+revenue_quarters = [3400, 5200, 7800, 9400]
+resource_split = [45, 30, 25]
+
+with tin.Window(title="Real-Time Analytics"):
+    with tin.Grid(cols=2, gap=20):
+        # 1. Smooth Bezier Curve Line Chart
+        tin.LineChart(data=fps_feed, labels=["0s", "1s", "2s", "3s", "4s", "5s", "6s", "7s"], height="220px")
+
+        # 2. Dynamic Bar Chart
+        tin.BarChart(data=revenue_quarters, labels=["Q1", "Q2", "Q3", "Q4"], height="220px")
+
+        # 3. Donut Proportion Chart
+        tin.DonutChart(data=resource_split, labels=["GPU", "RAM", "CPU"], colors=["#00f2fe", "#9b51e0", "#ff007f"])
+
+        # 4. Compact Micro-Trend Sparkline
+        tin.Sparkline(data=[10, 25, 18, 42, 60, 55, 80], colors=["#00ff88"], height="40px")
+```
+
+### 5. Hierarchical `TreeView` & `TreeNode`
+Collapsible nested tree nodes for file systems, scene hierarchies, and categorised data:
+```python
+import tinpyui as tin
+
+project_tree = [
+    tin.TreeNode("src", "src/", icon="folder", expanded=True, children=[
+        tin.TreeNode("core", "core/", icon="folder", children=[
+            tin.TreeNode("engine", "engine.py", icon="file"),
+            tin.TreeNode("signals", "signals.py", icon="file"),
+        ]),
+        tin.TreeNode("main", "main.tin", icon="file"),
+    ]),
+    tin.TreeNode("shaders", "shaders/", icon="folder", children=[
+        tin.TreeNode("bloom", "bloom.frag", icon="shader"),
+        tin.TreeNode("fog", "volumetric_fog.frag", icon="shader"),
+    ]),
+    tin.TreeNode("config", "tinpy.toml", icon="config")
+]
+
+with tin.Window(title="Project Explorer"):
+    tin.TreeView(nodes=project_tree, on_select=lambda node: print(f"Selected: {node.label}"))
+```
+
+### 6. Low-Code `tin.LiveDataTable` & `tin.AutoCRUD`
+Auto-discovers schema headers and binds directly to real-time database queries:
+```python
+# 1-Line Reactive Table
+tin.LiveDataTable(pg_db.table("analytics_events"))
+
+# 1-Line Complete Management Dashboard (Search, Add, Table, Delete)
 tin.AutoCRUD(sqlite_db.table("devices"), title="Fleet Device Management Dashboard")
+```
+
+---
+
+## 🎨 Extended Hardware GPU Shader Library
+
+TinPyUI v1.7.0 includes an expanded suite of production-ready GLSL fragment shaders located in `shaders/`, validated at compile-time and hot-reloadable in real-time:
+
+| Shader File | Visual Effect | Technique |
+| :--- | :--- | :--- |
+| `shaders/bloom.frag` | Luminescence Bloom & HDR Glow | Threshold isolation, dual-pass Gaussian blur sampling, additive composite blending |
+| `shaders/cyber_mesh.frag` | Retro Cyberpunk Wireframe Matrix | Perspective 3D grid projection with sinusoidal vertex displacement & neon glow |
+| `shaders/volumetric_fog.frag` | Cinematic Atmospheric Fog | Raymarched exponential light scattering with dynamic light extinction |
+| `shaders/fluid_particles.frag` | Swirling Fluidic Particle Dust | Velocity vector field simulation with curling dissipation & chromatic aberration |
+| `shaders/sdf_ui_box.frag` | Anti-Aliased Glassmorphism Card | Exact Signed Distance Field (SDF) evaluation with rounded corners and border glow |
+| `shaders/uber_shader.frag` | Unified Multi-Pass Surface | Full PBR material pipeline with diffuse, roughness, and normal maps |
+
+```python
+# Load any built-in or custom GLSL shader into your background canvas
+with tin.AnimatedBackground(effect="cyber_mesh", speed=1.2, primaryColor="#00f2fe", secondaryColor="#9b51e0"):
+    tin.Heading("Hardware Shader Active", size="hero")
 ```
 
 ---
@@ -464,10 +747,11 @@ tin.Text(text=stream_signal, color="neon-pink")
 
 ---
 
-## 🌉 Native OS Platform Channels (`PlatformBridge`)
+## 📱 Omni-Platform Packaging & Touch Gestures (Android, iOS, Desktop)
 
-TinPyUI provides zero-copy C-FFI channels into native host OS dialogs, clipboard, and hardware haptics:
+TinPyUI provides zero-copy C-FFI channels into native host OS dialogs, clipboard, hardware haptics, multi-touch gestures, and one-command standalone project exporters:
 
+### 15.1 Native OS Platform Channels (`PlatformBridge`)
 ```python
 import tinpyui as tin
 
@@ -483,13 +767,65 @@ tin.PlatformBridge.vibrate(pattern_ms=60)
 tin.haptics.vibrate(60)
 
 # 4. OS Clipboard Sync
-tin.PlatformBridge.copy_clipboard("tinpyui_v16_auth_token_8892")
+tin.PlatformBridge.copy_clipboard("tinpyui_v17_auth_token_8892")
 
 # 5. System Theme Query
 current_theme = tin.PlatformBridge.get_system_theme() # "dark" | "light"
 ```
 
+### 15.2 Mobile Touch & Gesture Recognizers
+TinPyUI's runtime includes built-in high-frequency touch recognizers:
+- **Pinch-to-Zoom (`tin:pinch`)**: Tracks 2-finger pinch interactions with scale factor and focal center.
+- **Directional Swipe (`tin:swipe`)**: Dispatches directional swipe vectors (`left`, `right`, `up`, `down`).
+- **Pull-to-Refresh (`tin:pullrefresh`)**: Rubber-band pull resistance with animated glow and haptic pulse.
+
+```javascript
+// Listening to native gestures in custom JavaScript or components:
+window.addEventListener("tin:swipe", (e) => {
+    console.log("Swiped:", e.detail.direction, "Distance:", e.detail.distance);
+});
+
+window.addEventListener("tin:pinch", (e) => {
+    console.log("Pinch scale factor:", e.detail.scale);
+});
+
+window.addEventListener("tin:pullrefresh", (e) => {
+    console.log("Pull to refresh triggered!");
+});
+```
+
+### 15.3 Apple iOS Native Xcode Packaging Pipeline
+Generate a production-ready Apple iOS Xcode project complete with `WKWebView`, Swift haptic feedback bridge, retina display scaling, and safe-area insets:
+```bash
+# Via CLI:
+tinpyui build --ios --app-name "CyberApp" --bundle-id "com.corp.cyberapp"
+
+# Or directly in Python:
+tin.export_ios(app_name="CyberApp", bundle_id="com.corp.cyberapp")
+```
+This produces:
+- `CyberApp.xcodeproj/project.pbxproj` (valid Xcode bundle)
+- `AppDelegate.swift`, `SceneDelegate.swift`, `ViewController.swift`
+- `Info.plist` with required bundle permissions
+- `www/` directory with embedded WebAssembly engine and compiled IR
+
+### 15.4 Android Standalone Gradle & APK Export
+```bash
+# Export Android Gradle project and optionally compile debug APK:
+tinpyui build --mobile --app-name "CyberApp" --package "com.corp.cyberapp" --apk
+
+# Or directly in Python:
+tin.export_android(app_name="CyberApp", package_name="com.corp.cyberapp")
+```
+
+### 15.5 Standalone Native Desktop Bundling
+```bash
+# Package standalone desktop executable bundle (Windows .exe, macOS, Linux):
+tinpyui build --desktop --app-name "CyberApp"
+```
+
 ---
+
 
 ## 🔒 Enterprise Security & Hardware Telemetry Suite
 
@@ -704,51 +1040,52 @@ GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o tinui_engine.wasm ./wasm_engine
 
 ---
 
-### ⚙️ 5. Compiler Flags & Configuration Reference
+### ⚙️ 5. Unified CLI Reference
 
-| Flag / Setting | Command Syntax | Description |
+| What You Want to Do | The One Command | Genuine Technical Action |
 | :--- | :--- | :--- |
-| **Standard Compile** | `tinui compile <file.tin>` | Parses `.tin` and emits deterministic `.ir.json` AST. |
-| **Static Hydration** | `tinui compile <file.tin> --hydrate` | Generates `.ir.json` plus pre-rendered static `index.html` SEO shell. |
-| **Live Dev Server** | `tinui dev <file.tin>` | Starts hot-reloading dev server on `http://localhost:8080`. |
-| **Native Desktop** | `tinui desktop <file.tin>` | Compiles and opens native desktop UI window. |
-| **Project Init** | `tinui init` | Scaffolds standard workspace with `index.tin`, config, and Wasm files. |
-
-#### Customizing Output Paths via `tinpyui.config.json`:
-```json
-{
-  "compilerSettings": {
-    "output": "public/app.ir.json",
-    "enableHydration": true,
-    "minify": true
-  }
-}
-```
+| **Create Project** | `tinpyui new <app>` | Scaffolds beginner-friendly project structure (`main.tin`, `scenes/`, `shaders/`, `public/`, `tinpy.toml`). |
+| **Interactive REPL** | `tinpyui repl` | Boots interactive Python shell with `tin`, `db`, `Signal`, and `State` preloaded for live debugging and testing. *(Alias: `tinpyui shell`)* |
+| **Run Desktop App** | `tinpyui run main.tin` | Mmaps 4MB anonymous shared memory, packs 16-byte structs, and executes native C++ desktop host. *(Shorthand: `tinpyui main.tin`)* |
+| **Run Live Web Server** | `tinpyui run main.tin --web` | Spawns local dev server on `http://localhost:8080` with SSE file watching, Hot GLSL Reloading & crash overlay. *(Alias: `tinpyui dev`)* |
+| **Export Android App** | `tinpyui build --mobile` | Generates standalone Android Studio / Gradle project with WebGL & Haptics into `build/mobile/android/` (alias: `tinui export mobile`). |
+| **Export Apple iOS App** | `tinpyui build --ios` | Generates standalone Apple iOS Xcode project (`.xcodeproj`, `WKWebView`, Swift haptic bridge) into `build/mobile/ios/`. |
+| **Build Desktop App** | `tinpyui build --desktop` | Compiles or stages a standalone native desktop distribution bundle into `build/desktop/`. |
+| **Build Web Bundle** | `tinpyui build --web` | Compiles static production bundle into `dist/` ready for CDN hosting (Netlify, Vercel, S3, Cloudflare Pages). |
 
 ---
 
-## 🛠️ CLI Workflows & Dev Server (Hot GLSL Reloading)
+## 🛠️ CLI Workflows, Interactive REPL & Live Reload
 
 ```bash
-# 1. Scaffold a new cyber application
-tinpy create my-cyber-app
-cd my-cyber-app
+# 1. Scaffold a new application with friendly interactive wizard
+tinpyui new my_app
+cd my_app
 
-# 2. Launch live development server with Hot GLSL Reloading (HGR) on http://localhost:8080
-tinpy dev
+# 2. Launch interactive Python REPL & State Inspector
+tinpyui repl
 
-# 3. Compile .tin source to Intermediate Representation
-tinpy compile src/index.tin
+# 3. Run instant native desktop window (sub-millisecond shared memory)
+tinpyui run main.tin
 
-# 4. Compile with static SEO HTML hydration shell
-tinpy compile src/index.tin --hydrate
+# 4. Or launch live dev server with SSE Hot Reloading on http://localhost:8080
+tinpyui run main.tin --web
 
-# 5. Launch native desktop window
-tinpy desktop src/index.tin
+# 5. Export standalone Apple iOS Xcode project
+tinpyui build --ios --app-name "CyberApp" --bundle-id "com.corp.cyberapp"
 
-# 6. Run security vulnerability scanner
-python cli/security_scanner.py
+# 6. Export standalone Android Gradle project & compile debug APK
+tinpyui build --mobile --app-name "CyberApp" --package "com.corp.cyberapp" --apk
+
+# 7. Build standalone native desktop executable bundle
+tinpyui build --desktop --app-name "CyberApp"
+
+# 8. Build static production WebAssembly bundle for CDN hosting
+tinpyui build --web
 ```
+
+
+
 
 ---
 
@@ -837,6 +1174,38 @@ if __name__ == "__main__":
 
 ---
 
+## 🤝 Contributing to TinPyUI
+
+We welcome contributions from developers worldwide! Whether you're building new UI components, writing WebGPU/WebGL shaders, optimizing compiler AST passes, improving documentation, or adding database adapters, you are invited to participate.
+
+### 🌟 Quickstart for Contributors
+
+```bash
+# 1. Clone your fork
+git clone https://github.com/<your-username>/TinUi.git
+cd TinUi
+
+# 2. Verify local environment & run test suite
+# On Windows:
+dev.bat test
+
+# On Linux / macOS / Git Bash:
+make test
+```
+
+### 📚 Contributor Resources & Guides
+
+| Document | Purpose |
+| :--- | :--- |
+| 📘 **[CONTRIBUTING.md](CONTRIBUTING.md)** | Full guide on dev setup, code style, Conventional Commits, and PR submission |
+| 📜 **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** | Contributor Covenant v2.1 community standards |
+| 🗺️ **[ROADMAP.md](ROADMAP.md)** | Active milestones, planned features, and Good First Issues |
+| 🏛️ **[GOVERNANCE.md](GOVERNANCE.md)** | Project roles, maintainer pathways, and RFC proposal lifecycle |
+| 🛡️ **[SECURITY.md](SECURITY.md)** | Vulnerability reporting procedure and supported versions |
+
+---
+
 ## 📄 License
 
 MIT License © 2026 Barathanandh
+

@@ -1,0 +1,22 @@
+# TinPyUI Codeowners
+# Global maintainers for the repository
+* @barathanandh-coder
+
+# Python Runtime Core & Stubs
+/tinpyui.py @barathanandh-coder
+/tinpyui.pyi @barathanandh-coder
+/tests/ @barathanandh-coder
+
+# Go Compiler, Parser, AST & CLI
+/compiler/ @barathanandh-coder
+/cli/ @barathanandh-coder
+/main.go @barathanandh-coder
+
+# Go WebAssembly Kernel
+/wasm_engine/ @barathanandh-coder
+
+# Native C++ Shells
+/native/ @barathanandh-coder
+
+# CI/CD Workflows & GitHub Governance
+/.github/ @barathanandh-coder

@@ -12,7 +12,7 @@ func createProject(projectName string) {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Printf("\n\033[1;36m+==============================================================================+\033[0m\n")
-	fmt.Printf("\033[1;36m|   \033[1;97m[*] TinPyUI v1.6.0 Project Scaffolding Wizard\033[1;36m                              |\033[0m\n")
+	fmt.Printf("\033[1;36m|   \033[1;97m[*] TinPyUI v1.6.1 Project Scaffolding Wizard\033[1;36m                              |\033[0m\n")
 	fmt.Printf("\033[1;36m+==============================================================================+\033[0m\n\n")
 
 	// 1. Project Name prompt if empty

@@ -18,7 +18,7 @@ if (command === 'init' || command === 'create' || command === 'new') {
 
     (async () => {
         console.log(`\n\x1b[1;36m+==============================================================================+\x1b[0m`);
-        console.log(`\x1b[1;36m|   \x1b[1;97m[*] TinPyUI v1.6.1 Project Scaffolding Wizard\x1b[1;36m                              |\x1b[0m`);
+        console.log(`\x1b[1;36m|   \x1b[1;97m[*] TinPyUI v1.7.1 Project Scaffolding Wizard\x1b[1;36m                              |\x1b[0m`);
         console.log(`\x1b[1;36m+==============================================================================+\x1b[0m\n`);
 
         let targetDirArg = process.argv[3] || '';

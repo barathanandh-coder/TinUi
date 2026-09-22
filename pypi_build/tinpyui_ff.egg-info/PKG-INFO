@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: tinpyui-ff
-Version: 1.7.0
+Version: 1.7.1
 Summary: The official compiler and CLI for the TinUI framework, featuring a Pythonic, indentation-based syntax powered by WebAssembly and WebGL.
 Home-page: https://github.com/barathanandh-coder/tinui
 Author: Barathanandh
@@ -8,7 +8,7 @@ Project-URL: Homepage, https://github.com/barathanandh-coder/tinui
 Project-URL: Documentation, https://github.com/barathanandh-coder/tinui#readme
 Project-URL: Repository, https://github.com/barathanandh-coder/tinui
 Project-URL: Bug Tracker, https://github.com/barathanandh-coder/tinui/issues
-Keywords: tinui,tinpyui,indentation-syntax-compiler,wasm-frontend-framework,webgl-animation-compiler,zero-dom,hardware-accelerated,python-gui,webassembly
+Keywords: tinui,tinpyui,zero-dom,python-gui,python-ui-framework,streamlit-alternative,flet-alternative,reflex-alternative,webassembly,rust-wasm,webgl-ui,hardware-accelerated,120fps-gui,cross-platform,android-gui,ios-gui,indentation-syntax-compiler
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Intended Audience :: Developers
 Classifier: Topic :: Software Development :: User Interfaces

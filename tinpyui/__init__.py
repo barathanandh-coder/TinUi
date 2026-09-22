@@ -2,7 +2,7 @@
 TinPyUI v1.7.0 — Production-Grade Hardware-Accelerated Universal Python GUI Framework Library
 """
 
-__version__ = "1.7.0"
+__version__ = "1.7.1"
 
 import hashlib
 import platform

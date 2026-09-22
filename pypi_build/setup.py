@@ -11,7 +11,7 @@ if os.path.exists(readme_path):
 
 setup(
     name="tinpyui-ff",
-    version="1.7.0",
+    version="1.7.1",
     author="Barathanandh",
     description="The official compiler and CLI for the TinUI framework, featuring a Pythonic, indentation-based syntax powered by WebAssembly and WebGL.",
     long_description=long_description,

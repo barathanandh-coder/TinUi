@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tinpyui-ff"
+version = "1.7.2"
+description = "Hardware-Accelerated Omni-Platform UI Engine & Vector Graphics Pipeline"
+readme = "README.md"
+authors = [{ name = "Barathanandh", email = "barathanandsr@gmail.com" }]
+license = { text = "MIT" }
+keywords = [
+    "tinui",
+    "tinpyui",
+    "zero-dom",
+    "zero-vdom",
+    "python-gui",
+    "python-ui-framework",
+    "streamlit-alternative",
+    "flet-alternative",
+    "taipy-alternative",
+    "textual-alternative",
+    "reflex-alternative",
+    "webassembly",
+    "rust-wasm",
+    "webgl-ui",
+    "hardware-accelerated",
+    "120fps-gui",
+    "cross-platform",
+    "android-gui",
+    "ios-gui",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: User Interfaces",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.7"
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/barathanandh-coder/TinUi"
+Documentation = "https://github.com/barathanandh-coder/TinUi#readme"
+Repository = "https://github.com/barathanandh-coder/TinUi"
+"Bug Tracker" = "https://github.com/barathanandh-coder/TinUi/issues"
+
+[project.scripts]
+tinpyui = "tinpyui.cli:main"
+tinui = "tinpyui.cli:main"

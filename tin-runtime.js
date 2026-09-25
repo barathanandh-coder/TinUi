@@ -1406,7 +1406,7 @@ void main() {
 
     async function _loadIR() {
         // Check binary candidates first (70% smaller and 5x faster hydration)
-        const binCandidates = ['app.ir.bin', 'showcase.ir.bin', 'main.ir.bin', 'index.ir.bin', '/app.ir.bin', '/showcase.ir.bin', '/main.ir.bin', '/index.ir.bin'];
+        const binCandidates = ['app.ir.bin', 'showcase.ir.bin', 'main.ir.bin', 'index.ir.bin', './app.ir.bin', './showcase.ir.bin', './main.ir.bin', './index.ir.bin'];
         for (const p of binCandidates) {
             try {
                 const res = await fetch(p + '?t=' + Date.now());
@@ -1422,7 +1422,7 @@ void main() {
             } catch(e) {}
         }
 
-        const candidates = ['app.ir.json', 'showcase.ir.json', 'main.ir.json', 'index.ir.json', '/app.ir.json', '/showcase.ir.json', '/main.ir.json', '/index.ir.json'];
+        const candidates = ['app.ir.json', 'showcase.ir.json', 'main.ir.json', 'index.ir.json', './app.ir.json', './showcase.ir.json', './main.ir.json', './index.ir.json'];
         for (const p of candidates) {
             try {
                 const res = await fetch(p + '?t=' + Date.now());
@@ -1446,7 +1446,7 @@ void main() {
     // =========================================================================
     // 12. WebAssembly Engine Boot & Fallback Activation (v1.8.0 Rust/Go Engine)
     // =========================================================================
-    const _tinWasmSources = ["tinui_engine.wasm", "app.wasm", "/tinui_engine.wasm", "/app.wasm"];
+    const _tinWasmSources = ["tinui_engine.wasm", "tin_wasm_engine_bg.wasm", "app.wasm", "./tinui_engine.wasm", "./tin_wasm_engine_bg.wasm", "./app.wasm"];
 
     async function bootEngine() {
         const irText = await _loadIR();

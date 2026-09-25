@@ -143,15 +143,21 @@ Working with indentation-based languages demands high-fidelity editor feedback. 
 
 ---
 
-## 7. Benchmarks & Performance Comparison
+## 7. Benchmarks & Framework Comparison
 
-| Metric | Standard DOM / React 18 | TinPyUI (AOT + WebGL / Wasm) |
-| :--- | :--- | :--- |
-| **Initial Bundle Size** | ~140 KB – 400 KB | **< 38 KB (Binary IR + Runtime)** |
-| **Parsing & Hydration** | 25ms – 80ms | **1.2ms (Binary Opcode Walk)** |
-| **Node Render Throughput** | ~2,000 animated nodes | **> 50,000 nodes at 60 FPS** |
-| **State Sync Latency** | 4ms – 16ms (Virtual DOM Diff) | **< 0.1ms (Direct Linear Memory)** |
-| **HMR Refresh Time** | 200ms – 800ms | **< 8ms (Selective WebGL Patch)** |
+| Metric | Standard DOM / React 18 | TinPyUI (AOT + WebGL / Wasm) | Taipy GUI | Textual (TUI) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Rendering Target** | Browser DOM (VDOM) | **Hybrid Semantic DOM + WebGL** | Browser DOM (React wrap)| Terminal Character Cells |
+| **External Dependencies** | 1,000+ npm packages | **0 PIP Packages (Stdlib)** | Heavy (Flask, Pandas, etc)| Rich, typing-extensions |
+| **GPU Hardware Shaders** | Manual Three.js / WebGL | **Native 120 FPS GLSL Engine** | None | None |
+| **Execution Model** | Client JS Diffing | **Wasm Linear Memory Stride** | Server WebSocket Graph | Async Event Loop |
+| **Initial Bundle Size** | ~140 KB – 400 KB | **< 38 KB (Binary IR + Runtime)**| Heavy Server + Bundle | Python Terminal Script |
+| **Parsing & Hydration** | 25ms – 80ms | **1.2ms (Binary Opcode Walk)** | Server Handshake Lag | Immediate |
+| **Mobile & Touch Support**| Web Responsive | **Android APK + iOS Retina** | Web Only | Terminal Only |
+
+### How TinPyUI Differs:
+- **vs. Taipy GUI**: Taipy is built for data science backends communicating over WebSockets to a React client. TinPyUI is a standalone GUI and WebAssembly compiler that produces zero-server static CDN deployments and native ~2.8MB desktop executables with zero external pip dependencies.
+- **vs. Textual**: While Textual is a premier framework for terminal-based apps, it is restricted to terminal ASCII/Unicode grids. TinPyUI targets high-resolution visual displays with real-time WebGL/WebGPU shaders, smooth vector animations, responsive CSS tokens, and mobile touch gestures.
 
 ---
 

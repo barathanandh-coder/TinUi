@@ -3,7 +3,12 @@
 > The WebAssembly UI framework that compiles **Pythonic, indentation-based syntax** into blazing-fast native DOM, WebGL shaders, and multi-platform native apps.
 
 [![npm](https://img.shields.io/badge/npm-tinpyui-v1.7.0-cyan)](https://www.npmjs.com/package/tinpyui)
-[![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/barathanandh-coder/tinui/blob/main/LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/barathanandh-coder/TinUi/blob/main/LICENSE)
+[![Documentation](https://img.shields.io/badge/Docs-Full%20Manual-ff007f)](https://github.com/barathanandh-coder/TinUi/blob/main/tinpyui-docs.md)
+
+> 📚 **Official Full Documentation & Architecture Manual**:
+> Looking for the complete 16-chapter technical guide explaining TinPyUI from compiler internals to production deployment?
+> 👉 Read the full guide: **[The TinPyUI Architecture & Developer Manual (tinpyui-docs.md)](https://github.com/barathanandh-coder/TinUi/blob/main/tinpyui-docs.md)**
 
 ---
 
@@ -32,6 +37,10 @@ A Go-compiled WASM engine executes your UI logic at near-native speed. On deskto
 ### 3D, Shaders & Animation Ready
 
 Built-in components for 3D scenes, particle systems, GLSL fragment shaders (Bloom, Cyber Mesh, Volumetric Fog, Fluid Particles), scroll-triggered animations, and glassmorphism.
+
+### Zero Virtual DOM & Hybrid Hardware Acceleration
+
+Unlike React or Vue, TinPyUI has **zero Virtual DOM (Zero-VDOM) overhead**—reactive signals mutate nodes directly in $O(1)$ time without expensive tree diffing. Heavy visual effects (particles, GLSL shaders) run on an isolated WebGL 2.0 / WebGPU canvas without touching the DOM, while typography, inputs, and layout containers remain genuine semantic HTML5 elements for 100% native copy-paste, screen reader accessibility (a11y), and SEO.
 
 ### Omni-Platform Packaging
 

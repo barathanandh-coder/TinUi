@@ -1256,6 +1256,83 @@ void main() {
     };
 
     // =========================================================================
+    // 10b. Modern Component Primitives Engine (Radix / Shadcn Suite)
+    // =========================================================================
+    function initModernPrimitives() {
+        // 1. Accessible Tabs Controller
+        document.querySelectorAll('[data-tabs], .tin-tabs').forEach(tabGroup => {
+            const triggers = tabGroup.querySelectorAll('[data-tab-trigger], button[data-tab]');
+            const contents = tabGroup.querySelectorAll('[data-tab-content], .tin-tab-content');
+            
+            triggers.forEach(trigger => {
+                trigger.onclick = (e) => {
+                    e.preventDefault();
+                    const targetVal = trigger.getAttribute('data-tab-trigger') || trigger.getAttribute('data-tab');
+                    triggers.forEach(t => t.classList.remove('active', 'border-cyan-400', 'text-cyan-300'));
+                    trigger.classList.add('active', 'border-cyan-400', 'text-cyan-300');
+                    
+                    contents.forEach(content => {
+                        const cVal = content.getAttribute('data-tab-content') || content.getAttribute('data-tab');
+                        if (cVal === targetVal) {
+                            content.style.display = 'block';
+                            content.style.opacity = '0';
+                            requestAnimationFrame(() => { content.style.transition = 'opacity 0.2s'; content.style.opacity = '1'; });
+                        } else {
+                            content.style.display = 'none';
+                        }
+                    });
+                };
+            });
+        });
+
+        // 2. Accordion Controller
+        document.querySelectorAll('[data-accordion-trigger], .tin-accordion-header').forEach(header => {
+            header.onclick = () => {
+                const item = header.closest('[data-accordion-item], .tin-accordion-item');
+                if (!item) return;
+                const content = item.querySelector('[data-accordion-content], .tin-accordion-body');
+                const chevron = item.querySelector('.tin-accordion-chevron, [data-chevron]');
+                const isOpen = item.classList.contains('open') || item.getAttribute('data-open') === 'true';
+
+                if (isOpen) {
+                    item.classList.remove('open');
+                    item.setAttribute('data-open', 'false');
+                    if (content) content.style.display = 'none';
+                    if (chevron) chevron.style.transform = 'rotate(0deg)';
+                } else {
+                    item.classList.add('open');
+                    item.setAttribute('data-open', 'true');
+                    if (content) {
+                        content.style.display = 'block';
+                    }
+                    if (chevron) chevron.style.transform = 'rotate(180deg)';
+                }
+            };
+        });
+
+        // 3. Dialog / Modal Controller & ESC Key Dismissal
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('dialog[open], [data-modal][open]').forEach(dlg => {
+                    dlg.removeAttribute('open');
+                    dlg.style.display = 'none';
+                });
+            }
+        });
+
+        // 4. Two-Way Form Validation & Reactive Input Synchronization
+        document.querySelectorAll('input[data-bind], textarea[data-bind]').forEach(input => {
+            input.oninput = () => {
+                const varName = input.getAttribute('data-bind');
+                if (varName && window.TinUIMutateState) {
+                    window.TinUIMutateState(varName, input.value);
+                }
+            };
+        });
+    }
+    window.initModernPrimitives = initModernPrimitives;
+
+    // =========================================================================
     // 11. Opcode Intermediate Representation (IR) Tree Renderer
     // =========================================================================
     function renderTinIR(ir, rootContainer) {
@@ -1316,6 +1393,7 @@ void main() {
         setTimeout(() => {
             _tinMountAllEffects();
             initScrollReveal();
+            initModernPrimitives();
         }, 20);
 
         return true;
@@ -1406,7 +1484,7 @@ void main() {
 
     async function _loadIR() {
         // Check binary candidates first (70% smaller and 5x faster hydration)
-        const binCandidates = ['app.ir.bin', 'showcase.ir.bin', 'main.ir.bin', 'index.ir.bin', '/app.ir.bin', '/showcase.ir.bin', '/main.ir.bin', '/index.ir.bin'];
+        const binCandidates = ['app.ir.bin', 'showcase.ir.bin', 'main.ir.bin', 'index.ir.bin', './app.ir.bin', './showcase.ir.bin', './main.ir.bin', './index.ir.bin'];
         for (const p of binCandidates) {
             try {
                 const res = await fetch(p + '?t=' + Date.now());
@@ -1422,7 +1500,7 @@ void main() {
             } catch(e) {}
         }
 
-        const candidates = ['app.ir.json', 'showcase.ir.json', 'main.ir.json', 'index.ir.json', '/app.ir.json', '/showcase.ir.json', '/main.ir.json', '/index.ir.json'];
+        const candidates = ['app.ir.json', 'showcase.ir.json', 'main.ir.json', 'index.ir.json', './app.ir.json', './showcase.ir.json', './main.ir.json', './index.ir.json'];
         for (const p of candidates) {
             try {
                 const res = await fetch(p + '?t=' + Date.now());
@@ -1446,13 +1524,14 @@ void main() {
     // =========================================================================
     // 12. WebAssembly Engine Boot & Fallback Activation (v1.8.0 Rust/Go Engine)
     // =========================================================================
-    const _tinWasmSources = ["tinui_engine.wasm", "app.wasm", "/tinui_engine.wasm", "/app.wasm"];
+    const _tinWasmSources = ["tinui_engine.wasm", "tin_wasm_engine_bg.wasm", "app.wasm", "./tinui_engine.wasm", "./tin_wasm_engine_bg.wasm", "./app.wasm"];
 
     async function bootEngine() {
         const irText = await _loadIR();
         if (irText) {
             renderIRFallback(irText);
         }
+        initModernPrimitives();
 
         // Initialize WebGL background shader if shader canvas is present
         setTimeout(() => {

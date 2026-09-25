@@ -42,6 +42,15 @@ Built-in components for 3D scenes, particle systems, GLSL fragment shaders (Bloo
 
 Unlike React or Vue, TinPyUI has **zero Virtual DOM (Zero-VDOM) overhead**—reactive signals mutate nodes directly in $O(1)$ time without expensive tree diffing. Heavy visual effects (particles, GLSL shaders) run on an isolated WebGL 2.0 / WebGPU canvas without touching the DOM, while typography, inputs, and layout containers remain genuine semantic HTML5 elements for 100% native copy-paste, screen reader accessibility (a11y), and SEO.
 
+### 🥊 How TinPyUI Beats React
+
+- **No Virtual DOM Overhead**: Directly updates target DOM nodes in $O(1)$ time via fine-grained signals. No tree diffing or rerender cascades.
+- **Zero NPM Dependency Hell**: React requires 15+ packages (`react-router`, `react-hook-form`, `zod`, `framer-motion`, `@radix-ui`, `sonner`). TinPyUI includes Hooks, Forms, Router, Modern Primitives, and Toasts out of the box with zero external dependencies.
+- **Reactive Hooks Without Traps**: `use_state`, `use_effect`, `use_memo`, and `use_context` work natively without stale closure bugs or broken dependency arrays.
+- **Built-in Accessible Primitives**: `Dialog`, `Modal`, `Tabs`, `Accordion`, `Select`, and `toast` built right into the framework.
+- **Two-Way Form Validation**: Built-in `Form` and `FormField` with live validation rules (`required`, `min_length`, `email`, `numeric`, `pattern`).
+- **Client-Side SPA Router**: Built-in `Router` & `Route` with dynamic URL path parameters (`/users/:id`).
+
 ### Omni-Platform Packaging
 
 Package to **Web (WASM)**, **Apple iOS (Xcode / Swift / WKWebView)**, **Android (Gradle / APK)**, and **Desktop (standalone native binary)** with 1 command.

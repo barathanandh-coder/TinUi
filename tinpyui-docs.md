@@ -20,6 +20,8 @@
 14. [Chapter 14: Real-Time Sockets, Native OS Dialogs & Dynamic IR Export](#chapter-14-real-time-sockets-native-os-dialogs--dynamic-ir-export)
 15. [Chapter 15: Full-Stack Architecture & Production Recipes](#chapter-15-full-stack-architecture--production-recipes)
 16. [Chapter 16: v1.7.0 Next-Gen Extensions & Omni-Platform Architecture](#chapter-16-v170-next-gen-extensions--omni-platform-architecture)
+17. [Chapter 17: Next-Generation Optimizations, AOT Binary Compilation & VS Code LSP Suite](#chapter-17-next-generation-optimizations-aot-binary-compilation--vs-code-lsp-suite)
+18. [Chapter 18: React-Competitor Architecture (Hooks, Forms, Primitives & SPA Router)](#chapter-18-react-competitor-architecture-hooks-forms-primitives--spa-router)
 
 ---
 
@@ -1143,6 +1145,80 @@ Located in `vscode-tinpyui/`:
 ### 17.5 Dynamic Resolution Scaling (DRS) & Frustum Occlusion Culling
 - **Dynamic Resolution Scaling**: Continuously profiles frametime delta. If frametimes exceed 32ms under heavy GPU load, canvas resolution scale steps down dynamically (down to `0.20x`) to guarantee responsive interaction, recovering automatically when GPU load clears.
 - **Frustum Occlusion Observer**: Shaders scrolled out of the viewport immediately halt their `requestAnimationFrame` render loops, saving 100% of background GPU cycles and mobile battery.
+
+---
+
+## Chapter 18: React-Competitor Architecture (Hooks, Forms, Primitives & SPA Router)
+
+TinPyUI delivers the declarative ergonomics developers love from the React and Radix/Shadcn ecosystems without the Virtual DOM tax, dependency overhead, or rerender traps.
+
+### 18.1 Fine-Grained Reactive Hooks ($O(1)$)
+Unlike React, where hook state updates trigger whole-component reruns and risk infinite loops or stale closures:
+- `use_state(initial)`: Returns `(signal, set_state)` tuple supporting direct values and functional updaters (`lambda prev: prev + 1`).
+- `use_effect(fn, [deps])`: Executes side effects when subscribed dependency signals mutate, running optional teardown/cleanup closures automatically before each run or on unmount.
+- `use_memo(fn, [deps])`: Caches expensive computations in a derived Signal that re-evaluates only when its dependencies change.
+- `use_ref(initial)`: Persistent mutable container whose `.current` attribute changes without triggering reactive cascades.
+- `create_context()`, `provide_context()`, `use_context()`: Multi-tier hierarchical state passing without prop drilling.
+
+```python
+import tinpyui as tin
+
+# 1. State & functional updater
+count, set_count = tin.use_state(1)
+set_count(lambda prev: prev + 10)
+
+# 2. Reactive memo
+double_count = tin.use_memo(lambda: count.value * 2, [count])
+
+# 3. Effect with cleanup
+def track_metrics():
+    print(f"Tracking count: {count.value}")
+    return lambda: print("Cleaning up previous run")
+
+tin.use_effect(track_metrics, [count])
+
+# 4. Context API
+tin.provide_context("auth_session", {"user": "alice", "role": "admin"})
+current_user = tin.use_context("auth_session")
+```
+
+### 18.2 Two-Way Reactive Form State & Live Validation Suite
+Replaces the complex boilerplate of Formik or React-Hook-Form:
+- **Rule Primitives**: `required()`, `min_length(n)`, `max_length(n)`, `email()`, `numeric()`, `pattern(regex)`, and `custom(fn)`.
+- **FormField**: Two-way data binding to Signal, live dirty tracking, and reactive error message updates.
+- **Form Container**: Auto-registers child fields in context blocks, computes whole-form validity (`form.is_form_valid`), and executes `on_submit(data, is_valid)`.
+
+```python
+with tin.Form(on_submit=lambda data, valid: print("Submitted:", data)) as form:
+    tin.FormField(label="Username", name="username", rules=[tin.required(), tin.min_length(3)])
+    tin.FormField(label="Email", name="email", rules=[tin.required(), tin.email()])
+    tin.FormField(label="Age", name="age", rules=[tin.numeric()])
+    tin.Button(text="Submit", on_click=form.submit)
+```
+
+### 18.3 Modern Accessible Primitives (Radix / Shadcn Suite)
+- **Dialog / Modal**: Backdrop blur, spring zoom animation, focus trapping, and keyboard `ESC` dismissal.
+- **Tabs (`Tabs`, `TabList`, `TabTrigger`, `TabContent`)**: Accessible tab switching with animated highlight bars.
+- **Accordion (`Accordion`, `AccordionItem`)**: Collapsible FAQ and menu cards with rotating chevrons.
+- **Select / Dropdown**: Searchable custom select box with signal binding.
+- **Tooltip & Popover**: Floating hover hints and contextual flyout cards.
+- **Toast System (`tin.toast`, `ToastContainer`)**: High-performance stacking toast notifications (`toast.success()`, `toast.error()`, `toast.warning()`, `toast.info()`).
+
+### 18.4 Declarative Client-Side SPA Router
+Full Single-Page Application routing without server roundtrips or page reloads:
+- Supports dynamic URL path parameters via compiled regex (e.g. `/users/:id`, `/orgs/:org_id/projects/:project_id`).
+- Normalizes URLs and handles trailing slashes consistently.
+- Programmatic navigation via `router.navigate("/target/path")`.
+- Active component rendering via `router.render()`.
+
+```python
+with tin.Router(initial_path="/") as router:
+    tin.Route(path="/", component=tin.Text("Home Dashboard"))
+    tin.Route(path="/users/:id", component=lambda: tin.Text(f"User: {router.params.value.get('id')}"))
+
+# Programmatic route transition
+router.navigate("/users/42")
+```
 
 ---
 *(End of Official Manual — TinPyUI Engine v1.7.0)*

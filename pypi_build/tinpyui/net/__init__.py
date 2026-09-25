@@ -1,5 +1,5 @@
 from .bridge import PlatformBridge, haptics
-from .router import Router
+from .client_router import Router, Route
 from .events import EventBus
 from .storage import Storage, storage
 from .http_client import HTTPClient, WebSocketConnection, use_socket, use_sse, api
@@ -9,7 +9,7 @@ from .mesh import (
 )
 
 __all__ = [
-    "PlatformBridge", "haptics", "Router", "EventBus",
+    "PlatformBridge", "haptics", "Router", "Route", "EventBus",
     "Storage", "storage", "HTTPClient", "WebSocketConnection",
     "use_socket", "use_sse", "api",
     "VectorClock", "LWWRegister", "MeshState",

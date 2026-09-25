@@ -24,18 +24,27 @@ from .core import (
     eval_prop, safe_eval_prop, failsafe_guard, RecursionGuard,
     ThreadDispatcher, parse_color, Signal, State, Node
 )
+from .core.hooks import (
+    use_state, use_signal, use_effect, use_memo, use_ref,
+    create_context, provide_context, use_context, Ref
+)
 from .components import (
     Section, Row, Column, Card, LayoutWindow, Spacer, Divider,
     AnimatedBackground, Navbar, Container, Grid, Surface,
-    HeroContainer, Header, Footer, Main, Marquee, Modal, Tooltip,
+    HeroContainer, Header, Footer, Main, Marquee,
     ShaderLayer, WebGLCanvas, ParticleField,
     Heading, Text, GradientText, Badge, Icon, Link,
     Button, Input, NavItem, Slider, Switch, Progress, ProgressBar,
     Avatar, Image, VirtualStack, VirtualList, Spring,
-    DataTable, LiveDataTable, AutoCRUD, Form,
+    DataTable, LiveDataTable, AutoCRUD,
     DataGrid, AIChat, ColorPicker, DatePicker, Calendar,
     Chart, LineChart, BarChart, DonutChart, Sparkline,
-    TreeView, TreeNode
+    TreeView, TreeNode,
+    Dialog, Modal, Tabs, TabList, TabTrigger, TabContent,
+    Accordion, AccordionItem, Select, Dropdown, Tooltip, Popover,
+    ToastContainer, toast,
+    Form, FormField,
+    required, min_length, max_length, email, numeric, pattern, custom
 )
 from .data import (
     Database, Table, QueryBuilder, LiveQuery, SQLiteDatabase, DB, SQLiteDB, db,
@@ -46,7 +55,7 @@ from .data import (
     connect, KeyValueStore, use_store, model, ModelWrapper
 )
 from .net import (
-    PlatformBridge, haptics, Router, EventBus,
+    PlatformBridge, haptics, Router, Route, EventBus,
     Storage, storage, HTTPClient, WebSocketConnection,
     use_socket, use_sse, api,
     VectorClock, LWWRegister, MeshState,
@@ -87,24 +96,31 @@ __all__ = [
     "SpringPhysics", "SpringSolver", "Rect", "_context_stack",
     "eval_prop", "safe_eval_prop", "failsafe_guard", "RecursionGuard",
     "ThreadDispatcher", "parse_color", "Signal", "State", "Node",
+    "use_state", "use_signal", "use_effect", "use_memo", "use_ref",
+    "create_context", "provide_context", "use_context", "Ref",
     "Section", "Row", "Column", "Card", "LayoutWindow", "Spacer", "Divider",
     "AnimatedBackground", "Navbar", "Container", "Grid", "Surface",
-    "HeroContainer", "Header", "Footer", "Main", "Marquee", "Modal", "Tooltip",
+    "HeroContainer", "Header", "Footer", "Main", "Marquee",
     "ShaderLayer", "WebGLCanvas", "ParticleField",
     "Heading", "Text", "GradientText", "Badge", "Icon", "Link",
     "Button", "Input", "NavItem", "Slider", "Switch", "Progress", "ProgressBar",
     "Avatar", "Image", "VirtualStack", "VirtualList", "Spring",
-    "DataTable", "LiveDataTable", "AutoCRUD", "Form",
+    "DataTable", "LiveDataTable", "AutoCRUD",
     "DataGrid", "AIChat", "ColorPicker", "DatePicker", "Calendar",
     "Chart", "LineChart", "BarChart", "DonutChart", "Sparkline",
     "TreeView", "TreeNode",
+    "Dialog", "Modal", "Tabs", "TabList", "TabTrigger", "TabContent",
+    "Accordion", "AccordionItem", "Select", "Dropdown", "Tooltip", "Popover",
+    "ToastContainer", "toast",
+    "Form", "FormField",
+    "required", "min_length", "max_length", "email", "numeric", "pattern", "custom",
     "Database", "Table", "QueryBuilder", "LiveQuery", "SQLiteDatabase", "DB", "SQLiteDB", "db",
     "PostgresDatabase", "PostgresTable", "PostgresDB",
     "MongoDatabase", "MongoCollection", "MongoQueryBuilder", "MongoDB",
     "RedisDatabase", "RedisStore", "RedisDB",
     "DuckDBDatabase", "ClickHouseDatabase",
     "connect", "KeyValueStore", "use_store", "model", "ModelWrapper",
-    "PlatformBridge", "haptics", "Router", "EventBus",
+    "PlatformBridge", "haptics", "Router", "Route", "EventBus",
     "Storage", "storage", "HTTPClient", "WebSocketConnection",
     "use_socket", "use_sse", "api",
     "VectorClock", "LWWRegister", "MeshState", "PresenceTracker", "MeshNode", "use_mesh_state",

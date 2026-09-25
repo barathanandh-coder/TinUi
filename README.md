@@ -172,6 +172,90 @@ TinPyUI achieves the speed and throughput benefits of "Zero-DOM" through two tar
 - **vs. Textual**: Textual is an exceptional tool for Terminal User Interfaces (TUI), but it is physically constrained to fixed character cell grids within console windows. TinPyUI delivers real-time GPU-accelerated graphical surfaces, custom GLSL fragment shaders, glassmorphism, responsive multi-device layouts, and mobile haptic touch support.
 - **vs. Streamlit & Flet**: Streamlit executes whole-script reruns on user interaction over WebSockets; Flet requires an external Flutter runtime bridge. TinPyUI features $O(1)$ granular state signals (`tin.Signal`) and compiles to a lightweight 218KB WebAssembly core without server round-trip latency.
 
+### 🥊 How TinPyUI Beats React (The Developer-First Architecture)
+
+| Dimension | ⚛️ React 19 Ecosystem | ⚡ TinPyUI v1.7 |
+| :--- | :--- | :--- |
+| **Reactivity Model** | Virtual DOM Tree Diffing (Cascading sub-tree re-renders) | **Fine-Grained $O(1)$ Signals** (Direct node mutation, zero VDOM diffing) |
+| **Dependencies Needed** | ~15-30 npm packages (`react-router-dom`, `react-hook-form`, `zod`, `framer-motion`, `@radix-ui`, `sonner`, `lucide-react`) | **0 Dependencies** (Everything built-in: Hooks, Router, Forms, Primitives, Toasts) |
+| **Rerender Traps** | Broken dependency arrays, stale closures, unnecessary memoization | **Impossible** (Components only execute once; signals update targets directly) |
+| **Form Validation** | Requires Formik or React-Hook-Form + Yup/Zod schema resolvers | **Built-in Two-Way Binding** with live error signals & rule primitives |
+| **UI Primitives** | Requires installing Radix UI, Headless UI, or Shadcn copy-paste | **Built-in Accessible Primitives** (`Dialog`, `Tabs`, `Accordion`, `Select`, `toast`) |
+| **Desktop Executable** | 150MB+ Electron binary (bundles full Chromium + Node.js) | **~2.8 MB Standalone Native Binary** (Hardware DirectX 12 / Metal / GTK4) |
+| **GPU / 3D Graphics** | Requires Three.js, React-Three-Fiber, custom canvas hacks | **Built-in WebGL 2.0 / WebGPU** GLSL shader pipeline (120 FPS) |
+
+#### 1. React-Like Hooks Without Re-render Traps
+```python
+import tinpyui as tin
+
+# 1. State hook with functional update support
+count, set_count = tin.use_state(0)
+set_count(lambda prev: prev + 1)
+
+# 2. Memoized computed signal (recomputes ONLY when count changes)
+doubled = tin.use_memo(lambda: count.value * 2, [count])
+
+# 3. Effect hook with auto-cleanup
+def on_counter_change():
+    print(f"Count updated to: {count.value}")
+    return lambda: print("Cleaning up previous run...")
+
+tin.use_effect(on_counter_change, [count])
+
+# 4. Context API
+tin.provide_context("theme", "cyber-dark")
+current_theme = tin.use_context("theme")
+```
+
+#### 2. Two-Way Form State & Live Validation (Beats React-Hook-Form)
+```python
+with tin.Form(on_submit=lambda data, valid: print("Submitted:", data, valid)) as form:
+    tin.FormField(
+        label="Email Address",
+        name="email",
+        rules=[tin.required(), tin.email()]
+    )
+    tin.FormField(
+        label="Password",
+        name="password",
+        type="password",
+        rules=[tin.required(), tin.min_length(8)]
+    )
+    tin.Button(text="Submit Form", on_click=form.submit)
+```
+
+#### 3. Modern Accessible Primitives (Radix / Shadcn Suite)
+```python
+# Accessible Tabs
+with tin.Tabs(default_value="profile"):
+    with tin.TabList():
+        tin.TabTrigger(label="Profile", value="profile")
+        tin.TabTrigger(label="Settings", value="settings")
+    with tin.TabContent(value="profile"):
+        tin.Text("Profile Settings & Avatar")
+    with tin.TabContent(value="settings"):
+        tin.Text("Security & API Keys")
+
+# Stacking Toast Alerts
+tin.toast.success("Build compiled in 0.001s!", title="Compiled")
+tin.toast.error("Failed to authenticate session", title="Auth Error")
+
+# Modal Dialog with ESC Key Dismissal
+dialog = tin.Dialog(title="Delete Project?", open=False)
+tin.Button(text="Open Modal", on_click=dialog.show)
+```
+
+#### 4. Declarative Client-Side SPA Router with Dynamic URL Parameters
+```python
+# Matches /users/42 -> extracts params={"id": "42"}
+with tin.Router(initial_path="/") as router:
+    tin.Route(path="/", component=tin.Text("Welcome Home"))
+    tin.Route(path="/users/:id", component=lambda: tin.Text(f"User: {router.params.value.get('id')}"))
+
+# Navigate programmatically without page reloads
+router.navigate("/users/101")
+```
+
 
 ---
 

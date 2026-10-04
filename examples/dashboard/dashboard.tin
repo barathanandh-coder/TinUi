@@ -1,0 +1,56 @@
+component DashboardApp():
+    Container(class_="min-h-screen bg-slate-900 text-white flex"):
+        # Sidebar Navigation
+        Container(class_="w-64 bg-slate-800 border-r border-slate-700 p-6 flex flex-col gap-6"):
+            Row(align="center", gap=12):
+                Icon(name="dashboard", class_="text-cyan-400 text-2xl")
+                Heading(text="Admin Panel", class_="text-xl font-bold")
+            
+            Container(class_="flex flex-col gap-2 mt-4"):
+                Button(text="Overview", class_="text-left px-4 py-2 bg-cyan-500/20 text-cyan-400 rounded-lg font-medium")
+                Button(text="Analytics", class_="text-left px-4 py-2 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors")
+                Button(text="Users", class_="text-left px-4 py-2 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors")
+                Button(text="Settings", class_="text-left px-4 py-2 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors")
+            
+            Container(class_="mt-auto"):
+                Button(text="Logout", class_="w-full px-4 py-2 border border-red-500/50 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors")
+
+        # Main Content Area
+        Container(class_="flex-1 flex flex-col"):
+            # Header
+            Navbar(class_="h-16 bg-slate-800/50 border-b border-slate-700 flex items-center justify-between px-8"):
+                Heading(text="System Overview", class_="text-lg font-semibold")
+                Row(align="center", gap=16):
+                    Input(placeholder="Search...", class_="bg-slate-900 border border-slate-700 rounded-lg px-4 py-1.5 text-sm")
+                    Container(class_="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center"):
+                        Text(text="AD", class_="text-xs font-bold text-slate-900")
+
+            # Main Content
+            Container(class_="p-8"):
+                # Statistics Cards
+                Grid(cols="3", gap=24, class_="grid grid-cols-3 gap-6 mb-8"):
+                    Card(class_="p-6 bg-slate-800 rounded-xl border border-slate-700"):
+                        Text(text="Total Revenue", class_="text-sm text-slate-400")
+                        Heading(text="$45,231.89", class_="text-3xl font-bold mt-2 text-cyan-400")
+                        Text(text="+20.1% from last month", class_="text-xs text-emerald-400 mt-2")
+                    
+                    Card(class_="p-6 bg-slate-800 rounded-xl border border-slate-700"):
+                        Text(text="Active Users", class_="text-sm text-slate-400")
+                        Heading(text="2,350", class_="text-3xl font-bold mt-2 text-purple-400")
+                        Text(text="+15.5% from last month", class_="text-xs text-emerald-400 mt-2")
+                    
+                    Card(class_="p-6 bg-slate-800 rounded-xl border border-slate-700"):
+                        Text(text="Active Sessions", class_="text-sm text-slate-400")
+                        Heading(text="12,234", class_="text-3xl font-bold mt-2 text-indigo-400")
+                        Text(text="-2.3% from last month", class_="text-xs text-red-400 mt-2")
+
+                # Settings Section
+                Card(class_="p-6 bg-slate-800 rounded-xl border border-slate-700"):
+                    Heading(text="Quick Settings", class_="text-lg font-semibold mb-4")
+                    Grid(cols="2", gap=16, class_="grid grid-cols-2 gap-4"):
+                        Container(class_="flex flex-col gap-2"):
+                            Text(text="Theme", class_="text-sm text-slate-400")
+                            Button(text="Toggle Dark Mode", class_="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg hover:border-cyan-500 transition-colors text-sm text-left")
+                        Container(class_="flex flex-col gap-2"):
+                            Text(text="Notifications", class_="text-sm text-slate-400")
+                            Button(text="Enable Alerts", class_="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg hover:border-cyan-500 transition-colors text-sm text-left")

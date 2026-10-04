@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<!-- TINPYUI GENERATED FILE — DO NOT EDIT DIRECTLY
+     Compiler: 1.8.0
+     Runtime ABI: 4
+     Regenerate: tinui build
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TinPyUI Application</title>
+    <meta name="description" content="TinPyUI — Zero-DOM Hardware-Accelerated UI Engine with Pythonic Syntax and WebAssembly.">
+    <meta name="keywords" content="tinpyui, tinui, python gui, webassembly, zero-dom, webgl, python ui framework">
+    <link rel="canonical" href="https://github.com/barathanandh-coder/TinUi">
+    <meta property="og:title" content="TinPyUI Application">
+    <meta property="og:description" content="Zero-DOM Hardware-Accelerated UI Engine powered by TinPyUI.">
+    <meta property="og:url" content="https://github.com/barathanandh-coder/TinUi">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-container": "#503d00", "surface-variant": "#36343a", "secondary-fixed-dim": "#cdc0e9",
+                    "on-error-container": "#ffdad6", "tertiary-container": "#c9a74d", "surface-tint": "#cfbcff",
+                    "primary": "#cfbcff", "outline-variant": "#494551", "secondary": "#cdc0e9", "on-surface": "#e6e0e9",
+                    "on-background": "#e6e0e9", "surface": "#141218", "on-secondary-fixed": "#1f1635", "background": "transparent",
+                    "on-tertiary-fixed": "#241a00", "on-tertiary": "#3e2e00", "on-primary-fixed-variant": "#4f378a",
+                    "surface-container-high": "#2b292f", "primary-container": "#6750a4", "inverse-surface": "#e6e0e9",
+                    "on-secondary-fixed-variant": "#4b4263", "surface-container-low": "#1d1b20", "on-error": "#690005",
+                    "tertiary-fixed-dim": "#e7c365", "outline": "#948e9c", "surface-dim": "#141218", "secondary-container": "#4d4465",
+                    "primary-fixed": "#e9ddff", "error": "#ffb4ab", "inverse-primary": "#6750a4", "on-primary-container": "#e0d2ff",
+                    "on-primary-fixed": "#22005d", "inverse-on-surface": "#322f35", "tertiary-fixed": "#ffdf93",
+                    "surface-container": "#211f24", "on-surface-variant": "#cbc4d2", "primary-fixed-dim": "#cfbcff",
+                    "on-primary": "#381e72", "surface-container-lowest": "#0f0d13", "on-tertiary-fixed-variant": "#594400",
+                    "error-container": "#93000a", "surface-bright": "#3b383e", "secondary-fixed": "#e9ddff",
+                    "surface-container-highest": "#36343a", "on-secondary-container": "#bfb2da", "on-secondary": "#342b4b",
+                    "tertiary": "#e7c365"
+            },
+            "spacing": { "margin-desktop": "2.5rem", "margin-mobile": "1rem", "max-width": "1440px" },
+            "fontFamily": { "label-mono": ["JetBrains Mono"], "display-lg-mobile": ["Sora"], "display-lg": ["Sora"], "headline-md": ["Sora"], "body-lg": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"] }
+          }
+        }
+      }
+    </script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; background: #030712; color: white; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; scroll-behavior: smooth; }
+        #tinui-root { position: relative; min-height: 100vh; }
+        .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; }
+        .cursor-trail { position: fixed; width: 20px; height: 20px; border-radius: 50%; pointer-events: none; z-index: 9999; background: radial-gradient(circle, rgba(207,188,255,0.8) 0%, transparent 70%); transition: transform 0.1s ease-out; }
+        .glass-card { background: rgba(20, 18, 24, 0.2); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .neon-border-cyan { box-shadow: 0 0 15px rgba(0, 255, 255, 0.2); border-color: rgba(0, 255, 255, 0.3); }
+        .neon-border-primary { box-shadow: 0 0 15px rgba(207,188,255,0.2); border-color: rgba(207,188,255,0.3); }
+        .reveal-section { transition: all 1s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; transform: perspective(1000px) translateZ(-100px); filter: blur(10px); }
+        .reveal-section.active { opacity: 1; transform: perspective(1000px) translateZ(0); filter: blur(0); }
+        .glitch-hover:hover { animation: glitch 0.3s cubic-bezier(.25,.46,.45,.94) both infinite; }
+        @keyframes glitch { 0% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(-2px, -2px); } 60% { transform: translate(2px, 2px); } 80% { transform: translate(2px, -2px); } 100% { transform: translate(0); } }
+        .pulse-glitch { animation: pulse-glitch 2s infinite; }
+        @keyframes pulse-glitch { 0%, 100% { opacity: 1; filter: hue-rotate(0deg); } 50% { opacity: 0.8; filter: hue-rotate(90deg) brightness(1.2); } }
+    </style>
+    <style>
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #030712 !important; color: white !important; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; scroll-behavior: smooth; }
+    #tinui-root { position: relative; min-height: 100vh; }
+    .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; }
+    .cursor-trail { position: fixed; width: 20px; height: 20px; border-radius: 50%; pointer-events: none; z-index: 9999; background: radial-gradient(circle, rgba(207,188,255,0.8) 0%, transparent 70%); transition: transform 0.1s ease-out; }
+    .glass-card { background: rgba(20, 18, 24, 0.2); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
+    .neon-border-cyan { box-shadow: 0 0 15px rgba(0, 255, 255, 0.2); border-color: rgba(0, 255, 255, 0.3); }
+    .neon-border-primary { box-shadow: 0 0 15px rgba(207,188,255,0.2); border-color: rgba(207,188,255,0.3); }
+    .reveal-section { transition: all 1s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; transform: perspective(1000px) translateZ(-100px); filter: blur(10px); }
+    .reveal-section.active { opacity: 1; transform: perspective(1000px) translateZ(0); filter: blur(0); }
+    .glitch-hover:hover { animation: glitch 0.3s cubic-bezier(.25,.46,.45,.94) both infinite; }
+    @keyframes glitch { 0% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(-2px, -2px); } 60% { transform: translate(2px, 2px); } 80% { transform: translate(2px, -2px); } 100% { transform: translate(0); } }
+    .pulse-glitch { animation: pulse-glitch 2s infinite; }
+    @keyframes pulse-glitch { 0%, 100% { opacity: 1; filter: hue-rotate(0deg); } 50% { opacity: 0.8; filter: hue-rotate(90deg) brightness(1.2); } }
+
+    </style>
+    <script src="wasm_exec.js"></script>
+    <script src="tin-runtime.js"></script>
+</head>
+<body>
+    <div id="tinui-root">
+        <div id="tin-node-1" class="min-h-screen bg-slate-900 text-white flex" style="display: flex; flex-direction: column; box-sizing: border-box;">
+            <div id="tin-node-2" class="w-64 bg-slate-800 border-r border-slate-700 p-6 flex flex-col gap-6" style="display: flex; flex-direction: column; box-sizing: border-box;">
+                <div id="tin-node-3" style="display: flex; flex-direction: row; box-sizing: border-box; align-items: center; gap: 12px;">
+                    <span id="tin-node-4" name="dashboard" class="text-cyan-400 text-2xl" style="font-family: 'Material Symbols Outlined'; font-size: 24px; display: inline-flex; align-items: center; justify-content: center;">
+                    </span>
+                    <h2 id="tin-node-5" class="text-xl font-bold">
+                        Admin Panel
+                    </h2>
+                </div>
+                <div id="tin-node-6" class="flex flex-col gap-2 mt-4" style="display: flex; flex-direction: column; box-sizing: border-box;">
+                    <button id="tin-node-7" class="text-left px-4 py-2 bg-cyan-500/20 text-cyan-400 rounded-lg font-medium" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; border: none; transition: all 0.2s ease; padding: 12px 28px; border-radius: 8px; font-size: 15px; font-family: inherit; background: #00f2fe; color: #0a0b10;">
+                        Overview
+                    </button>
+                    <button id="tin-node-8" class="text-left px-4 py-2 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; border: none; transition: all 0.2s ease; padding: 12px 28px; border-radius: 8px; font-size: 15px; font-family: inherit; background: #00f2fe; color: #0a0b10;">
+                        Analytics
+                    </button>
+                    <button id="tin-node-9" class="text-left px-4 py-2 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; border: none; transition: all 0.2s ease; padding: 12px 28px; border-radius: 8px; font-size: 15px; font-family: inherit; background: #00f2fe; color: #0a0b10;">
+                        Users
+                    </button>
+                    <button id="tin-node-10" class="text-left px-4 py-2 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; border: none; transition: all 0.2s ease; padding: 12px 28px; border-radius: 8px; font-size: 15px; font-family: inherit; background: #00f2fe; color: #0a0b10;">
+                        Settings
+                    </button>
+                </div>
+                <div id="tin-node-11" class="mt-auto" style="display: flex; flex-direction: column; box-sizing: border-box;">
+                    <button id="tin-node-12" class="w-full px-4 py-2 border border-red-500/50 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; border: none; transition: all 0.2s ease; padding: 12px 28px; border-radius: 8px; font-size: 15px; font-family: inherit; background: #00f2fe; color: #0a0b10;">
+                        Logout
+                    </button>
+                </div>
+            </div>
+            <div id="tin-node-13" class="flex-1 flex flex-col" style="display: flex; flex-direction: column; box-sizing: border-box;">
+                <nav id="tin-node-14" class="h-16 bg-slate-800/50 border-b border-slate-700 flex items-center justify-between px-8" style="display: flex; position: sticky; top: 0; width: 100%; z-index: 100; box-sizing: border-box;">
+                    <h2 id="tin-node-15" class="text-lg font-semibold">
+                        System Overview
+                    </h2>
+                    <div id="tin-node-16" style="display: flex; flex-direction: row; box-sizing: border-box; align-items: center; gap: 16px;">
+                        <input id="tin-node-17" class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-1.5 text-sm" placeholder="Search..." style="outline: none; box-sizing: border-box; background: rgba(0,0,0,0.2); color: #ffffff; padding: 10px 16px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);">
+                        </input>
+                        <div id="tin-node-18" class="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center" style="display: flex; flex-direction: column; box-sizing: border-box;">
+                            <p id="tin-node-19" class="text-xs font-bold text-slate-900" style="margin: 0; color: #ffffff;">
+                                AD
+                            </p>
+                        </div>
+                    </div>
+                </nav>
+                <div id="tin-node-20" class="p-8" style="display: flex; flex-direction: column; box-sizing: border-box;">
+                    <div id="tin-node-21" class="grid grid-cols-3 gap-6 mb-8" style="display: grid; grid-template-columns: repeat(3, 1fr); box-sizing: border-box; gap: 24px;">
+                        <div id="tin-node-22" class="p-6 bg-slate-800 rounded-xl border border-slate-700" style="display: flex; flex-direction: column; box-sizing: border-box;">
+                            <p id="tin-node-23" class="text-sm text-slate-400" style="margin: 0; color: #ffffff;">
+                                Total Revenue
+                            </p>
+                            <h2 id="tin-node-24" class="text-3xl font-bold mt-2 text-cyan-400">
+                                $45,231.89
+                            </h2>
+                            <p id="tin-node-25" class="text-xs text-emerald-400 mt-2" style="margin: 0; color: #ffffff;">
+                                +20.1% from last month
+                            </p>
+                        </div>
+                        <div id="tin-node-26" class="p-6 bg-slate-800 rounded-xl border border-slate-700" style="display: flex; flex-direction: column; box-sizing: border-box;">
+                            <p id="tin-node-27" class="text-sm text-slate-400" style="margin: 0; color: #ffffff;">
+                                Active Users
+                            </p>
+                            <h2 id="tin-node-28" class="text-3xl font-bold mt-2 text-purple-400">
+                                2,350
+                            </h2>
+                            <p id="tin-node-29" class="text-xs text-emerald-400 mt-2" style="margin: 0; color: #ffffff;">
+                                +15.5% from last month
+                            </p>
+                        </div>
+                        <div id="tin-node-30" class="p-6 bg-slate-800 rounded-xl border border-slate-700" style="display: flex; flex-direction: column; box-sizing: border-box;">
+                            <p id="tin-node-31" class="text-sm text-slate-400" style="margin: 0; color: #ffffff;">
+                                Active Sessions
+                            </p>
+                            <h2 id="tin-node-32" class="text-3xl font-bold mt-2 text-indigo-400">
+                                12,234
+                            </h2>
+                            <p id="tin-node-33" class="text-xs text-red-400 mt-2" style="margin: 0; color: #ffffff;">
+                                -2.3% from last month
+                            </p>
+                        </div>
+                    </div>
+                    <div id="tin-node-34" class="p-6 bg-slate-800 rounded-xl border border-slate-700" style="display: flex; flex-direction: column; box-sizing: border-box;">
+                        <h2 id="tin-node-35" class="text-lg font-semibold mb-4">
+                            Quick Settings
+                        </h2>
+                        <div id="tin-node-36" class="grid grid-cols-2 gap-4" style="display: grid; grid-template-columns: repeat(2, 1fr); box-sizing: border-box; gap: 16px;">
+                            <div id="tin-node-37" class="flex flex-col gap-2" style="display: flex; flex-direction: column; box-sizing: border-box;">
+                                <p id="tin-node-38" class="text-sm text-slate-400" style="margin: 0; color: #ffffff;">
+                                    Theme
+                                </p>
+                                <button id="tin-node-39" class="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg hover:border-cyan-500 transition-colors text-sm text-left" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; border: none; transition: all 0.2s ease; padding: 12px 28px; border-radius: 8px; font-size: 15px; font-family: inherit; background: #00f2fe; color: #0a0b10;">
+                                    Toggle Dark Mode
+                                </button>
+                            </div>
+                            <div id="tin-node-40" class="flex flex-col gap-2" style="display: flex; flex-direction: column; box-sizing: border-box;">
+                                <p id="tin-node-41" class="text-sm text-slate-400" style="margin: 0; color: #ffffff;">
+                                    Notifications
+                                </p>
+                                <button id="tin-node-42" class="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg hover:border-cyan-500 transition-colors text-sm text-left" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; border: none; transition: all 0.2s ease; padding: 12px 28px; border-radius: 8px; font-size: 15px; font-family: inherit; background: #00f2fe; color: #0a0b10;">
+                                    Enable Alerts
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script id="tin-node-44" id="tailwind-config">
+            
+	window.tailwind = window.tailwind || {};
+	window.tailwind.config = {
+		darkMode: "class",
+		theme: {
+		  extend: {
+			"colors": {
+					"on-tertiary-container": "#503d00", "surface-variant": "#36343a", "secondary-fixed-dim": "#cdc0e9",
+					"on-error-container": "#ffdad6", "tertiary-container": "#c9a74d", "surface-tint": "#cfbcff",
+					"primary": "#cfbcff", "outline-variant": "#494551", "secondary": "#cdc0e9", "on-surface": "#e6e0e9",
+					"on-background": "#e6e0e9", "surface": "#141218", "on-secondary-fixed": "#1f1635", "background": "transparent",
+					"on-tertiary-fixed": "#241a00", "on-tertiary": "#3e2e00", "on-primary-fixed-variant": "#4f378a",
+					"surface-container-high": "#2b292f", "primary-container": "#6750a4", "inverse-surface": "#e6e0e9",
+					"on-secondary-fixed-variant": "#4b4263", "surface-container-low": "#1d1b20", "on-error": "#690005",
+					"tertiary-fixed-dim": "#e7c365", "outline": "#948e9c", "surface-dim": "#141218", "secondary-container": "#4d4465",
+					"primary-fixed": "#e9ddff", "error": "#ffb4ab", "inverse-primary": "#6750a4", "on-primary-container": "#e0d2ff",
+					"on-primary-fixed": "#22005d", "inverse-on-surface": "#322f35", "tertiary-fixed": "#ffdf93",
+					"surface-container": "#211f24", "on-surface-variant": "#cbc4d2", "primary-fixed-dim": "#cfbcff",
+					"on-primary": "#381e72", "surface-container-lowest": "#0f0d13", "on-tertiary-fixed-variant": "#594400",
+					"error-container": "#93000a", "surface-bright": "#3b383e", "secondary-fixed": "#e9ddff",
+					"surface-container-highest": "#36343a", "on-secondary-container": "#bfb2da", "on-secondary": "#342b4b",
+					"tertiary": "#e7c365"
+			},
+			"spacing": { "margin-desktop": "2.5rem", "margin-mobile": "1rem", "max-width": "1440px" },
+			"fontFamily": { "label-mono": ["JetBrains Mono"], "display-lg-mobile": ["Sora"], "display-lg": ["Sora"], "headline-md": ["Sora"], "body-lg": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"] }
+		  }
+		}
+	}
+	
+        </script>
+        <script id="tin-node-45" src="https://cdn.tailwindcss.com?plugins=forms,container-queries">
+        </script>
+        <link id="tin-node-46" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+        </link>
+        <link id="tin-node-47" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+        </link>
+    </div>
+</body>
+</html>

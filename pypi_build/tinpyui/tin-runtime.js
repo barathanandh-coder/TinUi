@@ -57,10 +57,115 @@ try {
         }
         document.body.appendChild(badge);
     }
+    function ensureFrameworkStyles() {
+        if (!document.head) {
+            document.addEventListener('DOMContentLoaded', ensureFrameworkStyles);
+            return;
+        }
+
+        // 1. Google Fonts & Material Symbols
+        if (!document.getElementById('tin-framework-fonts')) {
+            const fontLink = document.createElement('link');
+            fontLink.id = 'tin-framework-fonts';
+            fontLink.rel = 'stylesheet';
+            fontLink.href = 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap';
+            document.head.appendChild(fontLink);
+        }
+        if (!document.getElementById('tin-material-symbols')) {
+            const iconLink = document.createElement('link');
+            iconLink.id = 'tin-material-symbols';
+            iconLink.rel = 'stylesheet';
+            iconLink.href = 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0';
+            document.head.appendChild(iconLink);
+        }
+
+        // 2. Embedded Core Framework Styles
+        if (!document.getElementById('tin-core-framework-styles')) {
+            const style = document.createElement('style');
+            style.id = 'tin-core-framework-styles';
+            style.textContent = `
+                *, *::before, *::after { box-sizing: border-box; }
+                html, body {
+                    margin: 0;
+                    padding: 0;
+                    background-color: #07090e;
+                    color: #f1f5f9;
+                    font-family: 'Plus Jakarta Sans', sans-serif;
+                    min-height: 100vh;
+                    overflow-x: hidden;
+                }
+                #tinui-root {
+                    position: relative;
+                    min-height: 100vh;
+                    width: 100%;
+                }
+                button {
+                    cursor: pointer;
+                    font-family: inherit;
+                    border: none;
+                    outline: none;
+                    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                button:active { transform: scale(0.97); }
+                input, select, textarea {
+                    font-family: inherit;
+                    outline: none;
+                    box-sizing: border-box;
+                }
+                input:focus, select:focus, textarea:focus {
+                    border-color: #06b6d4 !important;
+                    box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+                }
+                .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; font-size: 20px; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; direction: ltr; -webkit-font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased; }
+                .glass-card { background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+                .neon-border-cyan { border: 1px solid rgba(6, 182, 212, 0.4); box-shadow: 0 0 20px rgba(6, 182, 212, 0.15); }
+                .neon-border-purple { border: 1px solid rgba(168, 85, 247, 0.4); box-shadow: 0 0 20px rgba(168, 85, 247, 0.15); }
+                .neon-border-emerald { border: 1px solid rgba(16, 185, 129, 0.4); box-shadow: 0 0 20px rgba(16, 185, 129, 0.15); }
+                .glass-morphism { background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); }
+                .neu-morphism { background: #0f172a; box-shadow: 8px 8px 16px #070b14, -8px -8px 16px #172340; border: 1px solid rgba(255, 255, 255, 0.04); }
+                .clay-morphism { background: #1e1b4b; border-radius: 24px; box-shadow: inset 4px 4px 8px rgba(255, 255, 255, 0.15), inset -4px -4px 8px rgba(0, 0, 0, 0.4), 0 16px 32px rgba(0, 0, 0, 0.4); }
+                .holo-morphism { background: linear-gradient(135deg, rgba(6,182,212,0.12), rgba(168,85,247,0.12)); border: 1px solid rgba(168,85,247,0.4); box-shadow: 0 0 25px rgba(168,85,247,0.25); }
+                .reveal-on-scroll { opacity: 0; transform: translateY(20px); transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+                .reveal-on-scroll.is-visible { opacity: 1; transform: translateY(0); }
+                .tin-tabs button.active { border-color: #06b6d4 !important; color: #67e8f9 !important; background: rgba(6, 182, 212, 0.15) !important; box-shadow: 0 0 15px rgba(6, 182, 212, 0.2); }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // 3. Embedded Tailwind Engine for .tin utility classes
+        if (!window.tailwind && !document.getElementById('tin-tailwind-engine')) {
+            window.tailwind = window.tailwind || {};
+            window.tailwind.config = {
+                darkMode: 'class',
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: '#00f2fe',
+                            secondary: '#9b51e0',
+                            accent: '#ff007f'
+                        },
+                        fontFamily: {
+                            sans: ['Plus Jakarta Sans', 'sans-serif'],
+                            mono: ['JetBrains Mono', 'monospace']
+                        }
+                    }
+                }
+            };
+            const twScript = document.createElement('script');
+            twScript.id = 'tin-tailwind-engine';
+            twScript.src = 'https://cdn.tailwindcss.com?plugins=forms,container-queries';
+            document.head.appendChild(twScript);
+        }
+    }
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', ensureBrandRibbon);
+        document.addEventListener('DOMContentLoaded', () => {
+            ensureBrandRibbon();
+            ensureFrameworkStyles();
+        });
     } else {
         ensureBrandRibbon();
+        ensureFrameworkStyles();
     }
 
     // =========================================================================
@@ -1313,7 +1418,7 @@ void main() {
         // 3. Dialog / Modal Controller & ESC Key Dismissal
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                document.querySelectorAll('dialog[open], [data-modal][open]').forEach(dlg => {
+                document.querySelectorAll('dialog[open], [data-modal], [id="demo-modal"]').forEach(dlg => {
                     dlg.removeAttribute('open');
                     dlg.style.display = 'none';
                 });
@@ -1330,6 +1435,81 @@ void main() {
             };
         });
     }
+
+    // Interactive Sandbox Controllers for Real Browser Experience
+    window.openTinModal = function(id = 'demo-modal') {
+        const dlg = document.getElementById(id) || document.querySelector('dialog, [data-modal]');
+        if (dlg) {
+            dlg.setAttribute('open', 'true');
+            dlg.style.display = 'flex';
+            window.showToast('Opened Modal Dialog (ESC to dismiss)', 'cyan');
+        }
+    };
+
+    window.closeTinModal = function(id = 'demo-modal') {
+        const dlg = document.getElementById(id) || document.querySelector('dialog, [data-modal]');
+        if (dlg) {
+            dlg.removeAttribute('open');
+            dlg.style.display = 'none';
+        }
+    };
+
+    window.switchTinTab = function(targetVal) {
+        document.querySelectorAll('[data-tab-trigger], button[data-tab]').forEach(t => {
+            const val = t.getAttribute('data-tab-trigger') || t.getAttribute('data-tab');
+            if (val === targetVal) {
+                t.classList.add('active', 'border-amber-400', 'text-amber-300', 'bg-amber-500/10');
+                t.classList.remove('border-transparent', 'text-slate-400');
+            } else {
+                t.classList.remove('active', 'border-amber-400', 'text-amber-300', 'bg-amber-500/10');
+                t.classList.add('border-transparent', 'text-slate-400');
+            }
+        });
+        document.querySelectorAll('[data-tab-content], .tin-tab-content').forEach(c => {
+            const val = c.getAttribute('data-tab-content') || c.getAttribute('data-tab');
+            if (val === targetVal) {
+                c.style.display = 'block';
+                c.style.opacity = '1';
+            } else {
+                c.style.display = 'none';
+            }
+        });
+    };
+
+    window.triggerDemoToast = function(variant, msg) {
+        window.showToast(msg, variant === 'error' ? 'red' : (variant === 'warning' ? 'amber' : 'cyan'));
+    };
+
+    window.handleDemoFormSubmit = function(e) {
+        if (e && e.preventDefault) e.preventDefault();
+        const emailInput = document.getElementById('demo-email');
+        const passInput = document.getElementById('demo-password');
+        const emailVal = emailInput ? emailInput.value.trim() : '';
+        const passVal = passInput ? passInput.value : '';
+
+        const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+        if (!emailVal || !emailRegex.test(emailVal)) {
+            window.triggerDemoToast('error', 'Form Error: Invalid email format');
+            if (emailInput) {
+                emailInput.style.borderColor = '#ef4444';
+                emailInput.focus();
+            }
+            return false;
+        }
+        if (!passVal || passVal.length < 8) {
+            window.triggerDemoToast('error', 'Form Error: Password must be at least 8 chars');
+            if (passInput) {
+                passInput.style.borderColor = '#ef4444';
+                passInput.focus();
+            }
+            return false;
+        }
+        if (emailInput) emailInput.style.borderColor = '#10b981';
+        if (passInput) passInput.style.borderColor = '#10b981';
+        window.triggerDemoToast('success', `Valid form submitted: ${emailVal}`);
+        return false;
+    };
+
     window.initModernPrimitives = initModernPrimitives;
 
     // =========================================================================

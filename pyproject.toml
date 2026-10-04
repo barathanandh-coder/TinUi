@@ -50,3 +50,9 @@ Repository = "https://github.com/barathanandh-coder/TinUi"
 [project.scripts]
 tinpyui = "tinpyui.cli:main"
 tinui = "tinpyui.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

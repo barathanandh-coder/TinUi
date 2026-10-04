@@ -50,7 +50,7 @@ setup(
         ]
     },
     package_data={
-        "tinpyui": ["__init__.pyi", "py.typed", "app_icon.png", "index.tin", "*.tin", "*.js", "*.wasm", "*.html", "*.dll", "*.so", "*.dylib", "shaders/*"],
+        "tinpyui": ["__init__.pyi", "py.typed", "app_icon.png", "index.tin", "*.tin", "*.js", "*.wasm", "*.html", "*.dll", "*.so", "*.dylib", "shaders/*", "bin/*"],
     },
     classifiers=[
         "Development Status :: 5 - Production/Stable",

@@ -1,0 +1,16 @@
+component Main():
+    AnimatedBackground(effect="quantum-vortex", primaryColor="neon-purple", secondaryColor="neon-cyan"):
+        Navbar(padding=20, blur=true):
+            Row(align="center", justify="space-between", width="full"):
+                Row(align="center", gap=10):
+                    Text(text="new_test_project (Universal (Mobile + Tablet + Web WASM))", color="neon-cyan", weight="bold")
+                Row(gap=30, color="white"):
+                    NavLink(text="Dashboard", href="/")
+                    NavLink(text="Documentation", href="/docs")
+        Section(align="center", paddingY=80, maxWidth=800, justify="center"):
+            GradientText(text="new_test_project", gradient=["neon-cyan", "neon-purple"], size="hero")
+            Text(text="Target: Universal (Mobile + Tablet + Web WASM)", size="large", color="white", weight="bold", marginTop=20)
+            Text(text="Hardware-Accelerated UI Engine with Pythonic Indentation DSL.", color="muted", marginTop=10)
+            Row(gap=20, align="center", justify="center", marginTop=40):
+                Button(text="Get Started", variant="solid", glow="neon-cyan", radius="pill")
+                Button(text="⚡ Spring Physics", variant="outline", glow="neon-purple", radius="pill")

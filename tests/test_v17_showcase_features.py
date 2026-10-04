@@ -181,7 +181,7 @@ class TestShowcaseFeatures(unittest.TestCase):
 
     def test_runtime_contains_showcase_engines(self):
         """Verify that tin-runtime.js bundles all showcase subsystems."""
-        runtime_path = Path(__file__).resolve().parent.parent / "tin-runtime.js"
+        runtime_path = Path(__file__).resolve().parent.parent / "src" / "tinpyui" / "tin-runtime.js"
         self.assertTrue(runtime_path.exists(), "tin-runtime.js must exist")
         content = runtime_path.read_text(encoding="utf-8")
 

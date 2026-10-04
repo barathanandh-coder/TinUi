@@ -33,6 +33,32 @@ This document outlines the high-level roadmap, current milestones, and opportuni
 - [x] **Distributed Multi-Node State Sync**: Mesh networking state synchronization via WebRTC data channels and CRDTs.
 
 
+### 🏗️ v1.8.0 — Architectural Baseline & Compiler Authority (COMPLETE ✅)
+- [x] **Canonical Go Compiler Authority**: Migration from Python regex parsing to strict Go AST compilation.
+- [x] **Universal CLI Interface**: `tinui init`, `tinui check`, `tinui build`, `tinui doctor`, `tinui schema`.
+- [x] **Deterministic ABI**: Versioned `app.ir.json` and `app.ir.bin` generation strictly coupled to the runtime.
+- [x] **Python ABI Bridge**: Subprocess encapsulation of the native Go engine for seamless PyPI distribution.
+
+### 🧹 v1.9 Technical Debt
+- [ ] Repair/migrate 8 orphaned v1.7 legacy test failures (e.g., `tin-runtime.js` pathing, `main` imports).
+- [ ] Restore LSP test coverage (`lsp_server` module paths).
+- [ ] Normalize post-v1.8 repository paths across the test suite.
+
+### 🤖 v1.9 — AI-Native Development Platform
+Now that the baseline architecture is proven, v1.9 shifts focus from restructuring to making TinPyUI a serious, autonomous development platform.
+
+- [ ] **AI-Native Agent Protocol**: Semantic, autonomous workflow layer (`tinui context` → `schema` → `generate .tin` → `check` → `structured diagnostics` → `build` → `runtime`).
+- [ ] **Incremental Compilation & Caching**
+- [ ] **LSP / VS Code Intelligence**
+- [ ] **Typed Semantic IR**
+- [ ] **Project Graph**
+- [ ] **Hot Reload**
+- [ ] **Visual Regression Testing**
+- [ ] **Reproducible Builds**
+- [ ] **Deployment Adapters**
+- [ ] **Performance Profiling**
+- [ ] **Security/Trust Model**
+- [ ] **SRA Integration**
 
 ---
 

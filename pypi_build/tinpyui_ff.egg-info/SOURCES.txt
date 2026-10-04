@@ -30,9 +30,11 @@ tinpyui/components/color_picker.py
 tinpyui/components/data_display.py
 tinpyui/components/data_grid.py
 tinpyui/components/date_picker.py
+tinpyui/components/forms.py
 tinpyui/components/inputs.py
 tinpyui/components/layout.py
 tinpyui/components/media.py
+tinpyui/components/primitives_ui.py
 tinpyui/components/tree_view.py
 tinpyui/components/typography.py
 tinpyui/components/virtual.py
@@ -40,6 +42,7 @@ tinpyui/core/__init__.py
 tinpyui/core/aot_compiler.py
 tinpyui/core/binary_ir.py
 tinpyui/core/hmr.py
+tinpyui/core/hooks.py
 tinpyui/core/node.py
 tinpyui/core/physics.py
 tinpyui/core/primitives.py
@@ -56,6 +59,7 @@ tinpyui/data/redis.py
 tinpyui/data/store.py
 tinpyui/net/__init__.py
 tinpyui/net/bridge.py
+tinpyui/net/client_router.py
 tinpyui/net/events.py
 tinpyui/net/http_client.py
 tinpyui/net/mesh.py

@@ -1,0 +1,9 @@
+{
+  "name": "new_test_project",
+  "version": "1.0.0",
+  "targetDevice": "universal",
+  "compilerSettings": {
+    "entry": "index.tin",
+    "output": "public/app.ir.json"
+  }
+}

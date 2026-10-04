@@ -15,16 +15,17 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tinui/tinui/compiler"
+	"github.com/tinui/tinui/src/agent"
+	"github.com/tinui/tinui/src/compiler"
 )
 
-//go:embed tinui_engine.wasm
+//go:embed src/runtime/js/tinui_engine.wasm
 var EmbeddedEngineWasm []byte
 
-//go:embed wasm_exec.js
+//go:embed src/runtime/js/wasm_exec.js
 var EmbeddedWasmExecJS []byte
 
-//go:embed tin-runtime.js
+//go:embed src/runtime/js/tin-runtime.js
 var EmbeddedTinRuntimeJS []byte
 
 func main() {
@@ -50,6 +51,11 @@ func main() {
 	}
 
 	command := arg1
+	if command == "agent" {
+		agent.RunAgent(os.Args[2:])
+		return
+	}
+
 	if command == "init" {
 		targetName := ""
 		if len(os.Args) > 2 {
@@ -60,26 +66,78 @@ func main() {
 	}
 
 
-	if len(os.Args) < 3 {
-		printUsage()
-		os.Exit(1)
+	if command == "doctor" {
+		fmt.Printf("\033[1;36mTinPyUI Diagnostics (v1.8.0)\033[0m\n")
+		fmt.Printf("---------------------------------\n")
+		fmt.Printf("Go Compiler Version: 1.8.0\n")
+		fmt.Printf("Platform: %s %s\n", runtime.GOOS, runtime.GOARCH)
+		
+		issues := 0
+		if len(EmbeddedEngineWasm) > 0 {
+			fmt.Printf("\033[1;32m✓ Core WASM Engine found embedded (%d bytes)\033[0m\n", len(EmbeddedEngineWasm))
+		} else {
+			fmt.Printf("\033[1;33m✗ Core WASM Engine NOT found embedded. ABI mismatch likely.\033[0m\n")
+			issues++
+		}
+		
+		if issues == 0 {
+			fmt.Printf("\n\033[1;32mStatus: OK\033[0m\n")
+		} else {
+			fmt.Printf("\n\033[1;33mStatus: %d issue(s) detected.\033[0m\n", issues)
+		}
+		return
 	}
 
+	if command == "context" {
+		fmt.Printf("\033[1;36mTinPyUI Context (v1.8.0)\033[0m\n")
+		fmt.Printf("---------------------------------\n")
+		fmt.Printf("Architecture: Go/WASM Core + Python AOT Frontend\n")
+		fmt.Printf("Project Manifest: tinpyui.project\n")
+		fmt.Printf("\nProject Status:\n")
+		if _, err := os.Stat("tinpyui.project"); err == nil {
+			fmt.Printf("\033[1;32m✓ tinpyui.project manifest found.\033[0m\n")
+		} else {
+			fmt.Printf("\033[1;33m✗ No tinpyui.project manifest found in current directory.\033[0m\n")
+		}
+		return
+	}
+
+	if command == "schema" {
+		fmt.Printf("\033[1;36mTinPyUI Schema Explorer\033[0m\n")
+		fmt.Printf("---------------------------------\n")
+		fmt.Printf("1. [tinpyui.project] - Project configuration (TOML-like).\n")
+		fmt.Printf("2. [app.ir.json]     - Generated IR file. DO NOT EDIT. Contains '_tinpyui' metadata with 'runtime_abi' versioning.\n")
+		return
+	}
 
 	var hydrate bool
 	var isMobile bool
 	var inputFile string
-	for _, arg := range os.Args[2:] {
-		if arg == "--hydrate" {
-			hydrate = true
-		} else if arg == "--mobile" || arg == "--android" || arg == "mobile" {
-			isMobile = true
-		} else if !strings.HasPrefix(arg, "--") {
-			if arg == "mobile" {
+	if len(os.Args) > 2 {
+		for _, arg := range os.Args[2:] {
+			if arg == "--hydrate" {
+				hydrate = true
+			} else if arg == "--mobile" || arg == "--android" || arg == "mobile" {
 				isMobile = true
-			} else {
-				inputFile = arg
+			} else if !strings.HasPrefix(arg, "--") {
+				if arg == "mobile" {
+					isMobile = true
+				} else {
+					inputFile = arg
+				}
 			}
+		}
+	}
+
+	if inputFile == "" {
+		for _, cand := range []string{"main.tin", "index.tin", "app.tin"} {
+			if _, err := os.Stat(cand); err == nil {
+				inputFile = cand
+				break
+			}
+		}
+		if inputFile == "" {
+			inputFile = "main.tin" // ultimate fallback
 		}
 	}
 
@@ -134,6 +192,20 @@ func main() {
 		startDevServer(inputFile, outDir, outputFile, hydrate)
 		return
 	}
+
+	if command == "check" {
+		fmt.Printf("\033[1;36m[TinPyUI] Running syntax validation...\033[0m\n")
+		success := compileFile(inputFile, outDir, outputFile, false)
+		if success {
+			fmt.Printf("\033[1;32m✓ %s is structurally valid.\033[0m\n", inputFile)
+		} else {
+			fmt.Printf("\033[1;33m✗ Syntax Error in %s\033[0m\n", inputFile)
+			os.Exit(1)
+		}
+		return
+	}
+
+
 
 	if command == "desktop" {
 		outDir = "."
@@ -251,6 +323,14 @@ func compileFile(inputFile, outDir, outputFile string, hydrate bool) bool {
 	_ = os.MkdirAll("public", 0755)
 	_ = os.WriteFile(filepath.Join("public", "app.ir.json"), irJSON, 0644)
 
+	binIR, binErr := compiler.EncodeBinaryIR(instructions.Nodes)
+	if binErr == nil {
+		binOut := strings.TrimSuffix(outputFile, ".json") + ".bin"
+		_ = os.WriteFile(binOut, binIR, 0644)
+		_ = os.WriteFile("app.ir.bin", binIR, 0644)
+		_ = os.WriteFile(filepath.Join("public", "app.ir.bin"), binIR, 0644)
+	}
+
 	if hydrate {
 		htmlShell := compiler.GenerateHydrationShell(instructions)
 		htmlOutputFile := filepath.Join(outDir, "index.html")
@@ -279,7 +359,7 @@ func compileFile(inputFile, outDir, outputFile string, hydrate bool) bool {
 
 func printUsage() {
 	fmt.Println("\n\033[1;36m+==============================================================================+\033[0m")
-	fmt.Println("\033[1;36m|   \033[1;97m[*] TinUI v1.6.1 — Zero-Dependency Embedded Engine CLI\033[1;36m                     |\033[0m")
+	fmt.Println("\033[1;36m|   \033[1;97m[*] TinUI v1.8.0 — Zero-Dependency Embedded Engine CLI\033[1;36m                     |\033[0m")
 	fmt.Println("\033[1;36m+==============================================================================+\033[0m")
 	fmt.Println("\n\033[1;97m⚡ Instant 1-Step Execution:\033[0m")
 	fmt.Println("  \033[1;32mtinui <file.tin>\033[0m              \033[90m# Run file immediately in live dev server\033[0m")
@@ -291,13 +371,17 @@ func printUsage() {
 	fmt.Println("  \033[1;36mtinui build --mobile <file>\033[0m   \033[90m# Export Android Gradle project & build APK\033[0m")
 	fmt.Println("  \033[1;36mtinui export mobile <file>\033[0m    \033[90m# Standalone Native Mobile Export Pipeline\033[0m")
 	fmt.Println("  \033[1;36mtinui init [project-name]\033[0m     \033[90m# Scaffold fresh project architecture\033[0m")
+	fmt.Println("  \033[1;36mtinui check <file.tin>\033[0m        \033[90m# Statically analyze and validate syntax\033[0m")
+	fmt.Println("  \033[1;36mtinui doctor\033[0m                  \033[90m# Run environment diagnostics and ABI check\033[0m")
+	fmt.Println("  \033[1;36mtinui context\033[0m                 \033[90m# Provide high-level architecture and context\033[0m")
+	fmt.Println("  \033[1;36mtinui schema\033[0m                  \033[90m# Output schema definitions for TinPyUI IR\033[0m")
 }
 
 func initProject(inputName string) {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Printf("\n\033[1;36m+==============================================================================+\033[0m\n")
-	fmt.Printf("\033[1;36m|   \033[1;97m[*] TinPyUI v1.6.1 Project Scaffolding Wizard\033[1;36m                              |\033[0m\n")
+	fmt.Printf("\033[1;36m|   \033[1;97m[*] TinPyUI v1.8.0 Project Scaffolding Wizard\033[1;36m                              |\033[0m\n")
 	fmt.Printf("\033[1;36m+==============================================================================+\033[0m\n\n")
 
 	projectName := strings.TrimSpace(inputName)
@@ -357,7 +441,7 @@ func initProject(inputName string) {
 		return
 	}
 
-	fmt.Printf("\n\033[1;32m[+] Initializing fresh TinPyUI v1.6.0 project in: %s...\033[0m\n", projectName)
+	fmt.Printf("\n\033[1;32m[+] Initializing fresh TinPyUI v1.8.0 project in: %s...\033[0m\n", projectName)
 	os.MkdirAll(projectName, 0755)
 	os.MkdirAll(filepath.Join(projectName, "src"), 0755)
 	os.MkdirAll(filepath.Join(projectName, "public"), 0755)
@@ -393,7 +477,7 @@ func initProject(inputName string) {
   "targetDevice": "%s",
   "compilerSettings": {
     "entry": "index.tin",
-    "output": "public/app.ir.json"
+    "output": "dist/app.ir.json"
   }
 }`, projectName, devSlug)
 	_ = os.WriteFile(filepath.Join(projectName, "tinpyui.config.json"), []byte(configStr), 0644)
@@ -682,7 +766,7 @@ const DefaultIndexHTML = `<!DOCTYPE html><html lang="en"><head>
     <script src="tin-runtime.js"></script>
 </body></html>`
 
-const DefaultTinRuntimeJS = `// tin-runtime.js — TinPyUI v1.6.1 Runtime with Diagnostic Error Overlay & Boundary
+const DefaultTinRuntimeJS = `// tin-runtime.js — TinPyUI v1.8.0 Runtime with Diagnostic Error Overlay & Boundary
 (function() {
     function ensureDiagnosticOverlay() {
         if (!document.body) {

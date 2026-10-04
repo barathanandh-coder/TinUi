@@ -1,0 +1,3 @@
+﻿component Main():
+    Row():
+        Text(text="Hello")

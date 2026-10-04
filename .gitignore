@@ -51,3 +51,10 @@ test_init/
 # Wasm bindgen temporary toolchains
 wasm-bindgen*/
 *.tar.gz
+
+# TinPyUI Generated Artifacts
+public/app.ir.json
+public/app.ir.bin
+dist_wasm/
+pypi_build/dist/
+*.ir.bin

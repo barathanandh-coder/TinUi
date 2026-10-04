@@ -13,7 +13,7 @@ class TestRustWasmEngine(unittest.TestCase):
 
     def test_wasm_binary_size_optimization(self):
         """Ensure the new Rust WASM engine is under 500KB (massive drop from Go's 3.5MB)."""
-        wasm_path = ROOT_DIR / "tinui_engine.wasm"
+        wasm_path = ROOT_DIR / "src" / "tinpyui" / "tinui_engine.wasm"
         self.assertTrue(wasm_path.exists(), f"WASM engine not found at {wasm_path}")
 
         size_bytes = wasm_path.stat().st_size
@@ -25,7 +25,7 @@ class TestRustWasmEngine(unittest.TestCase):
 
     def test_runtime_dual_engine_loader(self):
         """Ensure tin-runtime.js contains the Rust WASM priority loader with Go fallback."""
-        runtime_path = ROOT_DIR / "tin-runtime.js"
+        runtime_path = ROOT_DIR / "src" / "tinpyui" / "tin-runtime.js"
         self.assertTrue(runtime_path.exists())
 
         content = runtime_path.read_text(encoding="utf-8")
@@ -37,7 +37,7 @@ class TestRustWasmEngine(unittest.TestCase):
         """Ensure all distribution targets receive the compiled WASM engine."""
         targets = [
             ROOT_DIR / "public" / "tinui_engine.wasm",
-            ROOT_DIR / "tinpyui" / "tinui_engine.wasm",
+            ROOT_DIR / "src" / "tinpyui" / "tinui_engine.wasm",
             ROOT_DIR / "pypi_build" / "tinpyui" / "tinui_engine.wasm",
         ]
         for target in targets:
@@ -46,7 +46,7 @@ class TestRustWasmEngine(unittest.TestCase):
 
     def test_crate_configuration(self):
         """Verify Rust crate configuration has size-optimization profile."""
-        cargo_path = ROOT_DIR / "crates" / "tin_wasm_engine" / "Cargo.toml"
+        cargo_path = ROOT_DIR / "tools" / "crates" / "tin_wasm_engine" / "Cargo.toml"
         self.assertTrue(cargo_path.exists())
 
         cargo_text = cargo_path.read_text(encoding="utf-8")

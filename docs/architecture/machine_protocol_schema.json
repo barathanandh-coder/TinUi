@@ -1,0 +1,210 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TinPyUI Machine Protocol v1",
+  "description": "JSON Schema for the TinPyUI Machine-Operable Development Protocol (v1.9).",
+  "type": "object",
+  "definitions": {
+    "ProtocolEnvelope": {
+      "type": "object",
+      "properties": {
+        "jsonrpc": { "type": "string", "enum": ["2.0"] },
+        "id": { "type": ["string", "number", "null"] },
+        "method": { "type": "string" },
+        "params": { "type": "object" },
+        "result": { "type": "object" },
+        "error": { "$ref": "#/definitions/ProtocolError" }
+      },
+      "required": ["jsonrpc"]
+    },
+    "ProtocolError": {
+      "type": "object",
+      "properties": {
+        "code": { "type": "integer" },
+        "message": { "type": "string" },
+        "data": { "type": ["object", "null"] }
+      },
+      "required": ["code", "message"]
+    },
+    "InitializeResponse": {
+      "type": "object",
+      "properties": {
+        "protocolVersion": { "type": "string" },
+        "tinuiVersion": { "type": "string" },
+        "capabilities": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Will include 'cancellation' if the agent supports early termination of requests."
+        }
+      },
+      "required": ["protocolVersion", "tinuiVersion", "capabilities"]
+    },
+    "Diagnostic": {
+      "type": "object",
+      "properties": {
+        "error_code": { "type": "string", "description": "Stable error code (e.g. TIN-0012)" },
+        "category": { "type": "string", "enum": ["syntax", "type", "abi", "link", "runtime", "security"] },
+        "severity": { "type": "string", "enum": ["fatal", "error", "warning", "info", "hint"] },
+        "file": { "type": "string", "description": "Relative path to file" },
+        "line": { "type": "integer" },
+        "column": { "type": "integer" },
+        "message": { "type": "string" },
+        "context_snippet": { "type": "string" },
+        "ast_node": { "type": "string", "description": "AST Node type where error occurred" },
+        "repair_suggestion": { "$ref": "#/definitions/RepairSuggestion" }
+      },
+      "required": ["error_code", "category", "severity", "file", "line", "column", "message"]
+    },
+    "RepairSuggestion": {
+      "type": "object",
+      "properties": {
+        "description": { "type": "string" },
+        "edits": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "range": {
+                "type": "object",
+                "properties": {
+                  "start": { "type": "object", "properties": { "line": {"type": "integer"}, "character": {"type": "integer"} } },
+                  "end": { "type": "object", "properties": { "line": {"type": "integer"}, "character": {"type": "integer"} } }
+                }
+              },
+              "newText": { "type": "string" }
+            }
+          }
+        },
+        "is_deterministic": { "type": "boolean", "description": "True if applying this edit is guaranteed to fix the error" }
+      }
+    },
+    "ProjectGraph": {
+      "type": "object",
+      "properties": {
+        "root": { "type": "string" },
+        "components": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "file": { "type": "string" },
+              "dependencies": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ProgressReport": {
+      "type": "object",
+      "properties": {
+        "token": { "type": "string" },
+        "status": { "type": "string", "enum": ["begin", "report", "end"] },
+        "percentage": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "message": { "type": "string" }
+      },
+      "required": ["token", "status"]
+    },
+    "TargetParams": {
+      "type": "object",
+      "properties": {
+        "uri": { "type": "string" },
+        "entry": { "type": "string" },
+        "target": { "type": "string" },
+        "source": { "type": "string", "description": "Unsaved in-memory document contents" },
+        "version": { "type": "integer", "description": "Document version matching the current editor state" }
+      },
+      "anyOf": [
+        { "required": ["uri"] },
+        { "required": ["entry"] }
+      ]
+    },
+    "QueryParams": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "enum": ["hover", "definition", "completion", "references"] },
+        "document": { "type": "string" },
+        "position": { 
+          "type": "object", 
+          "properties": { "line": {"type": "integer"}, "character": {"type": "integer"} } 
+        }
+      },
+      "required": ["kind", "document", "position"]
+    },
+    "UpdateDocumentParams": {
+      "type": "object",
+      "properties": {
+        "uri": { "type": "string" },
+        "source": { "type": "string" },
+        "version": { "type": "integer" }
+      },
+      "required": ["uri", "source", "version"]
+    },
+    "CloseDocumentParams": {
+      "type": "object",
+      "properties": {
+        "uri": { "type": "string" }
+      },
+      "required": ["uri"]
+    },
+    "CancelParams": {
+      "type": "object",
+      "properties": {
+        "id": { "type": ["string", "number"] }
+      },
+      "required": ["id"]
+    },
+    "HoverResponse": {
+      "type": "object",
+      "properties": {
+        "contents": { "type": "string" },
+        "range": {
+          "type": "object",
+          "properties": {
+            "start": { "type": "object", "properties": { "line": {"type": "integer"}, "character": {"type": "integer"} } },
+            "end": { "type": "object", "properties": { "line": {"type": "integer"}, "character": {"type": "integer"} } }
+          }
+        },
+        "version": { "type": "integer", "description": "Version of the document the response corresponds to" }
+      },
+      "required": ["contents"]
+    },
+    "DefinitionResponse": {
+      "type": "object",
+      "properties": {
+        "uri": { "type": "string" },
+        "range": {
+          "type": "object",
+          "properties": {
+            "start": { "type": "object", "properties": { "line": {"type": "integer"}, "character": {"type": "integer"} } },
+            "end": { "type": "object", "properties": { "line": {"type": "integer"}, "character": {"type": "integer"} } }
+          }
+        },
+        "version": { "type": "integer" }
+      },
+      "required": ["uri", "range"]
+    },
+    "CompletionResponse": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "kind": { "type": "string", "enum": ["keyword", "component", "property", "variable", "value"] },
+              "detail": { "type": "string" },
+              "documentation": { "type": "string" }
+            },
+            "required": ["label"]
+          }
+        },
+        "version": { "type": "integer" }
+      },
+      "required": ["items"]
+    }
+  }
+}

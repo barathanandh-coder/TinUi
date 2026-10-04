@@ -1,0 +1,46 @@
+{
+  "name": "tinpyui-lsp",
+  "displayName": "TinPyUI Language Support & LSP",
+  "description": "Language Server Protocol, syntax highlighting, and auto-completions for TinPyUI (.tin)",
+  "version": "1.7.0",
+  "publisher": "barathanandh",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Linters"
+  ],
+  "keywords": [
+    "tinui",
+    "tinpyui",
+    "indentation",
+    "wasm",
+    "webgl",
+    "zero-dom"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "tin",
+        "aliases": ["TinPyUI", "tin"],
+        "extensions": [".tin"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "tin",
+        "scopeName": "source.tin",
+        "path": "./syntaxes/tin.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "tin",
+        "path": "./snippets/snippets.json"
+      }
+    ]
+  }
+}

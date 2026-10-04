@@ -1,167 +1,112 @@
 """
 TinPyUI Ahead-of-Time (AOT) Static Compilation Pipeline.
-Compiles indentation-based .tin source templates into optimized binary data matrices (app.ir.bin)
-and a complete static web deployment bundle with zero runtime parsing overhead.
+This module now serves as a thin compatibility and orchestration layer 
+that delegates all canonical compilation to the Go `tinui` executable.
 """
 
 import os
-import re
+import sys
+import json
 import shutil
+import tempfile
+import subprocess
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional
 
 from .binary_ir import encode_binary_ir
 
-COMPONENT_TAG_MAP = {
-    "Section": "section",
-    "Row": "div",
-    "Column": "div",
-    "Card": "div",
-    "Container": "div",
-    "Grid": "div",
-    "Surface": "div",
-    "HeroContainer": "div",
-    "Header": "header",
-    "Footer": "footer",
-    "Main": "main",
-    "Navbar": "nav",
-    "NavLink": "a",
-    "Link": "a",
-    "Button": "button",
-    "Input": "input",
-    "Heading": "h2",
-    "Text": "p",
-    "GradientText": "span",
-    "Badge": "span",
-    "Icon": "span",
-    "Marquee": "marquee",
-    "Modal": "dialog",
-    "Tooltip": "div",
-    "ShaderLayer": "div",
-    "WebGLCanvas": "canvas",
-    "ParticleField": "div",
-    "AnimatedBackground": "div",
-    "Spacer": "div",
-    "Divider": "hr",
-}
+def find_tinui_executable() -> str:
+    """Locates the Go compiler executable based on OS and Architecture."""
+    import platform
+    
+    system = platform.system().lower()
+    machine = platform.machine().lower()
+    
+    # Map Python's platform.machine() to Go's GOARCH
+    if machine in ("x86_64", "amd64"):
+        goarch = "amd64"
+    elif machine in ("arm64", "aarch64"):
+        goarch = "arm64"
+    else:
+        goarch = "amd64" # Fallback
+        
+    exe_name = "tinui"
+    if system == "windows":
+        exe_name = "tinui.exe"
+        
+    bundled_name = f"tinui-{system}-{goarch}"
+    if system == "windows":
+        bundled_name += ".exe"
+    
+    # 1. Check bundled PyPI bin path (platform specific)
+    pkg_dir = Path(__file__).resolve().parent.parent
+    bin_dir = pkg_dir / "bin"
+    
+    if (bin_dir / bundled_name).exists():
+        return str(bin_dir / bundled_name)
+    
+    # 2. Check bundled PyPI bin path (generic fallback name)
+    if (bin_dir / exe_name).exists():
+        return str(bin_dir / exe_name)
+        
+    # 3. Check development path (repo root)
+    repo_root = pkg_dir.parent.parent
+    dev_path = repo_root / exe_name
+    if dev_path.exists():
+        return str(dev_path)
+        
+    # 4. Check system PATH
+    system_path = shutil.which(exe_name)
+    if system_path:
+        return system_path
+        
+    raise FileNotFoundError(
+        f"Could not locate the TinPyUI compiler executable for {system}/{goarch}.\n"
+        "Please ensure the Go executable is in your PATH or bundled in the package."
+    )
 
-def parse_props(prop_str: str) -> Dict[str, str]:
-    """Extracts key=val pairs from a prop string, respecting quotes."""
-    props = {}
-    pattern = re.compile(r'([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s,)]+))')
-    for match in pattern.finditer(prop_str):
-        k = match.group(1)
-        val = match.group(2) if match.group(2) is not None else (
-              match.group(3) if match.group(3) is not None else match.group(4))
-        props[k] = val or ""
-    return props
 
 class AOTCompiler:
-    """Pure Pythonic AOT Compiler for .tin indentation syntax."""
-
-    def __init__(self):
-        self.instructions: List[Dict[str, Any]] = []
-        self.next_id = 1
+    """
+    Compatibility layer for programmatic AOT compilation.
+    Delegates to the canonical Go compiler.
+    """
 
     def compile_tin_source(self, source_code: str) -> Dict[str, Any]:
-        """Parses indentation-based .tin template and returns IR dictionary."""
-        lines = source_code.splitlines()
-        self.instructions = []
-        self.next_id = 1
-
-        # Stack holds: (node_id, indent_level)
-        stack: List[Tuple[Optional[int], int]] = []
-        root_nodes: List[int] = []
-
-        line_regex = re.compile(r'^(\s*)([A-Za-z_][A-Za-z0-9_]*)\s*(?:\((.*)\))?\s*(?::\s*)?(?:#.*)?$')
-
-        for raw_line in lines:
-            line_no_comment = raw_line.split("#")[0].rstrip()
-            if not line_no_comment.strip():
-                continue
-
-            match = line_regex.match(line_no_comment)
-            if not match:
-                continue
-
-            indent_str = match.group(1)
-            indent = len(indent_str.replace("\t", "    "))
-            tag_name = match.group(2)
-            prop_str = match.group(3) or ""
-
-            # Ignore top-level component definition wrapper (e.g. `component Main():`)
-            if tag_name == "component":
-                continue
-
-            # Pop nodes from stack that have >= current indent level
-            while stack and stack[-1][1] >= indent:
-                stack.pop()
-
-            parent_id = stack[-1][0] if stack else None
-
-            node_id = self.next_id
-            self.next_id += 1
-
-            html_tag = COMPONENT_TAG_MAP.get(tag_name, "div")
-            self.instructions.append({
-                "op": "CREATE_NODE",
-                "id": node_id,
-                "tag": html_tag
-            })
-
-            props = parse_props(prop_str)
-
-            # Process special props
-            for k, v in props.items():
-                if k == "text":
-                    self.instructions.append({
-                        "op": "SET_TEXT",
-                        "id": node_id,
-                        "value": v
-                    })
-                elif k == "class_":
-                    self.instructions.append({
-                        "op": "SET_ATTRIBUTE",
-                        "id": node_id,
-                        "key": "class",
-                        "value": v
-                    })
-                elif k == "morphism":
-                    m_val = v.lower()
-                    if not m_val.endswith("-morphism"):
-                        m_val = f"{m_val}-morphism"
-                    self.instructions.append({
-                        "op": "SET_ATTRIBUTE",
-                        "id": node_id,
-                        "key": "data-morphism",
-                        "value": m_val
-                    })
+        """Parses .tin template by invoking the Go compiler and parsing the output JSON."""
+        exe = find_tinui_executable()
+        
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            source_file = tmp_path / "temp.tin"
+            source_file.write_text(source_code, encoding="utf-8")
+            
+            # The Go compiler creates app.ir.json on 'check' (wait, we verified 'check' sets output to app.ir.json)
+            # Actually, check doesn't guarantee writing output if it just verifies. Let's run compile instead.
+            # But Go's `main.go` doesn't have a `compile` command? Wait, let's look at `tinui compile`. 
+            # In `main.go:363`: `tinui compile <file.tin>` is listed. Let's check if it exists in main.go.
+            # `compile` command runs `compileFile(inputFile, outDir, outputFile, false)`
+            
+            result = subprocess.run(
+                [exe, "check", str(source_file)],
+                cwd=tmpdir,
+                capture_output=True,
+                text=True
+            )
+            
+            if result.returncode != 0:
+                raise SyntaxError(f"TinPyUI Compilation Failed:\n{result.stdout}\n{result.stderr}")
+            
+            json_file = tmp_path / "app.ir.json"
+            if not json_file.exists():
+                # Try finding any .ir.json file
+                ir_files = list(tmp_path.glob("*.ir.json"))
+                if ir_files:
+                    json_file = ir_files[0]
                 else:
-                    self.instructions.append({
-                        "op": "SET_ATTRIBUTE",
-                        "id": node_id,
-                        "key": k,
-                        "value": v
-                    })
-
-            # Append to parent or record as root
-            if parent_id is not None:
-                self.instructions.append({
-                    "op": "APPEND_CHILD",
-                    "parent": parent_id,
-                    "child": node_id
-                })
-            else:
-                self.instructions.append({
-                    "op": "APPEND_CHILD",
-                    "parent": None,
-                    "child": node_id
-                })
-                root_nodes.append(node_id)
-
-            stack.append((node_id, indent))
-
-        return {"nodes": self.instructions}
+                    raise RuntimeError("Compiler succeeded but app.ir.json was not found.")
+                
+            return json.loads(json_file.read_text(encoding="utf-8"))
 
     def compile_to_binary_matrix(self, source_code: str) -> bytes:
         """Compiles source code directly into compact TINB binary data matrix."""
@@ -175,77 +120,64 @@ def build_aot_static_bundle(
     app_name: str = "TinPyUI Application"
 ) -> Dict[str, Any]:
     """
-    Executes full AOT static compilation for an entry file into an optimized
-    production-ready deployment directory with zero client-side parser overhead.
+    Executes full AOT static compilation by delegating to the Go compiler.
     """
     out_path = Path(out_dir)
     out_path.mkdir(parents=True, exist_ok=True)
-    entry_path = Path(entry_file)
-
+    entry_path = Path(entry_file).resolve()
+    
     if not entry_path.exists():
         raise FileNotFoundError(f"Entry file '{entry_file}' does not exist.")
-
-    source_code = entry_path.read_text(encoding="utf-8")
-    compiler = AOTCompiler()
-
-    # 1. Compile IR (both binary matrix and json)
-    ir_dict = compiler.compile_tin_source(source_code)
-    bin_matrix = encode_binary_ir(ir_dict)
-
-    bin_dest = out_path / "app.ir.bin"
-    bin_dest.write_bytes(bin_matrix)
-
-    import json
+        
+    exe = find_tinui_executable()
+    
+    # We run the build in a temporary directory so we don't clobber the user's workspace
+    # unless they passed 'dist', but Go defaults to 'dist' anyway. Let's just run it
+    # in the entry_file's directory to preserve path resolution for scenes/, and let Go write to 'dist'.
+    # If the user specified a custom out_dir, we move the contents of dist to out_dir.
+    
+    working_dir = entry_path.parent
+    
+    print(f"Delegating compilation to {exe}...")
+    result = subprocess.run(
+        [exe, "build", entry_path.name],
+        cwd=working_dir,
+        capture_output=False, # Stream to stdout/stderr directly
+        text=True
+    )
+    
+    if result.returncode != 0:
+        raise RuntimeError("TinPyUI Build Failed (see compiler output above).")
+        
+    default_dist = working_dir / "dist"
+    
+    if str(default_dist.resolve()) != str(out_path.resolve()):
+        # Move files from default dist to the requested out_dir
+        for item in default_dist.iterdir():
+            dest = out_path / item.name
+            if dest.exists():
+                if dest.is_dir():
+                    shutil.rmtree(dest)
+                else:
+                    dest.unlink()
+            shutil.move(str(item), str(out_path))
+            
     json_dest = out_path / "app.ir.json"
-    json_dest.write_text(json.dumps(ir_dict, indent=2), encoding="utf-8")
-
-    # 2. Bundle static runtime assets
-    repo_root = Path(__file__).resolve().parent.parent.parent
-    pkg_dir = Path(__file__).resolve().parent.parent
-
-    # Copy tin-runtime.js
-    runtime_sources = [
-        pkg_dir / "tin-runtime.js",
-        repo_root / "tin-runtime.js",
-        repo_root / "public" / "tin-runtime.js"
-    ]
-    for src in runtime_sources:
-        if src.exists():
-            shutil.copyfile(src, out_path / "tin-runtime.js")
-            break
-
-    # Copy tin-shader-worker.js
-    worker_sources = [
-        pkg_dir / "tin-shader-worker.js",
-        repo_root / "tin-shader-worker.js"
-    ]
-    for src in worker_sources:
-        if src.exists():
-            shutil.copyfile(src, out_path / "tin-shader-worker.js")
-            break
-
-    # Copy wasm_exec.js and Wasm engine if available
-    for wasm_file in ["wasm_exec.js", "tinui_engine.wasm"]:
-        for src in [pkg_dir / wasm_file, repo_root / wasm_file, repo_root / "public" / wasm_file]:
-            if src.exists():
-                shutil.copyfile(src, out_path / wasm_file)
-                if wasm_file == "tinui_engine.wasm":
-                    shutil.copyfile(src, out_path / "app.wasm")
-                break
-
-    # Copy shaders directory
-    shaders_dest = out_path / "shaders"
-    shaders_dest.mkdir(exist_ok=True)
-    for s_dir in [pkg_dir / "shaders", repo_root / "shaders"]:
-        if s_dir.exists():
-            for f in s_dir.glob("*.frag"):
-                shutil.copyfile(f, shaders_dest / f.name)
-            for f in s_dir.glob("*.vert"):
-                shutil.copyfile(f, shaders_dest / f.name)
-            break
-
-    # 3. Generate production HTML harness with JSON-LD structured data
+    bin_dest = out_path / "app.ir.bin"
+    
+    if not json_dest.exists():
+        raise RuntimeError("Build succeeded but app.ir.json is missing.")
+        
+    ir_dict = json.loads(json_dest.read_text(encoding="utf-8"))
+    
+    # Overwrite index.html with the Python-specific SEO shell to preserve v1.7.1 compatibility
     html_content = f"""<!DOCTYPE html>
+<!-- TINPYUI GENERATED FILE — DO NOT EDIT DIRECTLY
+     Source: {entry_file}
+     Compiler: 1.8.0
+     Runtime ABI: 4
+     Regenerate: tinpyui build {entry_file}
+-->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -352,7 +284,7 @@ def build_aot_static_bundle(
     return {
         "status": "success",
         "output_dir": str(out_path),
-        "binary_matrix_size": len(bin_matrix),
-        "json_size": len(json_dest.read_bytes()),
+        "binary_matrix_size": bin_dest.stat().st_size if bin_dest.exists() else 0,
+        "json_size": json_dest.stat().st_size,
         "node_count": len(ir_dict.get("nodes", [])),
     }

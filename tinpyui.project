@@ -1,0 +1,25 @@
+[project]
+name = "tinpyui-app"
+version = "1.0.0"
+tinpyui_version = ">=1.8.0"
+entry = "examples/dashboard/dashboard.tin"
+
+[compiler]
+output_dir = "dist"
+hydrate = true
+target = "web"
+
+[runtime]
+abi = 4
+wasm_engine = "go"
+
+[generated]
+directories = ["dist/", "public/"]
+files = ["dist/index.html", "dist/app.ir.json", "dist/tin-runtime.js", "dist/wasm_exec.js", "dist/tinui_engine.wasm"]
+
+[backend]
+adapter = "none"
+
+[build]
+minify = true
+source_maps = false

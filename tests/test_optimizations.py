@@ -148,7 +148,7 @@ class TestOptimizations(unittest.TestCase):
 
     def test_runtime_drs_and_binary_ir_presence(self):
         """Verify that tin-runtime.js contains the optimized DRS engine and binary decoder."""
-        runtime_path = Path(__file__).resolve().parent.parent / "tin-runtime.js"
+        runtime_path = Path(__file__).resolve().parent.parent / "src" / "tinpyui" / "tin-runtime.js"
         content = runtime_path.read_text(encoding="utf-8")
 
         # DRS (Dynamic Resolution Scaling)

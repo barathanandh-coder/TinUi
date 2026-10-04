@@ -1,0 +1,9 @@
+{
+  "name": "final_test_project",
+  "version": "1.0.0",
+  "targetDevice": "universal",
+  "compilerSettings": {
+    "entry": "index.tin",
+    "output": "dist/app.ir.json"
+  }
+}

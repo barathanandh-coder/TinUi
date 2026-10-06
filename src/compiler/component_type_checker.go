@@ -17,30 +17,41 @@ func NewComponentTypeChecker() *ComponentTypeChecker {
 	return &ComponentTypeChecker{}
 }
 
-// CheckLocalFile runs type checking on all component invocations within a single AST file
-func (c *ComponentTypeChecker) CheckLocalFile(ast *FileAST) []ComponentDiagnostic {
+// CheckWorkspace runs type checking on all component invocations within a single AST file, resolving signatures via the workspace.
+func (c *ComponentTypeChecker) CheckWorkspace(ast *FileAST, workspace *SemanticWorkspace) []ComponentDiagnostic {
 	var diagnostics []ComponentDiagnostic
-	if ast == nil {
+	if ast == nil || workspace == nil {
 		return diagnostics
 	}
 
-	// 1. Build a local registry of component signatures
-	registry := make(map[string][]PropDecl)
-	for _, comp := range ast.Components {
-		registry[comp.Name] = comp.Props
+	// 1. Build local import resolution map
+	importMap := make(map[string]string)
+	for _, imp := range ast.Imports {
+		for _, sym := range imp.Symbols {
+			importMap[sym] = buildImportID(ast.URI, imp.Path, sym)
+		}
 	}
+
+	resolveTargetID := func(name string) string {
+		if extID, ok := importMap[name]; ok {
+			return extID
+		}
+		return buildSymbolID(ast.URI, name)
+	}
+
+	visiting := make(map[string]bool)
 
 	// 2. Traverse all RootNodes in all components and check invocations
 	for _, comp := range ast.Components {
 		for _, rootNode := range comp.RootNodes {
-			c.checkNode(rootNode, registry, &diagnostics)
+			c.checkNode(rootNode, resolveTargetID, workspace, visiting, &diagnostics)
 		}
 	}
 
 	return diagnostics
 }
 
-func (c *ComponentTypeChecker) checkNode(node ASTNode, registry map[string][]PropDecl, diagnostics *[]ComponentDiagnostic) {
+func (c *ComponentTypeChecker) checkNode(node ASTNode, resolveTargetID func(string) string, workspace *SemanticWorkspace, visiting map[string]bool, diagnostics *[]ComponentDiagnostic) {
 	if node == nil {
 		return
 	}
@@ -49,27 +60,43 @@ func (c *ComponentTypeChecker) checkNode(node ASTNode, registry map[string][]Pro
 	case *Node:
 		// Is this a component invocation?
 		if len(n.Name) > 0 && n.Name[0] >= 'A' && n.Name[0] <= 'Z' {
-			if props, exists := registry[n.Name]; exists {
-				c.validateInvocation(n, props, diagnostics)
+			targetID := resolveTargetID(n.Name)
+
+			if visiting[targetID] {
+				// Cycle detected, fail softly
+				return
+			}
+
+			visiting[targetID] = true
+			defer func() { visiting[targetID] = false }()
+
+			sym := workspace.ResolveSymbol(targetID)
+			if sym == nil || sym.IsUnresolved {
+				*diagnostics = append(*diagnostics, ComponentDiagnostic{
+					Range:   n.Range,
+					Message: fmt.Sprintf("UnresolvedComponentReference: %s", n.Name),
+				})
+			} else {
+				c.validateInvocation(n, sym.Props, diagnostics)
 			}
 		}
 		
 		for _, child := range n.Children {
-			c.checkNode(child, registry, diagnostics)
+			c.checkNode(child, resolveTargetID, workspace, visiting, diagnostics)
 		}
 	case *ConditionalNode:
 		for _, child := range n.TrueBranch {
-			c.checkNode(child, registry, diagnostics)
+			c.checkNode(child, resolveTargetID, workspace, visiting, diagnostics)
 		}
 		for _, child := range n.FalseBranch {
-			c.checkNode(child, registry, diagnostics)
+			c.checkNode(child, resolveTargetID, workspace, visiting, diagnostics)
 		}
 	case *ForNode:
 		for _, child := range n.Body {
-			c.checkNode(child, registry, diagnostics)
+			c.checkNode(child, resolveTargetID, workspace, visiting, diagnostics)
 		}
 	case *HiddenWrapperNode:
-		c.checkNode(n.Child, registry, diagnostics)
+		c.checkNode(n.Child, resolveTargetID, workspace, visiting, diagnostics)
 	}
 }
 

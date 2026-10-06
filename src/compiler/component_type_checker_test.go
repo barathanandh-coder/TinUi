@@ -6,9 +6,11 @@ import (
 
 func TestComponentTypeChecker(t *testing.T) {
 	checker := NewComponentTypeChecker()
+	workspace := NewSemanticWorkspace()
 
-	ast := &FileAST{
-		URI: "file:///test.tin",
+	// Define imported file (File B)
+	fileBAST := &FileAST{
+		URI: "file:///fileB.tin",
 		Components: []*Component{
 			{
 				Name: "Button",
@@ -17,13 +19,18 @@ func TestComponentTypeChecker(t *testing.T) {
 					{Name: "text", TypeHint: "String", Default: `"Submit"`},
 					{Name: "legacy_prop", TypeHint: ""}, // Legacy untyped
 				},
-				RootNodes: []ASTNode{
-					&Node{
-						Name: "Text", // Non-component
-						Args: []string{`"Click Me"`},
-					},
-				},
 			},
+		},
+	}
+	workspace.AddFileAST(fileBAST)
+
+	// Define main file (File A)
+	ast := &FileAST{
+		URI: "file:///test.tin",
+		Imports: []*ImportDecl{
+			{Path: `"fileB.tin"`, Symbols: []string{"Button"}},
+		},
+		Components: []*Component{
 			{
 				Name: "App",
 				RootNodes: []ASTNode{
@@ -66,12 +73,19 @@ func TestComponentTypeChecker(t *testing.T) {
 							"legacy_prop": "anything", // Legacy - Valid
 						},
 					},
+					&Node{
+						Name: "MissingComp", // Not imported
+						Attributes: map[string]string{
+							"foo": "bar", // Should not trigger property errors, just UnresolvedComponentReference
+						},
+					},
 				},
 			},
 		},
 	}
+	workspace.AddFileAST(ast)
 
-	diagnostics := checker.CheckLocalFile(ast)
+	diagnostics := checker.CheckWorkspace(ast, workspace)
 
 	diagMap := make(map[string]int)
 	for _, d := range diagnostics {
@@ -97,5 +111,8 @@ func TestComponentTypeChecker(t *testing.T) {
 	}
 	if diagMap["DuplicateProperty"] != 1 {
 		t.Errorf("Expected 1 DuplicateProperty, got %d", diagMap["DuplicateProperty"])
+	}
+	if diagMap["UnresolvedComponentReference"] != 1 {
+		t.Errorf("Expected 1 UnresolvedComponentReference, got %d", diagMap["UnresolvedComponentReference"])
 	}
 }

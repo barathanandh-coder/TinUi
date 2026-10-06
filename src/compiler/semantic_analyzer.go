@@ -37,6 +37,7 @@ type Symbol struct {
 	ParentID      string         `json:"parent_id,omitempty"`
 	Relationships []Relationship `json:"relationships"`
 	IsUnresolved  bool           `json:"is_unresolved"`
+	Props         []PropDecl     `json:"props,omitempty"`
 }
 
 type File struct {
@@ -103,6 +104,7 @@ func AnalyzeFile(ast *FileAST) *File {
 			Name:          comp.Name,
 			Range:         comp.Range,
 			Relationships: []Relationship{},
+			Props:         comp.Props,
 		}
 		
 		f.Symbols[compID] = compSymbol

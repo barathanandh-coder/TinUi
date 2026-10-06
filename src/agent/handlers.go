@@ -17,7 +17,14 @@ import (
 var (
 	vfs      = make(map[string]UpdateDocumentParams)
 	vfsMutex sync.RWMutex
+
+	docMutexes sync.Map // per-document synchronization lane
 )
+
+func getDocMutex(uri string) *sync.Mutex {
+	m, _ := docMutexes.LoadOrStore(uri, &sync.Mutex{})
+	return m.(*sync.Mutex)
+}
 
 func handleUpdateDocument(req RequestEnvelope) {
 	var params UpdateDocumentParams
@@ -28,9 +35,18 @@ func handleUpdateDocument(req RequestEnvelope) {
 		sendError(req.ID, -32602, "Missing uri or version")
 		return
 	}
+
+	mu := getDocMutex(params.URI)
+	mu.Lock()
+	defer mu.Unlock()
+
 	vfsMutex.Lock()
 	vfs[params.URI] = params
 	vfsMutex.Unlock()
+	
+	// Sync to semantic workspace
+	syncDocument(params.URI, params.Source)
+	
 	sendResult(req.ID, map[string]interface{}{"status": "updated", "version": params.Version})
 }
 
@@ -46,6 +62,10 @@ func handleCloseDocument(req RequestEnvelope) {
 	vfsMutex.Lock()
 	delete(vfs, params.URI)
 	vfsMutex.Unlock()
+	
+	// Remove from semantic workspace
+	closeDocument(params.URI)
+	
 	sendResult(req.ID, map[string]interface{}{"status": "closed"})
 }
 
@@ -147,32 +167,83 @@ func handleQuery(ctx context.Context, req RequestEnvelope) {
 		return
 	}
 
-	// Mock semantic queries for phase 3.4
+	targetID, smallestRange := getTargetAtPosition(params.Document, params.Position)
+	if targetID == "" && params.Kind != "documentSymbols" && params.Kind != "workspaceSymbols" {
+		sendError(req.ID, -32602, "No symbol found at position")
+		return
+	}
+
 	switch params.Kind {
 	case "hover":
+		hoverMsg := getHover(targetID)
+		r := Range{}
+		if smallestRange != nil {
+			r = Range{Start: Position{Line: smallestRange.Start.Line, Character: smallestRange.Start.Character}, End: Position{Line: smallestRange.End.Line, Character: smallestRange.End.Character}}
+		}
 		sendResult(req.ID, HoverResponse{
-			Contents: "Hover information for " + params.Document,
-			Range: Range{
-				Start: params.Position,
-				End:   params.Position,
-			},
-			Version: currentVersion,
+			Contents: hoverMsg,
+			Range:    r,
+			Version:  currentVersion,
 		})
 	case "definition":
+		sym := GlobalWorkspace.ResolveSymbol(targetID)
+		if sym == nil {
+			sendError(req.ID, -32602, "Symbol is unresolved")
+			return
+		}
+		uri := GlobalWorkspace.GetFileForSymbol(sym.ID)
 		sendResult(req.ID, DefinitionResponse{
-			URI: params.Document,
+			URI: uri,
 			Range: Range{
-				Start: params.Position,
-				End:   params.Position,
+				Start: Position{Line: sym.Range.Start.Line, Character: sym.Range.Start.Character},
+				End:   Position{Line: sym.Range.End.Line, Character: sym.Range.End.Character},
 			},
 			Version: currentVersion,
 		})
-	case "completion":
-		sendResult(req.ID, CompletionResponse{
-			Items: []CompletionItem{
-				{Label: "Row", Kind: "component"},
-				{Label: "Text", Kind: "component"},
-			},
+	case "references":
+		deps := GlobalWorkspace.GetDependents(targetID)
+		var locations []Location
+		for _, edge := range deps {
+			depURI := edge.SourceID
+			
+			// If SourceID is a symbol (starts with tinpy://), resolve it to a file
+			if strings.HasPrefix(depURI, "tinpy://") {
+				depURI = GlobalWorkspace.GetFileForSymbol(edge.SourceID)
+			}
+			
+			if depURI != "" {
+				locations = append(locations, Location{
+					URI: depURI,
+					Range: Range{
+						Start: Position{Line: edge.Range.Start.Line, Character: edge.Range.Start.Character},
+						End:   Position{Line: edge.Range.End.Line, Character: edge.Range.End.Character},
+					},
+				})
+			}
+		}
+		sendResult(req.ID, ReferencesResponse{
+			Locations: locations,
+			Version:   currentVersion,
+		})
+	case "documentSymbols":
+		symbols := GlobalWorkspace.GetSymbolsForFile(params.Document)
+		var infos []SymbolInformation
+		for _, sym := range symbols {
+			infos = append(infos, resolveSymbolInfo(sym))
+		}
+		sendResult(req.ID, DocumentSymbolsResponse{
+			Symbols: infos,
+			Version: currentVersion,
+		})
+	case "workspaceSymbols":
+		var infos []SymbolInformation
+		for _, f := range GlobalWorkspace.Index.Project.Files {
+			for _, sym := range f.Symbols {
+				infos = append(infos, resolveSymbolInfo(sym))
+			}
+		}
+		sendResult(req.ID, WorkspaceSymbolsResponse{
+			Symbols: infos,
 			Version: currentVersion,
 		})
 	default:
@@ -330,6 +401,26 @@ func handleCheck(ctx context.Context, req RequestEnvelope) {
 	}
 
 	diags := parseDiagnostics(params.Entry, p.Errors)
+	
+	// Add Semantic Diagnostics (Unresolved References)
+	unresolved := GlobalWorkspace.GetUnresolved()
+	for _, u := range unresolved {
+		// Only report for the file currently being checked, or report all?
+		// Usually we report all for the workspace, or filter by file.
+		// We'll filter by the file we are checking (uri).
+		if u.SourceID == uri || u.SourceID == "file://" + uri {
+			diags = append(diags, Diagnostic{
+				ErrorCode: "TIN-0005",
+				Category:  "semantic",
+				Severity:  "error",
+				File:      uri,
+				Line:      u.Range.Start.Line,
+				Column:    u.Range.Start.Character,
+				Message:   fmt.Sprintf("Unresolved reference to %s", u.TargetID),
+			})
+		}
+	}
+	
 	status := "passed"
 	if len(diags) > 0 {
 		status = "failed"

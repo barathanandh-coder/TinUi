@@ -63,19 +63,42 @@ func handleCancel(req RequestEnvelope) {
 	cancelMutex.Unlock()
 }
 
+func recoverRequest(reqID interface{}) {
+	if r := recover(); r != nil {
+		fmt.Fprintf(os.Stderr, "[Panic Recovery] Request %v panicked: %v\n", reqID, r)
+		sendError(reqID, -32603, "Internal error during request processing")
+	}
+}
+
+func runSyncHandler(req RequestEnvelope, handler func(RequestEnvelope)) {
+	defer recoverRequest(req.ID)
+	handler(req)
+}
+
 func dispatchRequest(req RequestEnvelope) {
 	switch req.Method {
 	case "initialize":
-		handleInitialize(req)
+		runSyncHandler(req, handleInitialize)
 	case "update_document":
-		handleUpdateDocument(req)
+		runSyncHandler(req, handleUpdateDocument)
 	case "close_document":
-		handleCloseDocument(req)
+		runSyncHandler(req, handleCloseDocument)
 	case "shutdown":
 		os.Exit(0)
+	case "context.project", "context.file", "context.symbol", "context.references", 
+		"context.dependents", "context.imports", "context.unresolved",
+		"context.impact", "context.architecture", "context.dependencies", 
+		"context.related", "context.search", "context.propose", "context.apply":
+		go func() {
+			defer recoverRequest(req.ID)
+			handleAIContextRequest(req)
+		}()
 	case "context", "schema", "graph":
-		// Small sync operations
-		go handleSyncRequest(req)
+		// Legacy small sync operations
+		go func() {
+			defer recoverRequest(req.ID)
+			handleSyncRequest(req)
+		}()
 	case "check", "build", "query":
 		// Cancellable operations
 		ctx, cancel := context.WithCancel(context.Background())
@@ -84,6 +107,7 @@ func dispatchRequest(req RequestEnvelope) {
 		cancelMutex.Unlock()
 
 		go func(req RequestEnvelope, ctx context.Context) {
+			defer recoverRequest(req.ID)
 			defer func() {
 				cancelMutex.Lock()
 				delete(cancelMap, req.ID)
@@ -136,7 +160,7 @@ func sendError(id interface{}, code int, message string) {
 	emitResponse(res)
 }
 
-func emitResponse(res ResponseEnvelope) {
+var emitResponse = func(res ResponseEnvelope) {
 	out, err := json.Marshal(res)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "tinui agent output error: %v\n", err)
@@ -146,3 +170,4 @@ func emitResponse(res ResponseEnvelope) {
 	fmt.Fprintln(os.Stdout, string(out))
 	outputMutex.Unlock()
 }
+

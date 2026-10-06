@@ -1,3 +1,5 @@
+
+
 # Compiler Architecture (TinPyUI v1.8)
 
 TinPyUI ships with **two distinct compilers**, each tailored for specific workflows. They produce highly compatible Intermediate Representation (IR), but they differ in purpose and authority.

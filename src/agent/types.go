@@ -134,3 +134,29 @@ type CompletionResponse struct {
 	Version int              `json:"version,omitempty"`
 }
 
+type Location struct {
+	URI   string `json:"uri"`
+	Range Range  `json:"range"`
+}
+
+type ReferencesResponse struct {
+	Locations []Location `json:"locations"`
+	Version   int        `json:"version,omitempty"`
+}
+
+type SymbolInformation struct {
+	Name          string   `json:"name"`
+	Kind          string   `json:"kind"`
+	Location      Location `json:"location"`
+	ContainerName string   `json:"containerName,omitempty"`
+}
+
+type DocumentSymbolsResponse struct {
+	Symbols []SymbolInformation `json:"symbols"`
+	Version int                 `json:"version,omitempty"`
+}
+
+type WorkspaceSymbolsResponse struct {
+	Symbols []SymbolInformation `json:"symbols"`
+	Version int                 `json:"version,omitempty"`
+}

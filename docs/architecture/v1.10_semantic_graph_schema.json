@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TinPyUI Semantic Graph Schema",
+  "type": "object",
+  "properties": {
+    "projects": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Project"
+      }
+    }
+  },
+  "definitions": {
+    "Position": {
+      "type": "object",
+      "properties": {
+        "line": { "type": "integer", "minimum": 0 },
+        "character": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["line", "character"]
+    },
+    "Range": {
+      "type": "object",
+      "properties": {
+        "uri": { "type": "string", "format": "uri" },
+        "start": { "$ref": "#/definitions/Position" },
+        "end": { "$ref": "#/definitions/Position" }
+      },
+      "required": ["uri", "start", "end"]
+    },
+    "SymbolID": {
+      "type": "string",
+      "description": "Unique identifier, format: tinpy://<workspace-uri>/<relative-file-path>#<qualified-name>"
+    },
+    "SymbolKind": {
+      "type": "string",
+      "enum": ["Component", "State", "Definition", "Event"]
+    },
+    "RelationshipKind": {
+      "type": "string",
+      "enum": ["renders", "reads", "triggers", "imports"]
+    },
+    "Relationship": {
+      "type": "object",
+      "properties": {
+        "kind": { "$ref": "#/definitions/RelationshipKind" },
+        "target_id": { "$ref": "#/definitions/SymbolID" },
+        "range": { 
+          "$ref": "#/definitions/Range",
+          "description": "The exact location where the relationship is declared"
+        }
+      },
+      "required": ["kind", "target_id", "range"]
+    },
+    "Symbol": {
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/definitions/SymbolID" },
+        "kind": { "$ref": "#/definitions/SymbolKind" },
+        "name": { "type": "string" },
+        "range": { "$ref": "#/definitions/Range" },
+        "parent_id": { "type": ["string", "null"] },
+        "relationships": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Relationship" }
+        },
+        "is_unresolved": { "type": "boolean", "default": false }
+      },
+      "required": ["id", "kind", "name", "range", "relationships"]
+    },
+    "File": {
+      "type": "object",
+      "properties": {
+        "uri": { "type": "string", "format": "uri" },
+        "symbols": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/Symbol" }
+        }
+      },
+      "required": ["uri", "symbols"]
+    },
+    "Project": {
+      "type": "object",
+      "properties": {
+        "root_uri": { "type": "string", "format": "uri" },
+        "files": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/File" }
+        }
+      },
+      "required": ["root_uri", "files"]
+    }
+  }
+}

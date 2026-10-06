@@ -27,8 +27,28 @@ func (p *Parser) nextToken() {
 	p.peekToken = p.l.NextToken()
 }
 
+func (p *Parser) getPos(t Token) Position {
+	col := t.Col - 1
+	if col < 0 {
+		col = 0
+	}
+	line := t.Line - 1
+	if line < 0 {
+		line = 0
+	}
+	return Position{Line: line, Character: col}
+}
+
 func (p *Parser) Parse() []*Component {
-	var components []*Component
+	return p.ParseFileAST("").Components
+}
+
+func (p *Parser) ParseFileAST(uri string) *FileAST {
+	fileAST := &FileAST{
+		URI:        uri,
+		Imports:    []*ImportDecl{},
+		Components: []*Component{},
+	}
 
 	for p.curToken.Type != EOF {
 		if p.curToken.Type == NEWLINE {
@@ -36,18 +56,54 @@ func (p *Parser) Parse() []*Component {
 			continue
 		}
 
-		if p.curToken.Type == COMPONENT {
+		if p.curToken.Type == IDENT && p.curToken.Literal == "import" {
+			if imp := p.parseImport(); imp != nil {
+				fileAST.Imports = append(fileAST.Imports, imp)
+			}
+		} else if p.curToken.Type == COMPONENT {
 			if comp := p.parseComponent(); comp != nil {
-				components = append(components, comp)
+				fileAST.Components = append(fileAST.Components, comp)
 			}
 		} else if p.curToken.Type == IDENT && p.peekToken.Type == ASSIGN {
 			p.parseGlobalAssignment()
 		} else {
-			p.Errors = append(p.Errors, fmt.Sprintf("[line %d:%d] Expected component declaration, got %s (%q)", p.curToken.Line, p.curToken.Col, p.curToken.Type, p.curToken.Literal))
+			p.Errors = append(p.Errors, fmt.Sprintf("[line %d:%d] Expected component declaration or import, got %s (%q)", p.curToken.Line, p.curToken.Col, p.curToken.Type, p.curToken.Literal))
 			p.nextToken()
 		}
 	}
-	return components
+	return fileAST
+}
+
+func (p *Parser) parseImport() *ImportDecl {
+	startTok := p.curToken
+	p.nextToken() // consume "import"
+
+	imp := &ImportDecl{
+		Symbols: []string{},
+	}
+
+	for p.curToken.Type != EOF && p.curToken.Type != NEWLINE {
+		if p.curToken.Type == IDENT {
+			if p.curToken.Literal == "from" {
+				p.nextToken() // consume "from"
+				if p.curToken.Type == STRING {
+					imp.Path = p.curToken.Literal
+					p.nextToken()
+				}
+				break
+			} else {
+				imp.Symbols = append(imp.Symbols, p.curToken.Literal)
+				p.nextToken()
+			}
+		} else if p.curToken.Type == COMMA {
+			p.nextToken()
+		} else {
+			p.nextToken()
+		}
+	}
+	
+	imp.Range = Range{Start: p.getPos(startTok), End: p.getPos(p.curToken)}
+	return imp
 }
 
 func (p *Parser) parseGlobalAssignment() {
@@ -166,6 +222,7 @@ func (p *Parser) parseKeyframesDict() string {
 }
 
 func (p *Parser) parseComponent() *Component {
+	startTok := p.curToken
 	comp := &Component{}
 	p.nextToken()
 
@@ -225,10 +282,12 @@ func (p *Parser) parseComponent() *Component {
 			p.nextToken()
 		}
 	}
+	comp.Range = Range{Start: p.getPos(startTok), End: p.getPos(p.curToken)}
 	return comp
 }
 
 func (p *Parser) parseState() *StateDecl {
+	startTok := p.curToken
 	p.nextToken()
 	state := &StateDecl{}
 
@@ -243,10 +302,12 @@ func (p *Parser) parseState() *StateDecl {
 			p.nextToken()
 		}
 	}
+	state.Range = Range{Start: p.getPos(startTok), End: p.getPos(p.curToken)}
 	return state
 }
 
 func (p *Parser) parseDefStatement() *DefNode {
+	startTok := p.curToken
 	p.nextToken()
 	funcName := ""
 	if p.curToken.Type == IDENT {
@@ -302,13 +363,15 @@ func (p *Parser) parseDefStatement() *DefNode {
 			return &DefNode{
 				FuncName:  funcName,
 				Mutations: mutations,
+				Range:     Range{Start: p.getPos(startTok), End: p.getPos(p.curToken)},
 			}
 		}
 	}
-	return &DefNode{FuncName: funcName, Mutations: []MutationNode{}}
+	return &DefNode{FuncName: funcName, Mutations: []MutationNode{}, Range: Range{Start: p.getPos(startTok), End: p.getPos(p.curToken)}}
 }
 
 func (p *Parser) parseNode() ASTNode {
+	startTok := p.curToken
 	node := &Node{
 		Name:       p.curToken.Literal,
 		Attributes: make(map[string]string),
@@ -352,9 +415,11 @@ func (p *Parser) parseNode() ASTNode {
 
 	if val, ok := node.Attributes["display"]; ok && val == "hidden" {
 		delete(node.Attributes, "display")
+		node.Range = Range{Start: p.getPos(startTok), End: p.getPos(p.curToken)}
 		return &HiddenWrapperNode{Child: node}
 	}
 
+	node.Range = Range{Start: p.getPos(startTok), End: p.getPos(p.curToken)}
 	return node
 }
 
@@ -406,6 +471,7 @@ func (p *Parser) parseArguments(node *Node) {
 }
 
 func (p *Parser) parseIfStatement() *ConditionalNode {
+	startTok := p.curToken
 	p.nextToken() // consume IF
 
 	if p.curToken.Type != IDENT {
@@ -513,10 +579,12 @@ func (p *Parser) parseIfStatement() *ConditionalNode {
 		Value:        val,
 		TrueBranch:   trueNodes,
 		FalseBranch:  falseNodes,
+		Range:        Range{Start: p.getPos(startTok), End: p.getPos(p.curToken)},
 	}
 }
 
 func (p *Parser) parseForStatement() *ForNode {
+	startTok := p.curToken
 	p.nextToken() // consume FOR
 
 	if p.curToken.Type != IDENT {
@@ -581,5 +649,6 @@ func (p *Parser) parseForStatement() *ForNode {
 		IteratorName: iteratorName,
 		IterableKey:  iterableKey,
 		Body:         bodyNodes,
+		Range:        Range{Start: p.getPos(startTok), End: p.getPos(p.curToken)},
 	}
 }

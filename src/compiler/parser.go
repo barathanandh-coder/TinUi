@@ -237,9 +237,37 @@ func (p *Parser) parseComponent() *Component {
 		p.nextToken()
 		for p.curToken.Type != RPAREN && p.curToken.Type != EOF {
 			if p.curToken.Type == IDENT {
-				comp.Args = append(comp.Args, p.curToken.Literal)
+				prop := PropDecl{Name: p.curToken.Literal}
+				p.nextToken()
+				
+				if p.curToken.Type == COLON {
+					p.nextToken()
+					if p.curToken.Type == IDENT {
+						prop.TypeHint = p.curToken.Literal
+						p.nextToken()
+					}
+				}
+				
+				if p.curToken.Type == ASSIGN {
+					p.nextToken()
+					if p.curToken.Type == STRING || p.curToken.Type == NUMBER || p.curToken.Type == TRUE || p.curToken.Type == FALSE || p.curToken.Type == IDENT {
+						if p.curToken.Type == STRING {
+							prop.Default = `"` + p.curToken.Literal + `"`
+						} else {
+							prop.Default = p.curToken.Literal
+						}
+						p.nextToken()
+					}
+				}
+				
+				comp.Props = append(comp.Props, prop)
 			}
-			p.nextToken()
+			
+			if p.curToken.Type == COMMA {
+				p.nextToken()
+			} else if p.curToken.Type != RPAREN && p.curToken.Type != IDENT {
+				p.nextToken()
+			}
 		}
 		p.nextToken()
 	}

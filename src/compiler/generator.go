@@ -241,11 +241,11 @@ func (g *IRGenerator) traverse(astNode ASTNode, parentID int, props map[string]s
 		if compDef, exists := g.components[n.Name]; exists {
 			// Inline custom component
 			childProps := make(map[string]string)
-			for i, argName := range compDef.Args {
+			for i, prop := range compDef.Props {
 				if i < len(n.Args) {
-					childProps[argName] = n.Args[i]
-				} else if val, ok := n.Attributes[argName]; ok {
-					childProps[argName] = val
+					childProps[prop.Name] = n.Args[i]
+				} else if val, ok := n.Attributes[prop.Name]; ok {
+					childProps[prop.Name] = val
 				}
 			}
 			// Map any other attributes passed

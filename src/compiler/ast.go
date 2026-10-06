@@ -66,9 +66,16 @@ type ForNode struct {
 	Range        Range
 }
 
+// PropDecl represents a property definition for a Component.
+type PropDecl struct {
+	Name     string
+	TypeHint string
+	Default  string
+}
+
 type Component struct {
 	Name      string
-	Args      []string
+	Props     []PropDecl
 	States    []*StateDecl
 	Mutations []*DefNode
 	RootNodes []ASTNode

@@ -24,6 +24,11 @@ func TestDataFlowAnalyzer(t *testing.T) {
 					{Name: "dyn", Initial: "{var}"}, 
 					{Name: "ref_dyn", Initial: "dyn"},
 					{Name: "x", Initial: "10"},
+					{Name: "A", Initial: "10"},
+					{Name: "B", Initial: "A + 5"},
+					{Name: "C", Initial: "B + 2.5"},
+					{Name: "D", Initial: "C + 1"},
+					{Name: "long", Initial: "10 + 5 + 2.5 + 1"},
 				},
 				Mutations: []*DefNode{
 					{
@@ -90,6 +95,23 @@ func TestDataFlowAnalyzer(t *testing.T) {
 	// Reassignment Widening no longer permitted for state variables
 	if graph.Nodes["TestApp.x"].Type.Type.Kind != TypeConflict {
 		t.Errorf("Expected x to have TypeConflict upon float reassignment, got %s", graph.Nodes["TestApp.x"].Type.Type.Kind)
+	}
+	
+	// A.5.2 chained requirements
+	if graph.Nodes["TestApp.A"].Type.Type.Kind != TypeInt {
+		t.Errorf("Expected A to be Int, got %s", graph.Nodes["TestApp.A"].Type.Type.Kind)
+	}
+	if graph.Nodes["TestApp.B"].Type.Type.Kind != TypeInt {
+		t.Errorf("Expected B to be Int, got %s", graph.Nodes["TestApp.B"].Type.Type.Kind)
+	}
+	if graph.Nodes["TestApp.C"].Type.Type.Kind != TypeFloat {
+		t.Errorf("Expected C to be Float, got %s", graph.Nodes["TestApp.C"].Type.Type.Kind)
+	}
+	if graph.Nodes["TestApp.D"].Type.Type.Kind != TypeFloat {
+		t.Errorf("Expected D to be Float, got %s", graph.Nodes["TestApp.D"].Type.Type.Kind)
+	}
+	if graph.Nodes["TestApp.long"].Type.Type.Kind != TypeFloat {
+		t.Errorf("Expected long to be Float, got %s", graph.Nodes["TestApp.long"].Type.Type.Kind)
 	}
 	
 	// Ensure edge creation

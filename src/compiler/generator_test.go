@@ -98,8 +98,8 @@ component CounterScene():
 
 func TestPythonBooleanProperties(t *testing.T) {
 	source := `component Main():
-    Navbar(padding=20, blur=True):
-        Row(wrap=True):
+    Navbar(padding=20, blur=true):
+        Row(wrap=true):
             Text(text="TinPyUI", color="neon-cyan")
 `
 

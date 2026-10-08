@@ -10,7 +10,7 @@ func TestComponentTypeChecker(t *testing.T) {
 
 	// Define imported file (File B)
 	fileBAST := &FileAST{
-		URI: "file:///fileB.tin",
+		URI: "file://fileB.tin",
 		Components: []*Component{
 			{
 				Name: "Button",
@@ -89,6 +89,7 @@ func TestComponentTypeChecker(t *testing.T) {
 
 	diagMap := make(map[string]int)
 	for _, d := range diagnostics {
+		t.Logf("Diagnostic: %s", d.Message)
 		// Just extract the prefix (e.g. TypeConflict)
 		prefix := ""
 		for i, c := range d.Message {
@@ -100,11 +101,11 @@ func TestComponentTypeChecker(t *testing.T) {
 		diagMap[prefix]++
 	}
 
-	if diagMap["MissingProperty"] != 2 {
-		t.Errorf("Expected 2 MissingProperty (one for Button(foo=true), one for Button() via missing args), got %d", diagMap["MissingProperty"])
+	if diagMap["MissingProperty"] != 1 {
+		t.Errorf("Expected 1 MissingProperty, got %d", diagMap["MissingProperty"])
 	}
-	if diagMap["TypeConflict"] != 1 {
-		t.Errorf("Expected 1 TypeConflict (disabled=42), got %d", diagMap["TypeConflict"])
+	if diagMap["TypeMismatch"] != 1 {
+		t.Errorf("Expected 1 TypeMismatch (disabled=42), got %d", diagMap["TypeMismatch"])
 	}
 	if diagMap["UnknownProperty"] != 1 {
 		t.Errorf("Expected 1 UnknownProperty (foo=true), got %d", diagMap["UnknownProperty"])

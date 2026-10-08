@@ -64,6 +64,15 @@ var (
 func InferLiteral(value string, sourceRange Range) TypeResult {
 	value = strings.TrimSpace(value)
 	
+	// Dynamic value {expr} resolves to Any
+	if strings.HasPrefix(value, "{") && strings.HasSuffix(value, "}") {
+		return TypeResult{
+			Type:       TinType{Kind: TypeAny},
+			Confidence: ConfidenceInferred,
+			Diagnostic: nil,
+		}
+	}
+	
 	if (strings.HasPrefix(value, `"`) && strings.HasSuffix(value, `"`)) || 
 	   (strings.HasPrefix(value, `'`) && strings.HasSuffix(value, `'`)) {
 		return TypeResult{
@@ -154,6 +163,28 @@ func CheckAssignmentCompatibility(toType TinType, fromType TinType) bool {
 	return false
 }
 
+func readableType(kind TypeKind) string {
+	if strings.HasPrefix(string(kind), "Type") {
+		return string(kind)[4:]
+	}
+	return string(kind)
+}
+
+func opName(op string) string {
+	switch op {
+	case "+":
+		return "add"
+	case "-":
+		return "subtract"
+	case "*":
+		return "multiply"
+	case "/":
+		return "divide"
+	default:
+		return "operate on"
+	}
+}
+
 // InferAssignment evaluates a mutation/reassignment against an established state type.
 func InferAssignment(originalType TypeResult, newValue string, newRange Range) TypeResult {
 	newLiteralType := InferLiteral(newValue, newRange)
@@ -164,7 +195,7 @@ func InferAssignment(originalType TypeResult, newValue string, newRange Range) T
 			Confidence: originalType.Confidence, // Preserves the confidence of the conflict origin
 			Diagnostic: &TypeDiagnostic{
 				Range:   newRange,
-				Message: fmt.Sprintf("TypeConflict: Cannot assign %s to %s", newLiteralType.Type.Kind, originalType.Type.Kind),
+				Message: fmt.Sprintf("TypeMismatch: Cannot assign %s to state (expected %s)", readableType(newLiteralType.Type.Kind), readableType(originalType.Type.Kind)),
 			},
 		}
 	}
@@ -202,10 +233,21 @@ func InferExpression(left TypeResult, op string, right TypeResult, rng Range) Ty
 		}
 
 		// String concatenation overloads +
-		if op == "+" && (left.Type.Kind == TypeString || right.Type.Kind == TypeString) {
-			return TypeResult{
-				Type:       TinType{Kind: TypeString},
-				Confidence: ConfidenceInferred,
+		if op == "+" {
+			if left.Type.Kind == TypeString && right.Type.Kind == TypeString {
+				return TypeResult{
+					Type:       TinType{Kind: TypeString},
+					Confidence: ConfidenceInferred,
+				}
+			} else if left.Type.Kind == TypeString || right.Type.Kind == TypeString {
+				return TypeResult{
+					Type:       TinType{Kind: TypeConflict},
+					Confidence: ConfidenceInferred,
+					Diagnostic: &TypeDiagnostic{
+						Range:   rng,
+						Message: fmt.Sprintf("TypeMismatch: Cannot add %s and %s", readableType(left.Type.Kind), readableType(right.Type.Kind)),
+					},
+				}
 			}
 		}
 
@@ -224,7 +266,7 @@ func InferExpression(left TypeResult, op string, right TypeResult, rng Range) Ty
 			Confidence: ConfidenceInferred,
 			Diagnostic: &TypeDiagnostic{
 				Range:   rng,
-				Message: fmt.Sprintf("TypeConflict: Invalid math operation between %s and %s", left.Type.Kind, right.Type.Kind),
+				Message: fmt.Sprintf("TypeMismatch: Cannot %s %s and %s", opName(op), readableType(left.Type.Kind), readableType(right.Type.Kind)),
 			},
 		}
 	}

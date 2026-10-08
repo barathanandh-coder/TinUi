@@ -57,13 +57,13 @@ func TestInferExpression(t *testing.T) {
 	
 	strLeft := TypeResult{Type: TinType{Kind: TypeString}, Confidence: ConfidenceLiteral}
 	res2 := InferExpression(strLeft, "+", right, Range{})
-	if res2.Type.Kind != TypeString {
-		t.Errorf("Expected String + Float = String, got %s", res2.Type.Kind)
+	if res2.Type.Kind != TypeConflict {
+		t.Errorf("Expected String + Float = TypeConflict, got %s", res2.Type.Kind)
 	}
 
 	res3 := InferExpression(left, "+", strLeft, Range{})
-	if res3.Type.Kind != TypeString {
-		t.Errorf("Expected Int + String = String, got %s", res3.Type.Kind)
+	if res3.Type.Kind != TypeConflict {
+		t.Errorf("Expected Int + String = TypeConflict, got %s", res3.Type.Kind)
 	}
 	
 	res4 := InferExpression(left, "-", strLeft, Range{})

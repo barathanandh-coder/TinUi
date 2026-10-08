@@ -41,27 +41,27 @@ func TestDataFlowAnalyzer(t *testing.T) {
 	graph := analyzer.Analyze(ast)
 
 	// A -> B -> C
-	if graph.Nodes["TestApp.count"].Type.Kind != TypeInt {
-		t.Errorf("Expected count to be Int, got %s", graph.Nodes["TestApp.count"].Type.Kind)
+	if graph.Nodes["TestApp.count"].Type.Type.Kind != TypeInt {
+		t.Errorf("Expected count to be Int, got %s", graph.Nodes["TestApp.count"].Type.Type.Kind)
 	}
-	if graph.Nodes["TestApp.ref_b"].Type.Kind != TypeInt {
-		t.Errorf("Expected ref_b to be Int, got %s", graph.Nodes["TestApp.ref_b"].Type.Kind)
+	if graph.Nodes["TestApp.ref_b"].Type.Type.Kind != TypeInt {
+		t.Errorf("Expected ref_b to be Int, got %s", graph.Nodes["TestApp.ref_b"].Type.Type.Kind)
 	}
-	if graph.Nodes["TestApp.ref_c"].Type.Kind != TypeInt {
-		t.Errorf("Expected ref_c to be Int, got %s", graph.Nodes["TestApp.ref_c"].Type.Kind)
+	if graph.Nodes["TestApp.ref_c"].Type.Type.Kind != TypeInt {
+		t.Errorf("Expected ref_c to be Int, got %s", graph.Nodes["TestApp.ref_c"].Type.Type.Kind)
 	}
 
 	// Int + Float = Float
-	if graph.Nodes["TestApp.tax"].Type.Kind != TypeFloat {
-		t.Errorf("Expected tax to be Float, got %s", graph.Nodes["TestApp.tax"].Type.Kind)
+	if graph.Nodes["TestApp.tax"].Type.Type.Kind != TypeFloat {
+		t.Errorf("Expected tax to be Float, got %s", graph.Nodes["TestApp.tax"].Type.Type.Kind)
 	}
-	if graph.Nodes["TestApp.total"].Type.Kind != TypeFloat {
-		t.Errorf("Expected total to be Float, got %s", graph.Nodes["TestApp.total"].Type.Kind)
+	if graph.Nodes["TestApp.total"].Type.Type.Kind != TypeFloat {
+		t.Errorf("Expected total to be Float, got %s", graph.Nodes["TestApp.total"].Type.Type.Kind)
 	}
 
 	// Cycle
-	if graph.Nodes["TestApp.c1"].Type.Kind != TypeUnknown {
-		t.Errorf("Expected c1 to be Unknown due to cycle, got %s", graph.Nodes["TestApp.c1"].Type.Kind)
+	if graph.Nodes["TestApp.c1"].Type.Type.Kind != TypeUnknown {
+		t.Errorf("Expected c1 to be Unknown due to cycle, got %s", graph.Nodes["TestApp.c1"].Type.Type.Kind)
 	}
 	hasCycleDiag := false
 	for _, d := range graph.Diagnostics {
@@ -75,21 +75,21 @@ func TestDataFlowAnalyzer(t *testing.T) {
 	}
 
 	// Unresolved symbol
-	if graph.Nodes["TestApp.missing"].Type.Kind != TypeUnknown {
-		t.Errorf("Expected missing to be Unknown, got %s", graph.Nodes["TestApp.missing"].Type.Kind)
+	if graph.Nodes["TestApp.missing"].Type.Type.Kind != TypeUnknown {
+		t.Errorf("Expected missing to be Unknown, got %s", graph.Nodes["TestApp.missing"].Type.Type.Kind)
 	}
 
 	// Any propagation
-	if graph.Nodes["TestApp.dyn"].Type.Kind != TypeAny {
-		t.Errorf("Expected dyn to be Any, got %s", graph.Nodes["TestApp.dyn"].Type.Kind)
+	if graph.Nodes["TestApp.dyn"].Type.Type.Kind != TypeAny {
+		t.Errorf("Expected dyn to be Any, got %s", graph.Nodes["TestApp.dyn"].Type.Type.Kind)
 	}
-	if graph.Nodes["TestApp.ref_dyn"].Type.Kind != TypeAny {
-		t.Errorf("Expected ref_dyn to be Any, got %s", graph.Nodes["TestApp.ref_dyn"].Type.Kind)
+	if graph.Nodes["TestApp.ref_dyn"].Type.Type.Kind != TypeAny {
+		t.Errorf("Expected ref_dyn to be Any, got %s", graph.Nodes["TestApp.ref_dyn"].Type.Type.Kind)
 	}
 
-	// Reassignment Widening
-	if graph.Nodes["TestApp.x"].Type.Kind != TypeFloat {
-		t.Errorf("Expected x to widen to Float, got %s", graph.Nodes["TestApp.x"].Type.Kind)
+	// Reassignment Widening no longer permitted for state variables
+	if graph.Nodes["TestApp.x"].Type.Type.Kind != TypeConflict {
+		t.Errorf("Expected x to have TypeConflict upon float reassignment, got %s", graph.Nodes["TestApp.x"].Type.Type.Kind)
 	}
 	
 	// Ensure edge creation

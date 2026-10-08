@@ -4,10 +4,33 @@ import (
 	"fmt"
 )
 
+type DiagnosticSeverity int
+
+const (
+	SeverityError DiagnosticSeverity = 1
+	SeverityWarning DiagnosticSeverity = 2
+)
+
+type DiagnosticCode string
+
+const (
+	CodeMissingProperty          DiagnosticCode = "MissingProperty"
+	CodeUnknownProperty          DiagnosticCode = "UnknownProperty"
+	CodeDuplicateProperty        DiagnosticCode = "DuplicateProperty"
+	CodeTypeConflict             DiagnosticCode = "TypeConflict"
+	CodeUnresolvedComponent      DiagnosticCode = "UnresolvedComponentReference"
+)
+
 // ComponentDiagnostic extends TypeDiagnostic for component specific errors
 type ComponentDiagnostic struct {
-	Range   Range
-	Message string
+	Code          DiagnosticCode
+	Severity      DiagnosticSeverity
+	Range         Range
+	Message       string
+	ComponentName string
+	PropertyName  string
+	ExpectedType  string
+	ActualType    string
 }
 
 // ComponentTypeChecker is a stateless analyzer for component invocations
@@ -73,8 +96,11 @@ func (c *ComponentTypeChecker) checkNode(node ASTNode, resolveTargetID func(stri
 			sym := workspace.ResolveSymbol(targetID)
 			if sym == nil || sym.IsUnresolved {
 				*diagnostics = append(*diagnostics, ComponentDiagnostic{
-					Range:   n.Range,
-					Message: fmt.Sprintf("UnresolvedComponentReference: %s", n.Name),
+					Code:          CodeUnresolvedComponent,
+					Severity:      SeverityError,
+					Range:         n.Range,
+					Message:       fmt.Sprintf("UnresolvedComponentReference: %s", n.Name),
+					ComponentName: n.Name,
 				})
 			} else {
 				c.validateInvocation(n, sym.Props, diagnostics)
@@ -109,16 +135,23 @@ func (c *ComponentTypeChecker) validateInvocation(n *Node, props []PropDecl, dia
 			propName := props[i].Name
 			if supplied[propName] {
 				*diagnostics = append(*diagnostics, ComponentDiagnostic{
-					Range:   n.Range,
-					Message: fmt.Sprintf("DuplicateProperty: property %s supplied multiple times", propName),
+					Code:          CodeDuplicateProperty,
+					Severity:      SeverityError,
+					Range:         n.Range,
+					Message:       fmt.Sprintf("DuplicateProperty: property %s supplied multiple times", propName),
+					ComponentName: n.Name,
+					PropertyName:  propName,
 				})
 			}
 			supplied[propName] = true
-			c.validateProperty(props[i], argVal, n.Range, diagnostics)
+			c.validateProperty(n.Name, props[i], argVal, n.Range, diagnostics)
 		} else {
 			*diagnostics = append(*diagnostics, ComponentDiagnostic{
-				Range:   n.Range,
-				Message: fmt.Sprintf("UnknownProperty: unexpected positional argument %d", i),
+				Code:          CodeUnknownProperty,
+				Severity:      SeverityError,
+				Range:         n.Range,
+				Message:       fmt.Sprintf("UnknownProperty: unexpected positional argument %d", i),
+				ComponentName: n.Name,
 			})
 		}
 	}
@@ -127,8 +160,12 @@ func (c *ComponentTypeChecker) validateInvocation(n *Node, props []PropDecl, dia
 	for attrName, attrVal := range n.Attributes {
 		if supplied[attrName] {
 			*diagnostics = append(*diagnostics, ComponentDiagnostic{
-				Range:   n.Range,
-				Message: fmt.Sprintf("DuplicateProperty: property %s supplied multiple times", attrName),
+				Code:          CodeDuplicateProperty,
+				Severity:      SeverityError,
+				Range:         n.Range,
+				Message:       fmt.Sprintf("DuplicateProperty: property %s supplied multiple times", attrName),
+				ComponentName: n.Name,
+				PropertyName:  attrName,
 			})
 			// Even if duplicate, we validate the latest one provided
 		}
@@ -146,11 +183,15 @@ func (c *ComponentTypeChecker) validateInvocation(n *Node, props []PropDecl, dia
 		
 		if matchedProp == nil {
 			*diagnostics = append(*diagnostics, ComponentDiagnostic{
-				Range:   n.Range,
-				Message: fmt.Sprintf("UnknownProperty: property %s is not defined on %s", attrName, n.Name),
+				Code:          CodeUnknownProperty,
+				Severity:      SeverityError,
+				Range:         n.Range,
+				Message:       fmt.Sprintf("UnknownProperty: property %s is not defined on %s", attrName, n.Name),
+				ComponentName: n.Name,
+				PropertyName:  attrName,
 			})
 		} else {
-			c.validateProperty(*matchedProp, attrVal, n.Range, diagnostics)
+			c.validateProperty(n.Name, *matchedProp, attrVal, n.Range, diagnostics)
 		}
 	}
 
@@ -160,15 +201,20 @@ func (c *ComponentTypeChecker) validateInvocation(n *Node, props []PropDecl, dia
 			// It is required if it has a TypeHint but no Default
 			if p.TypeHint != "" && p.Default == "" {
 				*diagnostics = append(*diagnostics, ComponentDiagnostic{
-					Range:   n.Range,
-					Message: fmt.Sprintf("MissingProperty: required property %s is missing", p.Name),
+					Code:          CodeMissingProperty,
+					Severity:      SeverityError,
+					Range:         n.Range,
+					Message:       fmt.Sprintf("MissingProperty: required property %s is missing", p.Name),
+					ComponentName: n.Name,
+					PropertyName:  p.Name,
+					ExpectedType:  p.TypeHint,
 				})
 			}
 		}
 	}
 }
 
-func (c *ComponentTypeChecker) validateProperty(prop PropDecl, val string, rng Range, diagnostics *[]ComponentDiagnostic) {
+func (c *ComponentTypeChecker) validateProperty(compName string, prop PropDecl, val string, rng Range, diagnostics *[]ComponentDiagnostic) {
 	// Determine expected type
 	var expectedType TinType
 	if prop.TypeHint == "" {
@@ -183,8 +229,14 @@ func (c *ComponentTypeChecker) validateProperty(prop PropDecl, val string, rng R
 
 	if !CheckAssignmentCompatibility(expectedType, suppliedType) {
 		*diagnostics = append(*diagnostics, ComponentDiagnostic{
-			Range:   rng,
-			Message: fmt.Sprintf("TypeConflict: Cannot assign %s to %s for property %s", suppliedType.Kind, expectedType.Kind, prop.Name),
+			Code:          CodeTypeConflict,
+			Severity:      SeverityError,
+			Range:         rng,
+			Message:       fmt.Sprintf("TypeMismatch: Cannot assign %s to %s for property %s", readableType(suppliedType.Kind), readableType(expectedType.Kind), prop.Name),
+			ComponentName: compName,
+			PropertyName:  prop.Name,
+			ExpectedType:  string(expectedType.Kind),
+			ActualType:    string(suppliedType.Kind),
 		})
 	}
 }

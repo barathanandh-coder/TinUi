@@ -225,7 +225,7 @@ func (a *DataFlowAnalyzer) analyzeComponent(comp *Component) {
 						if !CheckAssignmentCompatibility(originalType.Type, exprRes.Type) {
 							diagnostic := TypeDiagnostic{
 								Range:   mut.Range,
-								Message: fmt.Sprintf("TypeConflict: Cannot assign result of %s to %s", exprRes.Type.Kind, originalType.Type.Kind),
+								Message: fmt.Sprintf("TypeMismatch: Cannot assign %s to state (expected %s)", readableType(exprRes.Type.Kind), readableType(originalType.Type.Kind)),
 							}
 							a.graph.Diagnostics = append(a.graph.Diagnostics, diagnostic)
 							exprRes.Type.Kind = TypeConflict

@@ -79,7 +79,7 @@ func TestASTTypeAnalyzer(t *testing.T) {
 			t.Logf("Diagnostic: %s", d.Message)
 		}
 	} else {
-		if res.Diagnostics[0].Message != "TypeConflict: Cannot assign String to Int" {
+		if res.Diagnostics[0].Message != "TypeMismatch: Cannot assign String to state (expected Int)" {
 			t.Errorf("Unexpected diagnostic 0: %s", res.Diagnostics[0].Message)
 		}
 	}

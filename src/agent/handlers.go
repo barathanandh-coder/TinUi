@@ -361,6 +361,31 @@ func parseDiagnostics(file string, errors []string) []Diagnostic {
 	return diags
 }
 
+func translateComponentDiagnostics(uri string, compilerDiags []compiler.ComponentDiagnostic) []Diagnostic {
+	var diags []Diagnostic
+	for _, d := range compilerDiags {
+		severity := "error"
+		if d.Severity == compiler.SeverityWarning {
+			severity = "warning"
+		}
+
+		msg := d.Message
+
+		diags = append(diags, Diagnostic{
+			ErrorCode:        string(d.Code),
+			Category:         "semantic",
+			Severity:         severity,
+			File:             uri,
+			Line:             d.Range.Start.Line,
+			Column:           d.Range.Start.Character,
+			Message:          msg,
+			ContextSnippet:   fmt.Sprintf("Expected: %s, Actual: %s", d.ExpectedType, d.ActualType),
+			ASTNode:          d.ComponentName,
+		})
+	}
+	return diags
+}
+
 func handleCheck(ctx context.Context, req RequestEnvelope) {
 	select {
 	case <-ctx.Done():
@@ -391,7 +416,10 @@ func handleCheck(ctx context.Context, req RequestEnvelope) {
 
 	l := compiler.NewLexer(sourceCode)
 	p := compiler.NewParser(l)
-	p.Parse()
+	ast := p.ParseFileAST(uri)
+
+	// Ensure the workspace is updated with the latest AST for this file
+	GlobalWorkspace.AddFileAST(ast)
 
 	select {
 	case <-ctx.Done():
@@ -401,13 +429,10 @@ func handleCheck(ctx context.Context, req RequestEnvelope) {
 	}
 
 	diags := parseDiagnostics(params.Entry, p.Errors)
-	
+
 	// Add Semantic Diagnostics (Unresolved References)
 	unresolved := GlobalWorkspace.GetUnresolved()
 	for _, u := range unresolved {
-		// Only report for the file currently being checked, or report all?
-		// Usually we report all for the workspace, or filter by file.
-		// We'll filter by the file we are checking (uri).
 		if u.SourceID == uri || u.SourceID == "file://" + uri {
 			diags = append(diags, Diagnostic{
 				ErrorCode: "TIN-0005",
@@ -420,7 +445,13 @@ func handleCheck(ctx context.Context, req RequestEnvelope) {
 			})
 		}
 	}
-	
+
+	// Check component type signatures
+	typeChecker := compiler.NewComponentTypeChecker()
+	compDiags := typeChecker.CheckWorkspace(ast, GlobalWorkspace)
+
+	diags = append(diags, translateComponentDiagnostics(uri, compDiags)...)
+
 	status := "passed"
 	if len(diags) > 0 {
 		status = "failed"

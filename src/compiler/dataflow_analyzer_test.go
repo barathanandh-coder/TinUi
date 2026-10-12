@@ -134,3 +134,39 @@ func TestDataFlowAnalyzer(t *testing.T) {
 		t.Errorf("Expected Read edge from count to ref_b")
 	}
 }
+
+func TestDataFlowAnalyzerBranches(t *testing.T) {
+	source := `
+component Button(mode: String):
+    state role = "unknown"
+    state age = "18"
+
+    if role == "admin":
+        Text()
+    else:
+        Text()
+
+    if age == "18":
+        Text()
+`
+	lexer := NewLexer(source)
+	parser := NewParser(lexer)
+	ast := parser.ParseFileAST("file:///test.tin")
+
+	if len(parser.Errors) > 0 {
+		t.Fatalf("Parser failed: %v", parser.Errors)
+	}
+
+	analyzer := NewDataFlowAnalyzer()
+	graph := analyzer.Analyze(ast)
+
+	if len(graph.Diagnostics) > 0 {
+		t.Fatalf("Expected 0 diagnostics, got: %v", graph.Diagnostics)
+	}
+
+	// Verify the original facts are intact at the end
+	nodeRole := graph.Nodes["Button.role"]
+	if nodeRole.Type.Type.Kind != TypeUnknown {
+		t.Errorf("Expected role to be Unknown globally, got %s", nodeRole.Type.Type.Kind)
+	}
+}

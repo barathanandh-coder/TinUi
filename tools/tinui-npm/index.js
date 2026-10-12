@@ -18,7 +18,7 @@ if (command === 'init' || command === 'create' || command === 'new') {
 
     (async () => {
         console.log(`\n\x1b[1;36m+==============================================================================+\x1b[0m`);
-        console.log(`\x1b[1;36m|   \x1b[1;97m[*] TinPyUI v1.7.1 Project Scaffolding Wizard\x1b[1;36m                              |\x1b[0m`);
+        console.log(`\x1b[1;36m|   \x1b[1;97m[*] TinPyUI v1.8.0 Project Scaffolding Wizard\x1b[1;36m                              |\x1b[0m`);
         console.log(`\x1b[1;36m+==============================================================================+\x1b[0m\n`);
 
         let targetDirArg = process.argv[3] || '';
@@ -63,7 +63,7 @@ if (command === 'init' || command === 'create' || command === 'new') {
             process.exit(0);
         }
 
-        console.log(`\n\x1b[1;32m[+] Initializing fresh TinPyUI v1.6.1 project architecture in: ${targetDir}...\x1b[0m`);
+        console.log(`\n\x1b[1;32m[+] Initializing fresh TinPyUI v1.8.0 project architecture in: ${targetDir}...\x1b[0m`);
 
         const srcPath = path.join(targetDir, 'src');
         if (!fs.existsSync(srcPath)){
@@ -144,6 +144,9 @@ if (command === 'init' || command === 'create' || command === 'new') {
         const binDir = path.join(__dirname, 'bin');
         if (fs.existsSync(path.join(binDir, 'wasm_exec.js'))) {
             fs.copyFileSync(path.join(binDir, 'wasm_exec.js'), path.join(publicPath, 'wasm_exec.js'));
+        }
+        if (fs.existsSync(path.join(binDir, 'tin_wasm_engine.js'))) {
+            fs.copyFileSync(path.join(binDir, 'tin_wasm_engine.js'), path.join(publicPath, 'tin_wasm_engine.js'));
         }
         if (fs.existsSync(path.join(binDir, 'tinui_engine.wasm'))) {
             fs.copyFileSync(path.join(binDir, 'tinui_engine.wasm'), path.join(publicPath, 'tinui_engine.wasm'));

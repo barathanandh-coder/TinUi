@@ -828,5 +828,7 @@ let wasm_bindgen;
     }
 
     wasm_bindgen = Object.assign(__wbg_init, { initSync }, __exports);
+    if (typeof window !== 'undefined') window.wasm_bindgen = wasm_bindgen;
+    if (typeof globalThis !== 'undefined') globalThis.wasm_bindgen = wasm_bindgen;
 
 })();

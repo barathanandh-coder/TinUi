@@ -1,0 +1,10 @@
+# A.6 Test Example 01: Declarative Conditional
+# Demonstrates basic if/else branch rendering and branch environment isolation.
+
+component StatusBanner():
+    state status = "online"
+
+    if status == "online":
+        Text(text="System Operational")
+    else:
+        Text(text="System Offline")

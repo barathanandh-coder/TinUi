@@ -1,0 +1,11 @@
+# A.6 Test Example 05: State-Derived Flow
+# Demonstrates state values and data-flow dependencies analyzed inside branch scopes.
+
+component CounterStatus():
+    state base_count = 10
+    state status = "ready"
+
+    if status == "ready":
+        Text(text="Counter Ready for Processing")
+    else:
+        Text(text="Counter Inactive")

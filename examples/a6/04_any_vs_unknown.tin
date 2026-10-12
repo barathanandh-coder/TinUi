@@ -1,0 +1,10 @@
+# A.6 Test Example 04: Any vs Unknown
+# Demonstrates sound type narrowing of dynamic input guarded by an equality check.
+
+component ProfileCard():
+    state dynamic_input = "{profile_field}"
+
+    if dynamic_input == "verified":
+        Text(text="Verified Account Profile")
+    else:
+        Text(text="Unverified Guest Profile")

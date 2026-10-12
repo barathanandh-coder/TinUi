@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"fmt"
+	"strings"
 )
 
 type DiagnosticSeverity int
@@ -47,6 +48,10 @@ func (c *ComponentTypeChecker) CheckWorkspace(ast *FileAST, workspace *SemanticW
 		return diagnostics
 	}
 
+	// A.6 Contextual Data-Flow Graph
+	dfAnalyzer := NewDataFlowAnalyzer()
+	dfGraph := dfAnalyzer.Analyze(ast)
+
 	// 1. Build local import resolution map
 	importMap := make(map[string]string)
 	for _, imp := range ast.Imports {
@@ -67,14 +72,15 @@ func (c *ComponentTypeChecker) CheckWorkspace(ast *FileAST, workspace *SemanticW
 	// 2. Traverse all RootNodes in all components and check invocations
 	for _, comp := range ast.Components {
 		for _, rootNode := range comp.RootNodes {
-			c.checkNode(rootNode, resolveTargetID, workspace, visiting, &diagnostics)
+			env := NewFlowEnvironment(nil)
+			c.checkNode(comp.Name, rootNode, resolveTargetID, workspace, visiting, &diagnostics, env, dfGraph)
 		}
 	}
 
 	return diagnostics
 }
 
-func (c *ComponentTypeChecker) checkNode(node ASTNode, resolveTargetID func(string) string, workspace *SemanticWorkspace, visiting map[string]bool, diagnostics *[]ComponentDiagnostic) {
+func (c *ComponentTypeChecker) checkNode(compName string, node ASTNode, resolveTargetID func(string) string, workspace *SemanticWorkspace, visiting map[string]bool, diagnostics *[]ComponentDiagnostic, env *FlowEnvironment, graph *DataFlowGraph) {
 	if node == nil {
 		return
 	}
@@ -103,30 +109,65 @@ func (c *ComponentTypeChecker) checkNode(node ASTNode, resolveTargetID func(stri
 					ComponentName: n.Name,
 				})
 			} else {
-				c.validateInvocation(n, sym.Props, diagnostics)
+				c.validateInvocation(compName, n, sym.Props, diagnostics, env, graph)
 			}
 		}
 		
 		for _, child := range n.Children {
-			c.checkNode(child, resolveTargetID, workspace, visiting, diagnostics)
+			c.checkNode(compName, child, resolveTargetID, workspace, visiting, diagnostics, env, graph)
 		}
 	case *ConditionalNode:
+		stateKey := fmt.Sprintf("%s.%s", compName, n.ConditionVar)
+
+		trueEnv := env.Clone()
+		falseEnv := env.Clone()
+
+		var currentType TypeResult
+		if t, ok := env.Get(stateKey); ok {
+			currentType = t
+		} else if gNode, ok := graph.Nodes[stateKey]; ok {
+			currentType = gNode.Type
+		} else {
+			currentType = TypeResult{Type: TinType{Kind: TypeUnknown}, Confidence: ConfidenceUnknown}
+		}
+
+		// Type Narrowing
+		if n.Operator == "==" || n.Operator == ">" || n.Operator == "<" || n.Operator == ">=" || n.Operator == "<=" {
+			litRes := InferLiteral(n.Value, n.Range)
+			if litRes.Type.Kind == TypeUnknown && n.Value != "" {
+				otherKey := fmt.Sprintf("%s.%s", compName, n.Value)
+				if otherType, ok := env.Get(otherKey); ok {
+					litRes = otherType
+				} else if otherNode, ok := graph.Nodes[otherKey]; ok {
+					litRes = otherNode.Type
+				} else {
+					litRes = InferLiteral(`"`+n.Value+`"`, n.Range)
+				}
+			}
+			if currentType.Type.Kind == TypeAny || currentType.Type.Kind == TypeUnknown {
+				if litRes.Type.Kind != TypeUnknown {
+					narrowedType := TypeResult{Type: TinType{Kind: litRes.Type.Kind}, Confidence: ConfidenceInferred}
+					trueEnv.Set(stateKey, narrowedType)
+				}
+			}
+		}
+
 		for _, child := range n.TrueBranch {
-			c.checkNode(child, resolveTargetID, workspace, visiting, diagnostics)
+			c.checkNode(compName, child, resolveTargetID, workspace, visiting, diagnostics, trueEnv, graph)
 		}
 		for _, child := range n.FalseBranch {
-			c.checkNode(child, resolveTargetID, workspace, visiting, diagnostics)
+			c.checkNode(compName, child, resolveTargetID, workspace, visiting, diagnostics, falseEnv, graph)
 		}
 	case *ForNode:
 		for _, child := range n.Body {
-			c.checkNode(child, resolveTargetID, workspace, visiting, diagnostics)
+			c.checkNode(compName, child, resolveTargetID, workspace, visiting, diagnostics, env, graph)
 		}
 	case *HiddenWrapperNode:
-		c.checkNode(n.Child, resolveTargetID, workspace, visiting, diagnostics)
+		c.checkNode(compName, n.Child, resolveTargetID, workspace, visiting, diagnostics, env, graph)
 	}
 }
 
-func (c *ComponentTypeChecker) validateInvocation(n *Node, props []PropDecl, diagnostics *[]ComponentDiagnostic) {
+func (c *ComponentTypeChecker) validateInvocation(compName string, n *Node, props []PropDecl, diagnostics *[]ComponentDiagnostic, env *FlowEnvironment, graph *DataFlowGraph) {
 	supplied := make(map[string]bool)
 	
 	// Map positional args to named props
@@ -144,7 +185,7 @@ func (c *ComponentTypeChecker) validateInvocation(n *Node, props []PropDecl, dia
 				})
 			}
 			supplied[propName] = true
-			c.validateProperty(n.Name, props[i], argVal, n.Range, diagnostics)
+			c.validateProperty(compName, n.Name, props[i], argVal, n.Range, diagnostics, env, graph)
 		} else {
 			*diagnostics = append(*diagnostics, ComponentDiagnostic{
 				Code:          CodeUnknownProperty,
@@ -191,7 +232,7 @@ func (c *ComponentTypeChecker) validateInvocation(n *Node, props []PropDecl, dia
 				PropertyName:  attrName,
 			})
 		} else {
-			c.validateProperty(n.Name, *matchedProp, attrVal, n.Range, diagnostics)
+			c.validateProperty(compName, n.Name, *matchedProp, attrVal, n.Range, diagnostics, env, graph)
 		}
 	}
 
@@ -214,7 +255,7 @@ func (c *ComponentTypeChecker) validateInvocation(n *Node, props []PropDecl, dia
 	}
 }
 
-func (c *ComponentTypeChecker) validateProperty(compName string, prop PropDecl, val string, rng Range, diagnostics *[]ComponentDiagnostic) {
+func (c *ComponentTypeChecker) validateProperty(parentCompName string, compName string, prop PropDecl, val string, rng Range, diagnostics *[]ComponentDiagnostic, env *FlowEnvironment, graph *DataFlowGraph) {
 	// Determine expected type
 	var expectedType TinType
 	if prop.TypeHint == "" {
@@ -225,6 +266,19 @@ func (c *ComponentTypeChecker) validateProperty(compName string, prop PropDecl, 
 
 	// Determine supplied type
 	suppliedRes := InferLiteral(val, rng)
+
+	// A.6 Contextual Binding Lookup
+	if suppliedRes.Type.Kind == TypeAny && strings.HasPrefix(val, "{") && strings.HasSuffix(val, "}") {
+		stateName := val[1 : len(val)-1]
+		stateKey := fmt.Sprintf("%s.%s", parentCompName, stateName)
+
+		if t, ok := env.Get(stateKey); ok {
+			suppliedRes = t
+		} else if gNode, ok := graph.Nodes[stateKey]; ok {
+			suppliedRes = gNode.Type
+		}
+	}
+
 	suppliedType := suppliedRes.Type
 
 	if !CheckAssignmentCompatibility(expectedType, suppliedType) {

@@ -1,0 +1,13 @@
+# A.6 Test Example 06: Cross-Component Context
+# Demonstrates component invocation and prop passing inside branch environments.
+
+component Badge(label: String):
+    Text(text="{label}")
+
+component UserDashboard():
+    state user_tier = "premium"
+
+    if user_tier == "premium":
+        Badge(label="Gold Tier Member")
+    else:
+        Badge(label="Standard Tier Member")

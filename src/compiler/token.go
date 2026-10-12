@@ -33,6 +33,8 @@ const (
 	ELSE      TokenType = "ELSE"
 	FOR       TokenType = "FOR"
 	IN        TokenType = "IN"
+	TRUE      TokenType = "TRUE"
+	FALSE     TokenType = "FALSE"
 
 	// Operators
 	OPERATOR TokenType = "OPERATOR"
@@ -50,6 +52,8 @@ var keywords = map[string]TokenType{
 	"else":      ELSE,
 	"for":       FOR,
 	"in":        IN,
+	"True":      TRUE,
+	"False":     FALSE,
 }
 
 func LookupIdent(ident string) TokenType {

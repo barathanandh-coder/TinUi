@@ -1,0 +1,14 @@
+# A.6 Test Example 02: Nested Conditional
+# Demonstrates hierarchical FlowEnvironment scoping and multi-level branch resolution.
+
+component RolePanel():
+    state role = "admin"
+    state access = "full"
+
+    if role == "admin":
+        if access == "full":
+            Text(text="Superuser Access Granted")
+        else:
+            Text(text="Restricted Admin Access")
+    else:
+        Text(text="Standard User View")

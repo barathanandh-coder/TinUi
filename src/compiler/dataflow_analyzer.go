@@ -37,6 +37,118 @@ type DataFlowGraph struct {
 	Diagnostics []TypeDiagnostic
 }
 
+// FlowEnvironment scopes type facts for branch-sensitive analysis
+type FlowEnvironment struct {
+	parent *FlowEnvironment
+	facts  map[string]TypeResult
+}
+
+func NewFlowEnvironment(parent *FlowEnvironment) *FlowEnvironment {
+	return &FlowEnvironment{
+		parent: parent,
+		facts:  make(map[string]TypeResult),
+	}
+}
+
+func (e *FlowEnvironment) Get(key string) (TypeResult, bool) {
+	if t, ok := e.facts[key]; ok {
+		return t, true
+	}
+	if e.parent != nil {
+		return e.parent.Get(key)
+	}
+	return TypeResult{}, false
+}
+
+func (e *FlowEnvironment) Set(key string, t TypeResult) {
+	e.facts[key] = t
+}
+
+func (e *FlowEnvironment) Clone() *FlowEnvironment {
+	child := NewFlowEnvironment(e)
+	return child
+}
+
+func MergeEnvironments(trueEnv, falseEnv, parentEnv *FlowEnvironment, rng Range, graph *DataFlowGraph) *FlowEnvironment {
+	merged := NewFlowEnvironment(parentEnv)
+
+	// Collect all unique keys from both branches
+	keys := make(map[string]bool)
+	for k := range trueEnv.facts {
+		keys[k] = true
+	}
+	for k := range falseEnv.facts {
+		keys[k] = true
+	}
+
+	for k := range keys {
+		tTrue, okTrue := trueEnv.facts[k]
+		if !okTrue {
+			if t, ok := parentEnv.Get(k); ok {
+				tTrue = t
+			} else if graph != nil && graph.Nodes[k] != nil {
+				tTrue = graph.Nodes[k].Type
+			} else {
+				tTrue = TypeResult{Type: TinType{Kind: TypeUnknown}, Confidence: ConfidenceUnknown}
+			}
+		}
+
+		tFalse, okFalse := falseEnv.facts[k]
+		if !okFalse {
+			if t, ok := parentEnv.Get(k); ok {
+				tFalse = t
+			} else if graph != nil && graph.Nodes[k] != nil {
+				tFalse = graph.Nodes[k].Type
+			} else {
+				tFalse = TypeResult{Type: TinType{Kind: TypeUnknown}, Confidence: ConfidenceUnknown}
+			}
+		}
+
+		mergedType := mergeTypes(tTrue, tFalse, rng, graph)
+		merged.Set(k, mergedType)
+	}
+
+	return merged
+}
+
+func mergeTypes(t1, t2 TypeResult, rng Range, graph *DataFlowGraph) TypeResult {
+	k1 := t1.Type.Kind
+	if k1 == "" {
+		k1 = TypeUnknown
+	}
+	k2 := t2.Type.Kind
+	if k2 == "" {
+		k2 = TypeUnknown
+	}
+
+	if k1 == k2 {
+		return t1
+	}
+
+	if k1 == TypeUnknown || k2 == TypeUnknown {
+		return TypeResult{Type: TinType{Kind: TypeUnknown}, Confidence: ConfidenceUnknown}
+	}
+
+	if k1 == TypeAny || k2 == TypeAny {
+		return TypeResult{Type: TinType{Kind: TypeAny}, Confidence: ConfidenceInferred}
+	}
+
+	// Float widens Int
+	if (k1 == TypeInt && k2 == TypeFloat) || (k1 == TypeFloat && k2 == TypeInt) {
+		return TypeResult{Type: TinType{Kind: TypeFloat}, Confidence: ConfidenceInferred}
+	}
+
+	// Conflict
+	diag := TypeDiagnostic{
+		Range:   rng,
+		Message: fmt.Sprintf("TypeMismatch: Conflicting branch types %s and %s", readableType(k1), readableType(k2)),
+	}
+	if graph != nil {
+		graph.Diagnostics = append(graph.Diagnostics, diag)
+	}
+	return TypeResult{Type: TinType{Kind: TypeUnknown}, Confidence: ConfidenceInferred, Diagnostic: &diag} // Merging conflict to Unknown per strict rules
+}
+
 // DataFlowAnalyzer orchestrates data-flow mapping
 type DataFlowAnalyzer struct {
 	graph *DataFlowGraph
@@ -245,4 +357,79 @@ func (a *DataFlowAnalyzer) analyzeComponent(comp *Component, ctx *AnalysisContex
 			}
 		}
 	}
+	// A.6 Phase: Traverse UI nodes with FlowEnvironment to enrich contextual facts
+	rootEnv := NewFlowEnvironment(nil)
+	a.analyzeUIBlock(comp.Name, comp.RootNodes, rootEnv)
+}
+
+func (a *DataFlowAnalyzer) analyzeUIBlock(compName string, nodes []ASTNode, env *FlowEnvironment) *FlowEnvironment {
+	currentEnv := env
+	for _, node := range nodes {
+		currentEnv = a.analyzeUINode(compName, node, currentEnv)
+	}
+	return currentEnv
+}
+
+func (a *DataFlowAnalyzer) analyzeUINode(compName string, node ASTNode, env *FlowEnvironment) *FlowEnvironment {
+	if node == nil {
+		return env
+	}
+
+	switch n := node.(type) {
+	case *Node:
+		a.analyzeUIBlock(compName, n.Children, env)
+		return env
+	case *ConditionalNode:
+		stateKey := fmt.Sprintf("%s.%s", compName, n.ConditionVar)
+
+		trueEnv := env.Clone()
+		falseEnv := env.Clone()
+
+		// 1. Fetch current known type
+		var currentType TypeResult
+		if t, ok := env.Get(stateKey); ok {
+			currentType = t
+		} else if gNode, ok := a.graph.Nodes[stateKey]; ok {
+			currentType = gNode.Type
+		} else {
+			currentType = TypeResult{Type: TinType{Kind: TypeUnknown}, Confidence: ConfidenceUnknown}
+		}
+
+		// 2. Type Narrowing (only if safe based on existing semantics)
+		// We only narrow on strict equality to a literal if the current type is Any/Unknown.
+		if n.Operator == "==" || n.Operator == ">" || n.Operator == "<" || n.Operator == ">=" || n.Operator == "<=" {
+			litRes := InferLiteral(n.Value, n.Range)
+			if litRes.Type.Kind == TypeUnknown && n.Value != "" {
+				otherKey := fmt.Sprintf("%s.%s", compName, n.Value)
+				if otherType, ok := env.Get(otherKey); ok {
+					litRes = otherType
+				} else if otherNode, ok := a.graph.Nodes[otherKey]; ok {
+					litRes = otherNode.Type
+				} else {
+					litRes = InferLiteral(`"`+n.Value+`"`, n.Range)
+				}
+			}
+			if currentType.Type.Kind == TypeAny || currentType.Type.Kind == TypeUnknown {
+				if litRes.Type.Kind != TypeUnknown {
+					narrowedType := TypeResult{Type: TinType{Kind: litRes.Type.Kind}, Confidence: ConfidenceInferred}
+					trueEnv.Set(stateKey, narrowedType)
+				}
+			}
+		}
+
+		// Traverse Branches
+		endTrueEnv := a.analyzeUIBlock(compName, n.TrueBranch, trueEnv)
+		endFalseEnv := a.analyzeUIBlock(compName, n.FalseBranch, falseEnv)
+
+		// Merge Post-Conditional Environment
+		return MergeEnvironments(endTrueEnv, endFalseEnv, env, n.Range, a.graph)
+
+	case *ForNode:
+		a.analyzeUIBlock(compName, n.Body, env)
+		return env
+	case *HiddenWrapperNode:
+		return a.analyzeUINode(compName, n.Child, env)
+	}
+
+	return env
 }

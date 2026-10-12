@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tinpyui-ff"
-version = "1.7.2"
+version = "1.8.0"
 description = "Hardware-Accelerated Omni-Platform UI Engine & Vector Graphics Pipeline"
 readme = "README.md"
 authors = [{ name = "Barathanandh", email = "barathanandsr@gmail.com" }]

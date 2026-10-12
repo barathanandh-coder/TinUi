@@ -117,6 +117,7 @@ func GenerateHydrationShell(blueprint IRBlueprint) string {
 		builder.WriteString("    <style>\n" + styles + "\n    </style>\n")
 	}
 
+	builder.WriteString("    <script src=\"tin_wasm_engine.js\"></script>\n")
 	builder.WriteString("    <script src=\"wasm_exec.js\"></script>\n")
 	builder.WriteString("    <script src=\"tin-runtime.js\"></script>\n")
 	builder.WriteString("</head>\n")

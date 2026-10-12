@@ -126,6 +126,31 @@ func compileTinProject() {
 		return
 	}
 
+	// ----------------------------------------------------
+	// Semantic Type Checking (A.4.6.6)
+	// ----------------------------------------------------
+	fileAST := &compiler.FileAST{
+		URI:        "file:///bundled.tin",
+		Components: astRoots,
+	}
+	workspace := compiler.NewSemanticWorkspace()
+	workspace.AddFileAST(fileAST)
+
+	checker := compiler.NewComponentTypeChecker()
+	diags := checker.CheckWorkspace(fileAST, workspace)
+	if len(diags) > 0 {
+		fmt.Println("[Compiler Warning] Semantic Diagnostics:")
+		for _, d := range diags {
+			// Provide human-friendly CLI messages
+			sev := "WARNING"
+			if d.Severity == compiler.SeverityError {
+				sev = "ERROR"
+			}
+			fmt.Printf("  - [%s] %s (Line %d, Column %d)\n", sev, d.Message, d.Range.Start.Line+1, d.Range.Start.Character+1)
+		}
+	}
+	// ----------------------------------------------------
+
 	gen := compiler.NewIRGenerator()
 	instructions := gen.Generate(astRoots)
 

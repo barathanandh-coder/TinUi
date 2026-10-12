@@ -28,6 +28,9 @@ var EmbeddedWasmExecJS []byte
 //go:embed src/runtime/js/tin-runtime.js
 var EmbeddedTinRuntimeJS []byte
 
+//go:embed src/runtime/js/tin_wasm_engine.js
+var EmbeddedTinWasmEngineJS []byte
+
 func main() {
 	if len(os.Args) < 2 {
 		printUsage()
@@ -342,7 +345,11 @@ func compileFile(inputFile, outDir, outputFile string, hydrate bool) bool {
 		}
 
 		runtimeJsFile := filepath.Join(outDir, "tin-runtime.js")
-		err = os.WriteFile(runtimeJsFile, []byte(DefaultTinRuntimeJS), 0644)
+		runtimeContent := DefaultTinRuntimeJS
+		if len(EmbeddedTinRuntimeJS) > 0 {
+			runtimeContent = string(EmbeddedTinRuntimeJS)
+		}
+		err = os.WriteFile(runtimeJsFile, []byte(runtimeContent), 0644)
 		if err != nil {
 			fmt.Printf("[Error] Error writing tin-runtime.js: %v\n", err)
 		} else {
@@ -664,7 +671,11 @@ func ensureWasmAssets(outDir string) {
 	appWasmDest := filepath.Join(outDir, "app.wasm")
 	tinuiWasmDest := filepath.Join(outDir, "tinui_engine.wasm")
 	tinRuntimeDest := filepath.Join(outDir, "tin-runtime.js")
+	tinWasmEngineDest := filepath.Join(outDir, "tin_wasm_engine.js")
 
+	if _, err := os.Stat(tinWasmEngineDest); os.IsNotExist(err) && len(EmbeddedTinWasmEngineJS) > 0 {
+		_ = os.WriteFile(tinWasmEngineDest, EmbeddedTinWasmEngineJS, 0644)
+	}
 	if _, err := os.Stat(wasmExecDest); os.IsNotExist(err) && len(EmbeddedWasmExecJS) > 0 {
 		_ = os.WriteFile(wasmExecDest, EmbeddedWasmExecJS, 0644)
 	}
@@ -900,38 +911,42 @@ const DefaultTinRuntimeJS = `// tin-runtime.js — TinPyUI v1.8.0 Runtime with D
     async function bootEngine() {
         try {
             ensureDiagnosticOverlay();
-            const res = await _tinWasmPromise;
-            if (!res) throw new Error("Could not load WebAssembly binary from candidate paths.");
-            const result = await WebAssembly.instantiateStreaming(res, go.importObject);
+            const irJSON = await _loadIR();
 
-            let canvas = document.getElementById('tin-canvas');
-            if (!canvas && document.body) {
-                canvas = document.createElement('canvas');
-                canvas.id = 'tin-canvas';
-                canvas.style.position = 'fixed';
-                canvas.style.top = '0';
-                canvas.style.left = '0';
-                canvas.style.width = '100vw';
-                canvas.style.height = '100vh';
-                canvas.style.display = 'block';
-                canvas.style.zIndex = '-1';
-                document.body.prepend(canvas);
-            }
-
-            if (canvas) {
-                const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
-                if (gl) {
-                    gl.clearColor(0.1, 0.1, 0.1, 1.0);
-                    gl.clear(gl.COLOR_BUFFER_BIT);
+            // 1. Rust WASM priority loader
+            const _bindgen = typeof wasm_bindgen === 'function' ? wasm_bindgen : (typeof window !== 'undefined' && typeof window.wasm_bindgen === 'function' ? window.wasm_bindgen : null);
+            if (_bindgen) {
+                for (const src of _tinWasmSources) {
+                    try {
+                        await _bindgen(src);
+                        if (typeof _bindgen.BootTinUI === 'function') {
+                            window.BootTinUI = _bindgen.BootTinUI;
+                            if (irJSON) {
+                                window.BootTinUI(irJSON);
+                            }
+                            console.info('[TinPyUI] Rust WebAssembly Core Engine v1.8.0 active (Zero-GC, 218KB).');
+                            return;
+                        }
+                    } catch (e) {}
                 }
             }
 
-            go.run(result.instance);
-            const irJSON = await _loadIR();
-            if (irJSON && typeof BootTinUI === 'function') {
-                BootTinUI(irJSON);
-            } else if (typeof BootTinUI !== 'function') {
-                throw new Error("BootTinUI wasm symbol not found on global scope.");
+            // 2. Go WASM loader fallback
+            const go = typeof Go === 'function' ? new Go() : null;
+            if (go) {
+                for (const src of _tinWasmSources) {
+                    try {
+                        const res = await fetch(src);
+                        if (res.ok) {
+                            const result = await WebAssembly.instantiateStreaming(res, go.importObject);
+                            go.run(result.instance);
+                            if (irJSON && typeof BootTinUI === 'function') {
+                                BootTinUI(irJSON);
+                            }
+                            return;
+                        }
+                    } catch (e) {}
+                }
             }
         } catch (err) {
             window.crash('Engine Boot Failure: ' + (err && (err.stack || err.message) ? (err.stack || err.message) : err));

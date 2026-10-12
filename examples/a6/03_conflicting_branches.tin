@@ -1,0 +1,11 @@
+# A.6 Test Example 03: Conflicting Branches
+# Demonstrates isolated branch analysis without facts leaking between siblings.
+
+component NotificationCard():
+    state mode = "preview"
+    state badge = "info"
+
+    if mode == "alert":
+        Text(text="Alert Notification")
+    else:
+        Text(text="Normal Notification")

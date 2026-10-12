@@ -1662,6 +1662,20 @@ void main() {
         }
     }
 
+    async function _loadJSONIR() {
+        const candidates = ['app.ir.json', 'showcase.ir.json', 'main.ir.json', 'index.ir.json', './app.ir.json', './showcase.ir.json', './main.ir.json', './index.ir.json'];
+        for (const p of candidates) {
+            try {
+                const res = await fetch(p + '?t=' + Date.now());
+                if (res.ok) {
+                    const text = await res.text();
+                    if (text && text.trim().startsWith('{')) return text;
+                }
+            } catch(e) {}
+        }
+        return null;
+    }
+
     async function _loadIR() {
         // Check binary candidates first (70% smaller and 5x faster hydration)
         const binCandidates = ['app.ir.bin', 'showcase.ir.bin', 'main.ir.bin', 'index.ir.bin', './app.ir.bin', './showcase.ir.bin', './main.ir.bin', './index.ir.bin'];
@@ -1680,25 +1694,32 @@ void main() {
             } catch(e) {}
         }
 
-        const candidates = ['app.ir.json', 'showcase.ir.json', 'main.ir.json', 'index.ir.json', './app.ir.json', './showcase.ir.json', './main.ir.json', './index.ir.json'];
-        for (const p of candidates) {
-            try {
-                const res = await fetch(p + '?t=' + Date.now());
-                if (res.ok) {
-                    const text = await res.text();
-                    if (text && text.trim().startsWith('{')) return text;
-                }
-            } catch(e) {}
-        }
-        return null;
+        return _loadJSONIR();
     }
 
     async function _reloadIRAndDOM() {
         const freshIR = await _loadIR();
         if (freshIR) {
             renderIRFallback(freshIR);
-            if (typeof BootTinUI === 'function') BootTinUI(typeof freshIR === 'string' ? freshIR : JSON.stringify(freshIR));
+            const jsonIR = typeof freshIR === 'string' ? freshIR : await _loadJSONIR();
+            if (jsonIR && typeof BootTinUI === 'function') BootTinUI(jsonIR);
         }
+    }
+
+    function _normalizeJSONIR(jsonStr) {
+        if (!jsonStr || typeof jsonStr !== 'string') return jsonStr;
+        try {
+            const data = JSON.parse(jsonStr);
+            if (data && Array.isArray(data.nodes)) {
+                for (const node of data.nodes) {
+                    if (node && node.op === 'APPEND_CHILD' && (node.parent === undefined || node.parent === null)) {
+                        node.parent = 0;
+                    }
+                }
+                return JSON.stringify(data);
+            }
+        } catch(e) {}
+        return jsonStr;
     }
 
     // =========================================================================
@@ -1707,9 +1728,25 @@ void main() {
     const _tinWasmSources = ["tinui_engine.wasm", "tin_wasm_engine_bg.wasm", "app.wasm", "./tinui_engine.wasm", "./tin_wasm_engine_bg.wasm", "./app.wasm"];
 
     async function bootEngine() {
-        const irText = await _loadIR();
-        if (irText) {
-            renderIRFallback(irText);
+        const irPayload = await _loadIR();
+        const jsonIR = typeof irPayload === 'string' ? irPayload : await _loadJSONIR();
+        if (jsonIR) {
+            try {
+                const parsedIR = JSON.parse(jsonIR);
+                if (parsedIR._tinpyui && parsedIR._tinpyui.runtime_abi !== 4) {
+                    const msg = `[TinPyUI Panic] Runtime ABI mismatch. Expected: 4, Got: ${parsedIR._tinpyui.runtime_abi}. Run: tinpyui build to regenerate.`;
+                    console.error(msg);
+                    const errorOverlay = document.getElementById('error-overlay');
+                    if (errorOverlay) {
+                        errorOverlay.style.display = 'block';
+                        document.getElementById('error-log').textContent = msg;
+                    }
+                    return; // Halt boot
+                }
+            } catch(e) {}
+        }
+        if (irPayload) {
+            renderIRFallback(irPayload);
         }
         initModernPrimitives();
 
@@ -1722,20 +1759,22 @@ void main() {
         }, 40);
 
         // 1. High-Performance Priority: Rust WASM Core Engine
-        if (typeof wasm_bindgen === 'function') {
+        const _bindgen = typeof wasm_bindgen === 'function' ? wasm_bindgen : (typeof window !== 'undefined' && typeof window.wasm_bindgen === 'function' ? window.wasm_bindgen : null);
+        if (_bindgen) {
             for (const src of _tinWasmSources) {
                 try {
-                    await wasm_bindgen(src);
-                    if (typeof wasm_bindgen.BootTinUI === 'function') {
-                        window.BootTinUI = wasm_bindgen.BootTinUI;
-                        window.TinUIMutateState = wasm_bindgen.TinUIMutateState;
-                        window.TinUIDispatchApi = wasm_bindgen.TinUIDispatchApi;
-                        window.TinUISnapshot = wasm_bindgen.TinUISnapshot;
-                        window.TinUIRestore = wasm_bindgen.TinUIRestore;
-                        window.TinUIReloadShader = wasm_bindgen.TinUIReloadShader;
-                        window.TinUICompileShader = wasm_bindgen.TinUICompileShader;
-                        if (irText) {
-                            window.BootTinUI(irText);
+                    await _bindgen(src);
+                    if (typeof _bindgen.BootTinUI === 'function') {
+                        window.BootTinUI = _bindgen.BootTinUI;
+                        window.TinUIMutateState = _bindgen.TinUIMutateState;
+                        window.TinUIDispatchApi = _bindgen.TinUIDispatchApi;
+                        window.TinUISnapshot = _bindgen.TinUISnapshot;
+                        window.TinUIRestore = _bindgen.TinUIRestore;
+                        window.TinUIReloadShader = _bindgen.TinUIReloadShader;
+                        window.TinUICompileShader = _bindgen.TinUICompileShader;
+                        if (jsonIR) {
+                            const normalizedIR = _normalizeJSONIR(jsonIR);
+                            window.BootTinUI(normalizedIR);
                             setTimeout(_tinMountAllEffects, 50);
                         }
                         console.info('[TinPyUI] Rust WebAssembly Core Engine v1.8.0 active (Zero-GC, 218KB).');
@@ -1754,8 +1793,8 @@ void main() {
                     if (res.ok) {
                         const result = await WebAssembly.instantiateStreaming(res, go.importObject);
                         go.run(result.instance);
-                        if (irText && typeof BootTinUI === 'function') {
-                            BootTinUI(irText);
+                        if (jsonIR && typeof BootTinUI === 'function') {
+                            BootTinUI(jsonIR);
                             setTimeout(_tinMountAllEffects, 50);
                         }
                         return;

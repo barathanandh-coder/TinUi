@@ -117,3 +117,86 @@ func TestComponentTypeChecker(t *testing.T) {
 		t.Errorf("Expected 1 UnresolvedComponentReference, got %d", diagMap["UnresolvedComponentReference"])
 	}
 }
+
+func TestA6BranchSensitiveNarrowing(t *testing.T) {
+	checker := NewComponentTypeChecker()
+	workspace := NewSemanticWorkspace()
+
+	fileBAST := &FileAST{
+		URI: "file://fileB.tin",
+		Components: []*Component{
+			{
+				Name: "AdultContent",
+				Props: []PropDecl{
+					{Name: "verified_age", TypeHint: "String"}, // Fails if narrowed to Int
+				},
+			},
+		},
+	}
+	workspace.AddFileAST(fileBAST)
+
+	ast := &FileAST{
+		URI: "file:///test.tin",
+		Imports: []*ImportDecl{
+			{Path: `"fileB.tin"`, Symbols: []string{"AdultContent"}},
+		},
+		Components: []*Component{
+			{
+				Name: "App",
+				States: []*StateDecl{
+					{Name: "age", Initial: "{dynamic_age}"}, // TypeAny
+				},
+				RootNodes: []ASTNode{
+					&Node{ // Succeeds outside branch! (Any is assignable to String)
+						Name: "AdultContent",
+						Attributes: map[string]string{
+							"verified_age": "{age}",
+						},
+					},
+					&ConditionalNode{
+						ConditionVar: "age",
+						Operator: ">",
+						Value: "18", // Infers TypeInt -> Narrows {age} to TypeInt
+						TrueBranch: []ASTNode{
+							&Node{ // Fails inside branch! Int is not assignable to String
+								Name: "AdultContent",
+								Attributes: map[string]string{
+									"verified_age": "{age}",
+								},
+							},
+						},
+						FalseBranch: []ASTNode{
+							&Node{ // Succeeds inside false branch (since > only narrows TrueBranch in our logic)
+								Name: "AdultContent",
+								Attributes: map[string]string{
+									"verified_age": "{age}",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	workspace.AddFileAST(ast)
+
+	diagnostics := checker.CheckWorkspace(ast, workspace)
+
+	diagMap := make(map[string]int)
+	for _, d := range diagnostics {
+		prefix := ""
+		for i, c := range d.Message {
+			if c == ':' {
+				prefix = d.Message[:i]
+				break
+			}
+		}
+		diagMap[prefix]++
+		t.Logf("Found diag: %s", d.Message)
+	}
+
+	// We expect exactly ONE TypeMismatch: the one INSIDE the true branch.
+	if diagMap["TypeMismatch"] != 1 {
+		t.Errorf("Expected 1 TypeMismatch inside branch, got %d", diagMap["TypeMismatch"])
+	}
+}
